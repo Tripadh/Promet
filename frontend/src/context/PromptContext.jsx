@@ -1,0 +1,131 @@
+import React, { createContext, useState } from 'react';
+import { promptService } from '../services/promptService';
+
+export const PromptContext = createContext(null);
+
+export const PromptProvider = ({ children }) => {
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [promptAnalysis, setPromptAnalysis] = useState(null);
+  const [currentPrompt, setCurrentPrompt] = useState('');
+  const [error, setError] = useState(null);
+  const [selectedMode, setSelectedMode] = useState('balanced');
+  const [historyRefreshTrigger, setHistoryRefreshTrigger] = useState(0);
+
+  // Metadata for the currently displayed result
+  const [activePromptId, setActivePromptId] = useState(null);
+  const [isPinned, setIsPinned] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
+
+  const improvePrompt = async (promptText, modeOverride) => {
+    setLoading(true);
+    setError(null);
+    setCurrentPrompt(promptText);
+    setResult(''); 
+    setPromptAnalysis(null);
+    setActivePromptId(null);
+    setIsPinned(false);
+    setIsFavorite(false);
+
+    try {
+      const modeToUse = modeOverride || selectedMode;
+
+      // Always analyze the original prompt before AI improvement.
+      // This keeps the analyzer visible even if the stream metadata is unavailable.
+      const analysis = await promptService.analyzePrompt(promptText);
+      setPromptAnalysis(analysis || null);
+
+      if (modeOverride && modeOverride !== selectedMode) {
+        setSelectedMode(modeOverride);
+      }
+
+      let streamedResult = "";
+
+      await promptService.improvePromptStream(
+        promptText,
+        modeToUse,
+        (token) => {
+          // Check if token is actually the final data object
+          if (typeof token === 'object' && token.done) {
+            setActivePromptId(token.id);
+            setIsPinned(token.pinned);
+            setIsFavorite(token.favorite);
+            setPromptAnalysis(token.analysis || analysis || null);
+          } else {
+            streamedResult += token;
+            setResult(streamedResult);
+          }
+        },
+        () => {
+          setHistoryRefreshTrigger(prev => prev + 1);
+        }
+      );
+
+      return streamedResult;
+      
+    } catch (err) {
+      setError(err.message || 'Error improving prompt');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadHistoryItem = (item) => {
+    setCurrentPrompt(item.originalPrompt);
+    setResult(item.improvedPrompt);
+    setPromptAnalysis(null);
+    setActivePromptId(item._id);
+    setIsPinned(item.pinned);
+    setIsFavorite(item.favorite);
+    setSelectedMode(item.mode || 'balanced');
+    setError(null);
+  };
+
+  const clearPrompt = () => {
+    setCurrentPrompt('');
+    setResult(null);
+    setPromptAnalysis(null);
+    setActivePromptId(null);
+    setIsPinned(false);
+    setIsFavorite(false);
+    setError(null);
+  };
+
+  const toggleActiveFavorite = async () => {
+    if (!activePromptId) return;
+    try {
+      const data = await promptService.toggleFavorite(activePromptId);
+      setIsFavorite(data.favorite);
+      setHistoryRefreshTrigger(prev => prev + 1);
+    } catch (err) {
+      alert("Failed to toggle favorite");
+    }
+  };
+
+  const toggleActivePin = async () => {
+    if (!activePromptId) return;
+    try {
+      const data = await promptService.togglePin(activePromptId);
+      setIsPinned(data.pinned);
+      setHistoryRefreshTrigger(prev => prev + 1);
+    } catch (err) {
+      alert("Failed to toggle pin");
+    }
+  };
+
+  return (
+    <PromptContext.Provider value={{ 
+      improvePrompt, loading, result, setResult, 
+      promptAnalysis, setPromptAnalysis,
+      currentPrompt, setCurrentPrompt, error, 
+      loadHistoryItem, clearPrompt,
+      historyRefreshTrigger,
+      activePromptId, isPinned, isFavorite,
+      toggleActiveFavorite, toggleActivePin,
+      selectedMode, setSelectedMode
+    }}>
+      {children}
+    </PromptContext.Provider>
+  );
+};
