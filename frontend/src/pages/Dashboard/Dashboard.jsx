@@ -4,6 +4,7 @@ import { useAuth } from '../../hooks/useAuth';
 import Sidebar from '../../components/ui/Sidebar';
 import PromptInputBar from '../../components/prompt/PromptInputBar';
 import { usePrompt } from '../../hooks/usePrompt';
+import './Dashboard.css';
 
 const Dashboard = () => {
   const { token, loading } = useAuth();
@@ -19,6 +20,11 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [hasStartedConversation, setHasStartedConversation] = useState(false);
+
+  useEffect(() => {
+    setHasStartedConversation(Boolean(result || currentPrompt));
+  }, [result, currentPrompt]);
 
   useEffect(() => {
     if (!loading && !token) {
@@ -31,6 +37,7 @@ const Dashboard = () => {
       return;
     }
 
+    setHasStartedConversation(true);
     setSelectedMode(payload.mode);
     await improvePrompt(payload.prompt, payload.mode);
   };
@@ -94,8 +101,8 @@ const Dashboard = () => {
       <Sidebar isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen((open) => !open)} />
 
       <div className="main-content">
-        <div className="content-container">
-          <div className="chat-container">
+        <div className={`content-container${hasStartedConversation ? ' conversation-started' : ' pre-conversation'}`}>
+          <div className={`chat-container${hasStartedConversation ? ' chat-active' : ' chat-welcome'}`}>
             {/* Output Area */}
             {result ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -250,12 +257,11 @@ const Dashboard = () => {
                   ) : null}
                 </div>
               </div>
-            ) : (
-              <div style={{ margin: 'auto', color: '#8E8EA0', textAlign: 'center' }}>
-                <h2>AI Prompt Improver</h2>
-                <p>Type a prompt below to get an improved version.</p>
+            ) : !hasStartedConversation ? (
+              <div className="welcome-hero">
+                <h1>What&apos;s on the agenda today?</h1>
               </div>
-            )}
+            ) : null}
           </div>
 
           {/* Input Area */}
@@ -265,6 +271,7 @@ const Dashboard = () => {
               loading={promptLoading}
               onModeChange={setSelectedMode}
               onSubmit={handlePromptSubmit}
+              placeholder="Ask anything"
             />
           </div>
         </div>
