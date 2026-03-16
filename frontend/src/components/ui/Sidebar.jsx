@@ -3,7 +3,7 @@ import { usePrompt } from '../../hooks/usePrompt';
 import { useAuth } from '../../hooks/useAuth';
 import { promptService } from '../../services/promptService';
 
-const Sidebar = ({ isOpen, onToggle }) => {
+const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
   const { token, logout } = useAuth();
   const { loadHistoryItem, clearPrompt, historyRefreshTrigger } = usePrompt();
   
@@ -124,7 +124,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
         key={menuKey} 
         className={`history-item ${isActive ? 'active' : ''}`}
         title={item.originalPrompt}
-        onClick={() => loadHistoryItem(item)}
+        onClick={() => { onBeforeHistoryLoad?.(); loadHistoryItem(item); }}
       >
         <span className="history-item-text">
           {item.pinned && <span style={{ marginRight: '6px' }} title="Pinned">📌</span>}
@@ -318,6 +318,19 @@ const Sidebar = ({ isOpen, onToggle }) => {
             </button>
 
             <div className="sidebar-rail-footer" title="Profile">TV</div>
+
+            <button
+              className="sidebar-signout-btn"
+              onClick={logout}
+              title="Sign out"
+              aria-label="Sign out"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+            </button>
           </div>
         )}
       </div>

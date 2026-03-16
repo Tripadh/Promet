@@ -70,13 +70,16 @@ body {
 /* Sidebar */
 .sidebar {
   width: 260px;
-  background-color: #171717;
+  background: rgba(15, 15, 15, 0.55);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
   padding: 10px;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  border-right: 1px solid #262626;
+  border-right: 1px solid rgba(255, 255, 255, 0.07);
   transition: width 0.24s ease, padding 0.24s ease, opacity 0.24s ease;
+  box-shadow: inset -1px 0 0 rgba(255,255,255,0.04);
 }
 
 .sidebar.closed {
@@ -116,18 +119,19 @@ body {
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  border: 1px solid #3a3a3a;
-  background: #202020;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.06);
   color: #d7d7d7;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  backdrop-filter: blur(8px);
 }
 
 .sidebar-toggle-btn:hover,
 .sidebar-reopen-btn:hover {
-  background: #2b2b2b;
+  background: rgba(255,255,255,0.12);
 }
 
 .sidebar-reopen-btn {
@@ -171,8 +175,33 @@ body {
 }
 
 .sidebar-rail-btn:hover {
-  background: #2b2b2b;
-  border-color: #3a3a3a;
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.12);
+}
+
+.sidebar-signout-btn {
+  margin-top: auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(231, 75, 75, 0.12);
+  color: #f38ba8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+
+.sidebar-signout-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.sidebar-signout-btn:hover {
+  background: rgba(231, 75, 75, 0.28);
+  transform: translateY(-1px);
 }
 
 .sidebar-rail-footer {
@@ -402,10 +431,11 @@ body {
   align-items: center;
   gap: 10px;
   border-radius: 6px;
+  transition: background 0.18s ease;
 }
 
 .logout-btn:hover {
-  background-color: #2F2F2F;
+  background: rgba(255,255,255,0.07);
 }
 
 .sidebar-search-shell {
@@ -501,10 +531,11 @@ body {
   width: 100%;
   padding: 14px;
   border-radius: 28px;
-  border: 1px solid #4a4a4a;
-  background: rgba(47, 47, 47, 0.96);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 15, 15, 0.55);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
 }
 
 .prompt-input-textarea-shell {
