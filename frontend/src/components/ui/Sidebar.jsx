@@ -1,10 +1,35 @@
+import './Sidebar.css';
 import React, { useEffect, useState } from 'react';
 import { usePrompt } from '../../hooks/usePrompt';
 import { useAuth } from '../../hooks/useAuth';
 import { promptService } from '../../services/promptService';
+import './SidebarAccountMenu.css';
+
+const SIDEBAR_ACCOUNT_MENU_ITEMS = [
+  { id: 'settings', label: 'Settings' },
+  { id: 'help', label: 'Get help' },
+  { id: 'divider-1', divider: true },
+  { id: 'upgrade', label: 'Upgrade plan' },
+  { id: 'learn', label: 'Learn more', hasArrow: true },
+  { id: 'divider-2', divider: true },
+  { id: 'logout', label: 'Log out', danger: true },
+];
+
+const LEARN_MORE_LINKS = [
+  {
+    id: 'usage-policy',
+    label: 'Usage policy',
+    href: 'https://www.anthropic.com/legal/aup',
+  },
+  {
+    id: 'privacy-policy',
+    label: 'Privacy policy',
+    href: 'https://www.anthropic.com/legal/privacy',
+  },
+];
 
 const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
-  const { token, logout } = useAuth();
+  const { token, user, logout } = useAuth();
   const { loadHistoryItem, clearPrompt, historyRefreshTrigger } = usePrompt();
   
   const [prompts, setPrompts] = useState([]);
@@ -18,6 +43,8 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
   const [activeMenuId, setActiveMenuId] = useState(null);
   const [promptToDelete, setPromptToDelete] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
+  const [isLearnMoreOpen, setIsLearnMoreOpen] = useState(false);
 
   const fetchHistory = async (page = 1) => {
     if (!token) return;
@@ -57,7 +84,11 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
   }, [historyRefreshTrigger]);
 
   useEffect(() => {
-    const handleClickOutside = () => setActiveMenuId(null);
+    const handleClickOutside = () => {
+      setActiveMenuId(null);
+      setIsAccountMenuOpen(false);
+      setIsLearnMoreOpen(false);
+    };
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
@@ -81,6 +112,20 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
   const handleNewPrompt = () => {
     fetchHistory(1);
     clearPrompt();
+  };
+
+  const handleAccountMenuAction = (id) => {
+    if (id === 'learn') {
+      setIsLearnMoreOpen((open) => !open);
+      return;
+    }
+
+    setIsAccountMenuOpen(false);
+    setIsLearnMoreOpen(false);
+
+    if (id === 'logout') {
+      logout();
+    }
   };
 
   const handleDelete = async () => {
@@ -200,6 +245,9 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
   const filteredPinnedPrompts = filterBySearch(pinnedPrompts);
   const filteredFavoritePrompts = filterBySearch(favoritePrompts);
   const filteredRecentPrompts = filterBySearch(prompts);
+  const displayEmail = user?.email || 'account@promet.ai';
+  const displayName = user?.name || 'Account';
+  const avatarLabel = String(displayName || 'A').trim().charAt(0).toUpperCase() || 'A';
 
   return (
     <>
@@ -296,9 +344,82 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
               </div>
             )}
 
-            <div style={{ marginTop: 'auto', paddingTop: '10px', borderTop: '1px solid #444' }}>
-              <button className="logout-btn" onClick={logout} style={{ width: '100%' }}>
-                Sign Out
+            <div className="sidebar-account-shell">
+              {isAccountMenuOpen ? (
+                <div className="sidebar-account-menu" onClick={(event) => event.stopPropagation()}>
+                  <div className="sidebar-account-header">
+                    <p>{displayEmail}</p>
+                  </div>
+                  <ul className="sidebar-account-menu-list">
+                    {SIDEBAR_ACCOUNT_MENU_ITEMS.map((item) => {
+                      if (item.divider) {
+                        return <li key={item.id} className="sidebar-account-divider" />;
+                      }
+
+                      return (
+                        <li key={item.id}>
+                          <button
+                            type="button"
+                            className={`sidebar-account-item${item.danger ? ' danger' : ''}${item.id === 'learn' && isLearnMoreOpen ? ' is-open' : ''}`}
+                            onClick={() => handleAccountMenuAction(item.id)}
+                          >
+                            <span>{item.label}</span>
+                            {item.hasArrow ? (
+                              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+                            ) : null}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+
+                  {isLearnMoreOpen ? (
+                    <aside className="sidebar-account-sidepanel" aria-label="Learn more links">
+                      <ul className="sidebar-account-sidepanel-list">
+                        {LEARN_MORE_LINKS.map((link) => (
+                          <li key={link.id}>
+                            <a
+                              className="sidebar-account-subitem"
+                              href={link.href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={() => {
+                                setIsAccountMenuOpen(false);
+                                setIsLearnMoreOpen(false);
+                              }}
+                            >
+                              <span>{link.label}</span>
+                              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7"/><path d="M10 14 21 3"/><path d="M21 14v7h-7"/><path d="M3 10v11h11"/></svg>
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </aside>
+                  ) : null}
+                </div>
+              ) : null}
+
+              <button
+                type="button"
+                className="sidebar-account-trigger"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setIsAccountMenuOpen((open) => {
+                    if (open) {
+                      setIsLearnMoreOpen(false);
+                    }
+                    return !open;
+                  });
+                }}
+                aria-label="Open account menu"
+                aria-expanded={isAccountMenuOpen}
+              >
+                <span className="sidebar-account-avatar">{avatarLabel}</span>
+                <span className="sidebar-account-text">
+                  <strong>{displayName}</strong>
+                  <small>{displayEmail}</small>
+                </span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
               </button>
             </div>
           </>
@@ -323,19 +444,16 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
               </svg>
             </button>
 
-            <div className="sidebar-rail-footer" title="Profile">TV</div>
-
-            <button
-              className="sidebar-signout-btn"
-              onClick={logout}
-              title="Sign out"
-              aria-label="Sign out"
+            <button 
+              className="sidebar-rail-footer" 
+              title={displayName}
+              onClick={() => {
+                onToggle();
+                setIsAccountMenuOpen(true);
+              }}
+              aria-label="Account menu"
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                <polyline points="16 17 21 12 16 7"></polyline>
-                <line x1="21" y1="12" x2="9" y2="12"></line>
-              </svg>
+              {avatarLabel}
             </button>
           </div>
         )}

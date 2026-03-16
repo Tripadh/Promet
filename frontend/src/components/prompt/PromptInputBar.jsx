@@ -1,3 +1,4 @@
+import './PromptInputBar.css';
 import React, { useEffect, useRef, useState } from 'react';
 import DropdownMenu from './DropdownMenu';
 import PromptModeSelector from './PromptModeSelector';
@@ -277,19 +278,6 @@ const PromptInputBar = ({
       ) : null}
 
       <div className="prompt-input-bar">
-        <button
-          type="button"
-          className="prompt-input-icon-button"
-          onClick={() => {
-            setIsModeSelectorOpen(false);
-            setIsDropdownOpen((open) => !open);
-          }}
-          aria-label="Open prompt actions"
-          aria-expanded={isDropdownOpen}
-        >
-          <PlusIcon />
-        </button>
-
         <div className="prompt-input-textarea-shell">
           <textarea
             ref={textareaRef}
@@ -300,48 +288,63 @@ const PromptInputBar = ({
             placeholder={placeholder}
             rows="1"
           />
-          <div className="prompt-input-meta-row">
-            <button
-              type="button"
-              className="prompt-input-mode-pill prompt-mode-trigger"
-              onClick={() => {
-                setIsDropdownOpen(false);
-                setIsModeSelectorOpen((open) => !open);
-              }}
-              aria-label="Select prompt mode"
-              aria-expanded={isModeSelectorOpen}
-            >
-              <span>{selectedModeLabel}</span>
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="m6 9 6 6 6-6" />
-              </svg>
-            </button>
-            {speechStatus ? <span className="prompt-input-status">{speechStatus}</span> : null}
-          </div>
-        </div>
+          <div className="prompt-input-bottom-row">
+            <div className="prompt-input-left-actions">
+              <button
+                type="button"
+                className="prompt-plus-inline"
+                onClick={() => {
+                  setIsModeSelectorOpen(false);
+                  setIsDropdownOpen((open) => !open);
+                }}
+                aria-label="Open prompt actions"
+                aria-expanded={isDropdownOpen}
+              >
+                <PlusIcon />
+              </button>
+              {speechStatus ? <span className="prompt-input-status">{speechStatus}</span> : null}
+            </div>
 
-        <div className="prompt-input-actions">
-          {hasPromptText ? (
-            <button
-              type="button"
-              className="prompt-send-button"
-              onClick={handleSubmit}
-              disabled={loading || !hasPromptText}
-              aria-label="Send prompt"
-            >
-              <SendIcon />
-            </button>
-          ) : (
-            <button
-              type="button"
-              className={`prompt-input-icon-button${isListening ? ' is-active' : ''}`}
-              onClick={handleMicrophoneToggle}
-              aria-label={isListening ? 'Stop voice input' : 'Start voice input'}
-              title={speechSupported ? (isListening ? 'Stop voice input' : 'Start voice input') : 'Speech recognition unavailable'}
-            >
-              <MicIcon />
-            </button>
-          )}
+            <div className="prompt-input-right-actions">
+              <button
+                type="button"
+                className="prompt-input-mode-pill prompt-mode-trigger"
+                onClick={() => {
+                  setIsDropdownOpen(false);
+                  setIsModeSelectorOpen((open) => !open);
+                }}
+                aria-label="Select prompt mode"
+                aria-expanded={isModeSelectorOpen}
+              >
+                <span>{selectedModeLabel}</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </button>
+
+              {hasPromptText ? (
+                <button
+                  type="button"
+                  className="prompt-send-button"
+                  onClick={handleSubmit}
+                  disabled={loading || !hasPromptText}
+                  aria-label="Send prompt"
+                >
+                  <SendIcon />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className={`prompt-input-icon-button${isListening ? ' is-active' : ''}`}
+                  onClick={handleMicrophoneToggle}
+                  aria-label={isListening ? 'Stop voice input' : 'Start voice input'}
+                  title={speechSupported ? (isListening ? 'Stop voice input' : 'Start voice input') : 'Speech recognition unavailable'}
+                >
+                  <MicIcon />
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

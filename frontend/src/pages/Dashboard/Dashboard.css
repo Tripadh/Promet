@@ -68,8 +68,8 @@
 .pre-conversation .input-container {
   position: absolute;
   left: 50%;
-  width: min(1032px, calc(100% - 48px));
-  top: 62%;
+  width: min(var(--chat-box-max-width, 760px), calc(100% - 48px));
+  top: 64%;
   transform: translate(-50%, -50%);
   animation: promptDockIn 500ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
@@ -88,7 +88,7 @@
 .conversation-started.is-docking .input-container {
   position: absolute;
   left: 50%;
-  width: min(1032px, calc(100% - 48px));
+  width: min(var(--chat-box-max-width, 760px), calc(100% - 48px));
   top: 62%;
   bottom: auto;
   transform: translate(-50%, -50%);
@@ -111,7 +111,7 @@
 
 .pre-conversation .chat-container {
   justify-content: center;
-  align-items: center;
+  align-items: stretch;
   padding: 0 24px;
 }
 
@@ -122,7 +122,7 @@
 .chat-notice {
   z-index: 35;
   margin: 0 auto 8px;
-  width: min(1032px, calc(100% - 48px));
+  width: min(var(--chat-box-max-width, 760px), calc(100% - 48px));
   display: flex;
   align-items: center;
   gap: 10px;
@@ -212,16 +212,43 @@
 }
 
 .welcome-hero {
-  text-align: center;
+  width: min(var(--chat-box-max-width, 760px), calc(100% - 48px));
+  margin: 0 auto 92px auto;
+  text-align: left;
   color: #efefef;
-  margin-bottom: 126px;
   animation: welcomeRise 520ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+.welcome-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 2px;
+  color: #fff;
+  font-size: clamp(24px, 4vw, 36px);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.welcome-kicker-spark {
+  flex-shrink: 0;
+}
+
+.welcome-kicker-name {
+  background: linear-gradient(90deg, #e382b0 0%, #f5e171 33%, #80df8f 66%, #418df4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+}
+
 .welcome-hero h1 {
-  font-size: clamp(30px, 5.5vw, 44px);
+  font-size: clamp(38px, 5.4vw, 54px);
   font-weight: 500;
   letter-spacing: -0.02em;
+  color: #efefef;
+  line-height: 1.1;
+  margin: 0;
 }
 
 .user-prompt-meta-row {
@@ -440,8 +467,17 @@
 }
 
 @media (max-width: 640px) {
+  .welcome-kicker {
+    font-size: clamp(20px, 6vw, 28px);
+  }
+
+  .welcome-kicker-spark {
+    width: 14px;
+    height: 14px;
+  }
+
   .welcome-hero h1 {
-    font-size: clamp(24px, 7.5vw, 34px);
+    font-size: clamp(30px, 9vw, 40px);
   }
 
   .welcome-hero {
@@ -451,4 +487,32 @@
   .conversation-started .chat-container {
     padding-bottom: 146px;
   }
+}
+
+/* Result Box */
+.result-box {
+  background-color: #2F2F2F;
+  padding: 20px;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+.result-box p {
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+.copy-btn {
+  background-color: transparent;
+  color: #ECECEC;
+  border: 1px solid #555;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 15px;
+  font-size: 12px;
+}
+
+.copy-btn:hover {
+  background-color: #444;
 }

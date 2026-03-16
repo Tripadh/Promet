@@ -8,7 +8,7 @@ import { promptService } from '../../services/promptService';
 import './Dashboard.css';
 
 const Dashboard = () => {
-  const { token, loading } = useAuth();
+  const { token, loading, user } = useAuth();
   const {
     improvePrompt,
     loading: promptLoading,
@@ -45,6 +45,8 @@ const Dashboard = () => {
     const normalized = String(mode || 'balanced').toLowerCase();
     return normalized.charAt(0).toUpperCase() + normalized.slice(1);
   };
+
+  const displayName = user?.name || 'there';
 
   useEffect(() => {
     const hasContent = Boolean(result || currentPrompt);
@@ -416,7 +418,21 @@ const Dashboard = () => {
             {/* Output Area */}
             {!hasStartedConversation ? (
               <div className="welcome-hero">
-                <h1>What&apos;s on the agenda today?</h1>
+                <div className="welcome-kicker">
+                  <svg className="welcome-kicker-spark" viewBox="0 0 24 24" aria-hidden="true" width="28" height="28">
+                    <path d="M12 0C12 6.62742 17.3726 12 24 12C17.3726 12 12 17.3726 12 24C12 17.3726 6.62742 12 0 12C6.62742 12 12 6.62742 12 0Z" fill="url(#gemini-gradient)" />
+                    <defs>
+                      <linearGradient id="gemini-gradient" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stopColor="#418df4" />
+                        <stop offset="25%" stopColor="#80df8f" />
+                        <stop offset="50%" stopColor="#f5e171" />
+                        <stop offset="100%" stopColor="#e382b0" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  <span className="welcome-kicker-name">Hi {displayName}</span>
+                </div>
+                <h1>Where should we start?</h1>
               </div>
             ) : null}
 
@@ -744,7 +760,7 @@ const Dashboard = () => {
               loading={promptLoading}
               onModeChange={setSelectedMode}
               onSubmit={handlePromptSubmit}
-              placeholder="Ask anything"
+              placeholder="Ask Promet AI"
             />
           </div>
         </div>

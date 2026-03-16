@@ -4,25 +4,60 @@ import api from '../api';
 export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    const storedUser = localStorage.getItem('user');
+    if (!storedUser) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(storedUser);
+    } catch (error) {
+      return null;
+    }
+  });
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (token) {
-      setUser({ token });
-    } else {
-      setUser(null);
-    }
-    setLoading(false);
+    const syncUser = async () => {
+      if (!token) {
+        setUser(null);
+        localStorage.removeItem('user');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const res = await api.get('/auth/me');
+        const profile = res.data?.user || null;
+        setUser(profile);
+        if (profile) {
+          localStorage.setItem('user', JSON.stringify(profile));
+        }
+      } catch (error) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setToken(null);
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    syncUser();
   }, [token]);
 
   const login = async (email, password) => {
     const res = await api.post('/auth/login', { email, password });
     if (res.data.token) {
+      const profile = res.data.user || null;
       localStorage.setItem('token', res.data.token);
+      if (profile) {
+        localStorage.setItem('user', JSON.stringify(profile));
+      }
       setToken(res.data.token);
-      setUser({ token: res.data.token });
+      setUser(profile);
     }
     return res.data;
   };
@@ -34,6 +69,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     setToken(null);
     setUser(null);
   };
