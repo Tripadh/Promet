@@ -11,6 +11,7 @@ export const PromptProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [selectedMode, setSelectedMode] = useState('balanced');
   const [historyRefreshTrigger, setHistoryRefreshTrigger] = useState(0);
+  const [activeConversationId, setActiveConversationId] = useState(null);
 
   // Metadata for the currently displayed result
   const [activePromptId, setActivePromptId] = useState(null);
@@ -41,6 +42,8 @@ export const PromptProvider = ({ children }) => {
 
       let streamedResult = "";
 
+      const conversationIdToUse = activeConversationId || null;
+
       await promptService.improvePromptStream(
         promptText,
         modeToUse,
@@ -51,6 +54,7 @@ export const PromptProvider = ({ children }) => {
             setIsPinned(token.pinned);
             setIsFavorite(token.favorite);
             setPromptAnalysis(token.analysis || analysis || null);
+            setActiveConversationId(token.conversationId || conversationIdToUse);
           } else {
             streamedResult += token;
             setResult(streamedResult);
@@ -58,7 +62,8 @@ export const PromptProvider = ({ children }) => {
         },
         () => {
           setHistoryRefreshTrigger(prev => prev + 1);
-        }
+        },
+        conversationIdToUse
       );
 
       return streamedResult;
@@ -76,6 +81,7 @@ export const PromptProvider = ({ children }) => {
     setResult(item.improvedPrompt);
     setPromptAnalysis(null);
     setActivePromptId(item._id);
+    setActiveConversationId(item.conversationId || null);
     setIsPinned(item.pinned);
     setIsFavorite(item.favorite);
     setSelectedMode(item.mode || 'balanced');
@@ -87,6 +93,7 @@ export const PromptProvider = ({ children }) => {
     setResult(null);
     setPromptAnalysis(null);
     setActivePromptId(null);
+    setActiveConversationId(null);
     setIsPinned(false);
     setIsFavorite(false);
     setError(null);
@@ -123,7 +130,8 @@ export const PromptProvider = ({ children }) => {
       historyRefreshTrigger,
       activePromptId, isPinned, isFavorite,
       toggleActiveFavorite, toggleActivePin,
-      selectedMode, setSelectedMode
+      selectedMode, setSelectedMode,
+      activeConversationId
     }}>
       {children}
     </PromptContext.Provider>

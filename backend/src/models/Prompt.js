@@ -20,6 +20,12 @@ const promptSchema = new mongoose.Schema(
             trim: true,
         },
 
+        conversationId: {
+            type: String,
+            default: () => new mongoose.Types.ObjectId().toString(),
+            index: true,
+        },
+
         favorite: {
             type: Boolean,
             default: false,

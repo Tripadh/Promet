@@ -6,8 +6,11 @@ import Prompt from "../models/Prompt.js";
 
 export const improvePrompt = async (req, res) => {
   try {
-    const { prompt, mode = "balanced" } = req.body;
+    const { prompt, mode = "balanced", conversationId } = req.body;
     const selectedMode = normalizeMode(mode);
+    const conversationKey = typeof conversationId === "string" && conversationId.trim()
+      ? conversationId.trim()
+      : undefined;
 
     if (!prompt) {
       return res.status(400).json({
@@ -18,8 +21,9 @@ export const improvePrompt = async (req, res) => {
     // Analyze prompt before improvement
     const promptAnalysis = analyzeUserPrompt(prompt);
 
-    // Get streaming response from AI service
-    const stream = await improvePromptWithAI(prompt, selectedMode);
+    // Get complete improved prompt from AI service.
+    // Service assembles stream safely and validates output before returning.
+    const fullImprovedPrompt = await improvePromptWithAI(prompt, selectedMode);
 
     /* ================= SSE HEADERS ================= */
 
@@ -30,20 +34,8 @@ export const improvePrompt = async (req, res) => {
 
     res.flushHeaders();
 
-    let fullImprovedPrompt = "";
-
-    /* ================= STREAM TOKENS ================= */
-
-    for await (const chunk of stream) {
-      const token = chunk?.choices?.[0]?.delta?.content || "";
-
-      if (token) {
-        fullImprovedPrompt += token;
-
-        // Send token to frontend
-        res.write(`data: ${JSON.stringify({ text: token })}\n\n`);
-      }
-    }
+    // Send output as one complete chunk to prevent partial/truncated UI updates.
+    res.write(`data: ${JSON.stringify({ text: fullImprovedPrompt })}\n\n`);
 
     /* ================= FORMAT SAFETY ================= */
 
@@ -66,12 +58,13 @@ The prompt has been rewritten to improve clarity, structure, and instructions so
       originalPrompt: prompt,
       improvedPrompt: fullImprovedPrompt,
       mode: selectedMode,
+      conversationId: conversationKey,
       createdAt: new Date(),
     });
 
     /* ================= END STREAM ================= */
 
-    res.write(`data: ${JSON.stringify({ done: true, id: newPrompt._id, pinned: newPrompt.pinned, favorite: newPrompt.favorite, analysis: promptAnalysis })}\n\n`);
+    res.write(`data: ${JSON.stringify({ done: true, id: newPrompt._id, pinned: newPrompt.pinned, favorite: newPrompt.favorite, analysis: promptAnalysis, conversationId: newPrompt.conversationId })}\n\n`);
     res.end();
 
   } catch (error) {
@@ -97,12 +90,46 @@ export const getPromptHistory = async (req, res) => {
 
     const skip = (page - 1) * limit;
 
-    const prompts = await Prompt.find({ user: req.user.id })
-      .sort({ pinned: -1, createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
+    const groupedPrompts = await Prompt.aggregate([
+      { $match: { user: req.user._id } },
+      { $sort: { createdAt: -1 } },
+      {
+        $group: {
+          _id: "$conversationId",
+          latestPromptId: { $first: "$_id" },
+          originalPrompt: { $first: "$originalPrompt" },
+          improvedPrompt: { $first: "$improvedPrompt" },
+          mode: { $first: "$mode" },
+          createdAt: { $first: "$createdAt" },
+          updatedAt: { $first: "$updatedAt" },
+          pinned: { $max: "$pinned" },
+          favorite: { $max: "$favorite" },
+        },
+      },
+      { $sort: { pinned: -1, createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limit },
+    ]);
 
-    const total = await Prompt.countDocuments({ user: req.user.id });
+    const groupedCount = await Prompt.aggregate([
+      { $match: { user: req.user._id } },
+      { $group: { _id: "$conversationId" } },
+      { $count: "total" },
+    ]);
+
+    const prompts = groupedPrompts.map((item) => ({
+      _id: item.latestPromptId,
+      conversationId: item._id,
+      originalPrompt: item.originalPrompt,
+      improvedPrompt: item.improvedPrompt,
+      mode: item.mode,
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
+      pinned: item.pinned,
+      favorite: item.favorite,
+    }));
+
+    const total = groupedCount[0]?.total || 0;
 
     res.status(200).json({
       page,
@@ -158,8 +185,37 @@ export const deletePrompt = async (req, res) => {
 
 export const getPinnedPrompts = async (req, res) => {
   try {
-    const prompts = await Prompt.find({ user: req.user.id, pinned: true }).sort({ createdAt: -1 });
-    res.status(200).json(prompts);
+    const prompts = await Prompt.aggregate([
+      { $match: { user: req.user._id, pinned: true } },
+      { $sort: { createdAt: -1 } },
+      {
+        $group: {
+          _id: "$conversationId",
+          latestPromptId: { $first: "$_id" },
+          originalPrompt: { $first: "$originalPrompt" },
+          improvedPrompt: { $first: "$improvedPrompt" },
+          mode: { $first: "$mode" },
+          createdAt: { $first: "$createdAt" },
+          updatedAt: { $first: "$updatedAt" },
+          pinned: { $max: "$pinned" },
+          favorite: { $max: "$favorite" },
+        },
+      },
+      { $sort: { createdAt: -1 } },
+    ]);
+
+    const payload = prompts.map((item) => ({
+      _id: item.latestPromptId,
+      conversationId: item._id,
+      originalPrompt: item.originalPrompt,
+      improvedPrompt: item.improvedPrompt,
+      mode: item.mode,
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
+      pinned: item.pinned,
+      favorite: item.favorite,
+    }));
+    res.status(200).json(payload);
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch pinned prompts" });
   }
@@ -169,8 +225,38 @@ export const getPinnedPrompts = async (req, res) => {
 
 export const getFavoritePrompts = async (req, res) => {
   try {
-    const prompts = await Prompt.find({ user: req.user.id, favorite: true }).sort({ createdAt: -1 });
-    res.status(200).json(prompts);
+    const prompts = await Prompt.aggregate([
+      { $match: { user: req.user._id, favorite: true } },
+      { $sort: { createdAt: -1 } },
+      {
+        $group: {
+          _id: "$conversationId",
+          latestPromptId: { $first: "$_id" },
+          originalPrompt: { $first: "$originalPrompt" },
+          improvedPrompt: { $first: "$improvedPrompt" },
+          mode: { $first: "$mode" },
+          createdAt: { $first: "$createdAt" },
+          updatedAt: { $first: "$updatedAt" },
+          pinned: { $max: "$pinned" },
+          favorite: { $max: "$favorite" },
+        },
+      },
+      { $sort: { createdAt: -1 } },
+    ]);
+
+    const payload = prompts.map((item) => ({
+      _id: item.latestPromptId,
+      conversationId: item._id,
+      originalPrompt: item.originalPrompt,
+      improvedPrompt: item.improvedPrompt,
+      mode: item.mode,
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
+      pinned: item.pinned,
+      favorite: item.favorite,
+    }));
+
+    res.status(200).json(payload);
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch favorite prompts" });
   }

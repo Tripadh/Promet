@@ -52,6 +52,7 @@ const PromptInputBar = ({
   const textareaRef = useRef(null);
   const recognitionRef = useRef(null);
   const speechBaseTextRef = useRef('');
+  const speechHadErrorRef = useRef(false);
 
   useEffect(() => {
     setSelectedMode(initialMode);
@@ -70,8 +71,9 @@ const PromptInputBar = ({
     }
 
     const recognition = new SpeechRecognitionApi();
-    recognition.continuous = true;
+    recognition.continuous = false;
     recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
     recognition.lang = 'en-US';
 
     recognition.onstart = () => {
@@ -82,7 +84,7 @@ const PromptInputBar = ({
     recognition.onresult = (event) => {
       let transcript = '';
 
-      for (let index = 0; index < event.results.length; index += 1) {
+      for (let index = event.resultIndex; index < event.results.length; index += 1) {
         transcript += event.results[index][0].transcript;
       }
 
@@ -97,13 +99,33 @@ const PromptInputBar = ({
     };
 
     recognition.onerror = (event) => {
-      setSpeechStatus(event.error === 'not-allowed' ? 'Microphone access denied.' : 'Voice input failed.');
+      speechHadErrorRef.current = true;
+
+      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+        setSpeechStatus('Microphone permission denied. Allow mic access and try again.');
+      } else if (event.error === 'audio-capture') {
+        setSpeechStatus('No microphone detected. Check your audio input device.');
+      } else if (event.error === 'network') {
+        setSpeechStatus('Speech service network error. Check internet and retry.');
+      } else if (event.error === 'no-speech') {
+        setSpeechStatus('No speech detected. Try speaking a bit louder.');
+      } else if (event.error === 'aborted') {
+        setSpeechStatus('');
+      } else {
+        setSpeechStatus('Voice input failed. Please try again.');
+      }
+
       setIsListening(false);
     };
 
     recognition.onend = () => {
       setIsListening(false);
-      setSpeechStatus((currentStatus) => (currentStatus === 'Listening...' ? '' : currentStatus));
+
+      if (!speechHadErrorRef.current) {
+        setSpeechStatus('');
+      }
+
+      speechHadErrorRef.current = false;
     };
 
     recognitionRef.current = recognition;
@@ -194,6 +216,11 @@ const PromptInputBar = ({
       return;
     }
 
+    if (typeof window !== 'undefined' && !window.isSecureContext) {
+      setSpeechStatus('Voice input needs HTTPS or localhost.');
+      return;
+    }
+
     if (isListening) {
       recognitionRef.current.stop();
       setSpeechStatus('');
@@ -201,6 +228,7 @@ const PromptInputBar = ({
     }
 
     speechBaseTextRef.current = promptText.trim();
+    speechHadErrorRef.current = false;
     setSpeechStatus('');
 
     try {
