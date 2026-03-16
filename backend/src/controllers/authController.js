@@ -77,7 +77,11 @@ export const loginUser = async (req, res) => {
 
         res.json({
             token,
-            userId: user._id
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email
+            }
         });
 
     } catch (error) {
@@ -86,5 +90,29 @@ export const loginUser = async (req, res) => {
             message: "Server error"
         });
 
+    }
+};
+
+/* ================= GET CURRENT USER ================= */
+
+export const getCurrentUser = async (req, res) => {
+    try {
+        if (!req.user) {
+            return res.status(401).json({
+                message: "Not authorized"
+            });
+        }
+
+        return res.status(200).json({
+            user: {
+                id: req.user._id,
+                name: req.user.name,
+                email: req.user.email
+            }
+        });
+    } catch (error) {
+        return res.status(500).json({
+            message: "Server error"
+        });
     }
 };
