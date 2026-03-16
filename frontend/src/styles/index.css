@@ -141,6 +141,31 @@ body {
   z-index: 40;
 }
 
+@media (max-width: 960px) {
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: min(82vw, 320px);
+    min-width: min(82vw, 320px);
+    z-index: 1200;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 24px 50px rgba(0, 0, 0, 0.45);
+    transform: translateX(0);
+    transition: transform 0.24s ease;
+  }
+
+  .sidebar.closed {
+    width: min(82vw, 320px);
+    min-width: min(82vw, 320px);
+    padding: 10px;
+    opacity: 1;
+    transform: translateX(-106%);
+    pointer-events: none;
+  }
+}
+
 .sidebar.closed .sidebar-topbar {
   flex-direction: column;
   gap: 10px;
@@ -513,7 +538,7 @@ body {
 .prompt-input-bar-wrapper {
   position: relative;
   width: 100%;
-  max-width: 980px;
+  max-width: 1032px;
   margin: 0 auto;
 }
 
@@ -526,7 +551,8 @@ body {
 
 .prompt-input-bar {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
+  position: relative;
   gap: 12px;
   width: 100%;
   padding: 14px;
@@ -558,10 +584,65 @@ body {
   font-family: inherit;
   font-size: 16px;
   line-height: 1.5;
+  padding-right: 56px;
+  padding-bottom: 2px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(114, 114, 138, 0.9) transparent;
+  scrollbar-gutter: stable;
+}
+
+.prompt-input-textarea::-webkit-scrollbar {
+  width: 10px;
+}
+
+.prompt-input-textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.prompt-input-textarea::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(127, 127, 159, 0.9) 0%, rgba(95, 95, 124, 0.9) 100%);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.prompt-input-textarea::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(154, 154, 183, 0.95) 0%, rgba(111, 111, 140, 0.95) 100%);
 }
 
 .prompt-input-textarea::placeholder {
   color: #a6a6b2;
+}
+
+.prompt-input-actions {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.prompt-input-actions > button {
+  animation: promptActionSwapIn 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes promptActionSwapIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prompt-input-actions > button {
+    animation: none;
+  }
 }
 
 .prompt-input-meta-row {
@@ -570,6 +651,7 @@ body {
   justify-content: space-between;
   gap: 10px;
   min-height: 22px;
+  padding-right: 56px;
 }
 
 .prompt-input-mode-pill {

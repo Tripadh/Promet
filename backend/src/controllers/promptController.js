@@ -8,6 +8,7 @@ export const improvePrompt = async (req, res) => {
   try {
     const { prompt, mode = "balanced", conversationId } = req.body;
     const selectedMode = normalizeMode(mode);
+    const MAX_PROMPTS_PER_CONVERSATION = 5;
     const conversationKey = typeof conversationId === "string" && conversationId.trim()
       ? conversationId.trim()
       : undefined;
@@ -18,12 +19,43 @@ export const improvePrompt = async (req, res) => {
       });
     }
 
+    if (conversationKey) {
+      const existingCount = await Prompt.countDocuments({
+        user: req.user.id,
+        conversationId: conversationKey,
+      });
+
+      if (existingCount >= MAX_PROMPTS_PER_CONVERSATION) {
+        return res.status(400).json({
+          message: `This chat reached the ${MAX_PROMPTS_PER_CONVERSATION}-prompt limit. Start a new chat to continue.`,
+          code: "CONVERSATION_LIMIT_REACHED",
+          limit: MAX_PROMPTS_PER_CONVERSATION,
+        });
+      }
+    }
+
     // Analyze prompt before improvement
     const promptAnalysis = analyzeUserPrompt(prompt);
 
     // Get complete improved prompt from AI service.
     // Service assembles stream safely and validates output before returning.
     const fullImprovedPrompt = await improvePromptWithAI(prompt, selectedMode);
+
+    let finalImprovedPrompt = fullImprovedPrompt;
+
+    /* ================= FORMAT SAFETY ================= */
+
+    if (!finalImprovedPrompt.includes("## Improved Prompt")) {
+      finalImprovedPrompt = `## Improved Prompt
+
+\`\`\`
+${finalImprovedPrompt}
+\`\`\`
+
+## Why This Is Better
+
+The prompt has been rewritten to improve clarity, structure, and instructions so another AI system can execute the task more effectively.`;
+    }
 
     /* ================= SSE HEADERS ================= */
 
@@ -35,28 +67,14 @@ export const improvePrompt = async (req, res) => {
     res.flushHeaders();
 
     // Send output as one complete chunk to prevent partial/truncated UI updates.
-    res.write(`data: ${JSON.stringify({ text: fullImprovedPrompt })}\n\n`);
-
-    /* ================= FORMAT SAFETY ================= */
-
-    if (!fullImprovedPrompt.includes("## Improved Prompt")) {
-      fullImprovedPrompt = `## Improved Prompt
-
-\`\`\`
-${fullImprovedPrompt}
-\`\`\`
-
-## Why This Is Better
-
-The prompt has been rewritten to improve clarity, structure, and instructions so another AI system can execute the task more effectively.`;
-    }
+    res.write(`data: ${JSON.stringify({ text: finalImprovedPrompt })}\n\n`);
 
     /* ================= SAVE HISTORY ================= */
 
     const newPrompt = await Prompt.create({
       user: req.user.id,
       originalPrompt: prompt,
-      improvedPrompt: fullImprovedPrompt,
+      improvedPrompt: finalImprovedPrompt,
       mode: selectedMode,
       conversationId: conversationKey,
       createdAt: new Date(),
@@ -329,6 +347,38 @@ export const analyzePrompt = async (req, res) => {
     console.error("Analyze prompt error:", error);
     return res.status(500).json({
       message: "Failed to analyze prompt",
+    });
+  }
+};
+
+/* ================= GET CONVERSATION PROMPTS ================= */
+
+export const getConversationPrompts = async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+
+    if (!conversationId) {
+      return res.status(400).json({
+        message: "Conversation id is required",
+      });
+    }
+
+    const prompts = await Prompt.find({
+      user: req.user.id,
+      conversationId,
+    })
+      .sort({ createdAt: 1 })
+      .select("_id conversationId originalPrompt improvedPrompt mode pinned favorite createdAt updatedAt");
+
+    return res.status(200).json({
+      conversationId,
+      prompts,
+    });
+  } catch (error) {
+    console.error("Fetch conversation prompts error:", error);
+
+    return res.status(500).json({
+      message: "Failed to fetch conversation prompts",
     });
   }
 };

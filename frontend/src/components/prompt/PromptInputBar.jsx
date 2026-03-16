@@ -35,6 +35,7 @@ const SendIcon = () => (
 
 const PromptInputBar = ({
   initialMode = 'balanced',
+  draftPayload,
   loading = false,
   onMenuAction,
   onModeChange,
@@ -57,6 +58,24 @@ const PromptInputBar = ({
   useEffect(() => {
     setSelectedMode(initialMode);
   }, [initialMode]);
+
+  useEffect(() => {
+    if (!draftPayload?.text) {
+      return;
+    }
+
+    setPromptText(draftPayload.text);
+
+    requestAnimationFrame(() => {
+      if (!textareaRef.current) {
+        return;
+      }
+
+      textareaRef.current.focus();
+      const cursorPosition = draftPayload.text.length;
+      textareaRef.current.setSelectionRange(cursorPosition, cursorPosition);
+    });
+  }, [draftPayload]);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -178,6 +197,7 @@ const PromptInputBar = ({
   };
 
   const selectedModeLabel = PROMPT_MODES.find((mode) => mode.id === selectedMode)?.label || 'Balanced';
+  const hasPromptText = promptText.trim().length > 0;
 
   const handleSubmit = async () => {
     const trimmedPrompt = promptText.trim();
@@ -300,25 +320,29 @@ const PromptInputBar = ({
           </div>
         </div>
 
-        <button
-          type="button"
-          className={`prompt-input-icon-button${isListening ? ' is-active' : ''}`}
-          onClick={handleMicrophoneToggle}
-          aria-label={isListening ? 'Stop voice input' : 'Start voice input'}
-          title={speechSupported ? (isListening ? 'Stop voice input' : 'Start voice input') : 'Speech recognition unavailable'}
-        >
-          <MicIcon />
-        </button>
-
-        <button
-          type="button"
-          className="prompt-send-button"
-          onClick={handleSubmit}
-          disabled={loading || !promptText.trim()}
-          aria-label="Send prompt"
-        >
-          <SendIcon />
-        </button>
+        <div className="prompt-input-actions">
+          {hasPromptText ? (
+            <button
+              type="button"
+              className="prompt-send-button"
+              onClick={handleSubmit}
+              disabled={loading || !hasPromptText}
+              aria-label="Send prompt"
+            >
+              <SendIcon />
+            </button>
+          ) : (
+            <button
+              type="button"
+              className={`prompt-input-icon-button${isListening ? ' is-active' : ''}`}
+              onClick={handleMicrophoneToggle}
+              aria-label={isListening ? 'Stop voice input' : 'Start voice input'}
+              title={speechSupported ? (isListening ? 'Stop voice input' : 'Start voice input') : 'Speech recognition unavailable'}
+            >
+              <MicIcon />
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

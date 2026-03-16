@@ -273,6 +273,26 @@ const assembleStreamOutput = async (stream) => {
   return fullText.trim();
 };
 
+const buildDeterministicFallbackPrompt = (userPrompt = "", candidatePrompt = "") => {
+  const original = String(userPrompt || "").trim();
+  const candidate = String(candidatePrompt || "").trim();
+  const refined = candidate || original;
+
+  return `### Task
+Rewrite the prompt below while preserving user intent and improving clarity.
+
+### Constraints
+- Preserve the original intent.
+- Keep wording specific, concise, and actionable.
+- Avoid inventing requirements that are not requested.
+
+### Expected Output Format
+Return one improved prompt in clean Markdown.
+
+### Refined Prompt
+${refined}`.trim();
+};
+
 export const improvePromptWithAI = async (prompt, mode = "balanced") => {
 
   try {
@@ -291,14 +311,15 @@ export const improvePromptWithAI = async (prompt, mode = "balanced") => {
     const validated = validatePromptOutput(deduped, selectedMode);
 
     if (!validated.isValid) {
-      throw new Error(`Generated prompt failed validation: ${validated.errors.join(" ")}`);
+      console.warn(`Generated prompt failed validation: ${validated.errors.join(" ")}`);
+      return buildDeterministicFallbackPrompt(prompt, deduped);
     }
 
     return validated.cleanedPrompt;
 
   } catch (error) {
     console.error("Groq Error:", error);
-    throw new Error("AI generation failed");
+    return buildDeterministicFallbackPrompt(prompt);
   }
 
 };

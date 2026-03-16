@@ -4,6 +4,7 @@ import { useAuth } from '../../hooks/useAuth';
 import Sidebar from '../../components/ui/Sidebar';
 import PromptInputBar from '../../components/prompt/PromptInputBar';
 import { usePrompt } from '../../hooks/usePrompt';
+import { promptService } from '../../services/promptService';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -15,6 +16,10 @@ const Dashboard = () => {
     promptAnalysis,
     currentPrompt,
     selectedMode,
+    activeResultMode,
+    activeConversationId,
+    loadHistoryItem,
+    loadConversationThread,
     setSelectedMode,
   } = usePrompt();
   const navigate = useNavigate();
@@ -23,7 +28,15 @@ const Dashboard = () => {
   const [hasStartedConversation, setHasStartedConversation] = useState(false);
   const [isDockingComposer, setIsDockingComposer] = useState(false);
   const [messages, setMessages] = useState([]);
+  const [activePromptTimestamp, setActivePromptTimestamp] = useState(null);
+  const [draftPayload, setDraftPayload] = useState(null);
+  const [copiedInputKey, setCopiedInputKey] = useState(null);
   const [copiedMsgIdx, setCopiedMsgIdx] = useState(null);
+  const [outputFeedback, setOutputFeedback] = useState({});
+  const [chatNotice, setChatNotice] = useState(null);
+  const [isMobileViewport, setIsMobileViewport] = useState(
+    typeof window !== 'undefined' ? window.innerWidth <= 960 : false
+  );
   const hasContentRef = useRef(false);
   const skipDockingOnNextLoadRef = useRef(false);
   const chatEndRef = useRef(null);
@@ -82,8 +95,51 @@ const Dashboard = () => {
     }
   }, [token, loading, navigate]);
 
+  useEffect(() => {
+    if (!chatNotice) {
+      return undefined;
+    }
+
+    const timer = setTimeout(() => {
+      setChatNotice(null);
+    }, 3600);
+
+    return () => clearTimeout(timer);
+  }, [chatNotice]);
+
+  useEffect(() => {
+    const syncViewport = () => {
+      const isMobile = window.innerWidth <= 960;
+      setIsMobileViewport(isMobile);
+      if (isMobile) {
+        setIsSidebarOpen(false);
+      }
+    };
+
+    syncViewport();
+    window.addEventListener('resize', syncViewport);
+
+    return () => window.removeEventListener('resize', syncViewport);
+  }, []);
+
+  const showChatNotice = (message, tone = 'info') => {
+    setChatNotice({
+      id: Date.now(),
+      message,
+      tone,
+    });
+  };
+
   const handlePromptSubmit = async (payload) => {
+    const MAX_PROMPTS_PER_CHAT = 5;
+
     if (!payload?.prompt?.trim()) {
+      return;
+    }
+
+    const activeConversationPromptCount = messages.length + (currentPrompt ? 1 : 0);
+    if (activeConversationId && activeConversationPromptCount >= MAX_PROMPTS_PER_CHAT) {
+      showChatNotice(`This chat reached the ${MAX_PROMPTS_PER_CHAT}-prompt limit. Start a new chat to continue.`, 'warning');
       return;
     }
 
@@ -94,20 +150,135 @@ const Dashboard = () => {
           prompt: currentPrompt,
           result,
           analysis: promptAnalysis,
-          mode: selectedMode,
+          mode: activeResultMode,
+          timestamp: activePromptTimestamp || new Date(),
         },
       ]);
     }
 
     setSelectedMode(payload.mode);
-    await improvePrompt(payload.prompt, payload.mode);
+    setActivePromptTimestamp(payload.timestamp || new Date());
+    try {
+      await improvePrompt(payload.prompt, payload.mode);
+    } catch (error) {
+      showChatNotice(error?.message || 'Failed to improve prompt', 'error');
+    }
   };
 
-  const handleBeforeHistoryLoad = () => {
+  const resetConversationView = () => {
     setMessages([]);
     setCopiedMsgIdx(null);
+    setCopiedInputKey(null);
+    setActivePromptTimestamp(null);
+    setDraftPayload(null);
     skipDockingOnNextLoadRef.current = true;
     hasContentRef.current = false;
+  };
+
+  const handleBeforeHistoryLoad = async (item) => {
+    if (!item) {
+      resetConversationView();
+      return true;
+    }
+
+    resetConversationView();
+
+    if (!item.conversationId) {
+      loadHistoryItem(item);
+      setActivePromptTimestamp(item.createdAt || item.updatedAt || new Date());
+      return true;
+    }
+
+    try {
+      const data = await promptService.getConversationHistory(item.conversationId);
+      const conversationItems = Array.isArray(data?.prompts) ? data.prompts : [];
+
+      if (conversationItems.length === 0) {
+        loadHistoryItem(item);
+        setActivePromptTimestamp(item.createdAt || item.updatedAt || new Date());
+        return true;
+      }
+
+      const previousMessages = loadConversationThread(conversationItems);
+      setMessages(previousMessages);
+
+      const latestItem = conversationItems[conversationItems.length - 1];
+      setActivePromptTimestamp(latestItem?.createdAt || latestItem?.updatedAt || new Date());
+      return true;
+    } catch (error) {
+      loadHistoryItem(item);
+      setActivePromptTimestamp(item.createdAt || item.updatedAt || new Date());
+      return true;
+    }
+  };
+
+  const formatUserTime = (timestamp) => {
+    if (!timestamp) return '';
+    const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
+    if (Number.isNaN(date.getTime())) return '';
+    return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  };
+
+  const handleCopyInputPrompt = async (promptText, key) => {
+    if (!promptText) return;
+
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(promptText);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = promptText;
+        textArea.style.position = 'absolute';
+        textArea.style.left = '-999999px';
+        document.body.prepend(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+        } catch (error) {
+          console.error(error);
+        } finally {
+          textArea.remove();
+        }
+      }
+
+      setCopiedInputKey(key);
+      setTimeout(() => setCopiedInputKey((prev) => (prev === key ? null : prev)), 1400);
+    } catch (err) {
+      console.error('Failed to copy input prompt: ', err);
+    }
+  };
+
+  const handleRetryInputPrompt = async (promptText, mode) => {
+    if (!promptText || promptLoading) return;
+    await handlePromptSubmit({
+      prompt: promptText,
+      mode: mode || selectedMode,
+      timestamp: new Date(),
+    });
+  };
+
+  const handleEditInputPrompt = (promptText) => {
+    if (!promptText) return;
+
+    setDraftPayload({
+      text: promptText,
+      key: Date.now(),
+    });
+
+    const composerNode = document.querySelector('.input-container');
+    composerNode?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  };
+
+  const handleOutputReaction = (key, reaction) => {
+    setOutputFeedback((prev) => ({
+      ...prev,
+      [key]: reaction,
+    }));
+
+    showChatNotice(
+      reaction === 'up' ? 'Thanks for the feedback.' : 'Feedback noted. We will improve this output.',
+      'info'
+    );
   };
 
   const copyMessage = async (messageResult, idx) => {
@@ -216,6 +387,27 @@ const Dashboard = () => {
 
   return (
     <div className={`app-layout${isSidebarOpen ? '' : ' sidebar-collapsed'}`}>
+      {isMobileViewport && !isSidebarOpen ? (
+        <button
+          type="button"
+          className="mobile-sidebar-open-btn"
+          onClick={() => setIsSidebarOpen(true)}
+          aria-label="Open sidebar"
+          title="Open sidebar"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h18"/><path d="M3 6h18"/><path d="M3 18h18"/></svg>
+        </button>
+      ) : null}
+
+      {isMobileViewport && isSidebarOpen ? (
+        <button
+          type="button"
+          className="mobile-sidebar-backdrop"
+          onClick={() => setIsSidebarOpen(false)}
+          aria-label="Close sidebar"
+        />
+      ) : null}
+
       <Sidebar isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen((open) => !open)} onBeforeHistoryLoad={handleBeforeHistoryLoad} />
 
       <div className="main-content">
@@ -244,6 +436,22 @@ const Dashboard = () => {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     <div style={{ alignSelf: 'flex-end', backgroundColor: '#2F2F2F', padding: '15px 20px', borderRadius: '18px 18px 0 18px', maxWidth: '80%' }}>
                       <p>{msg.prompt}</p>
+                    </div>
+                    <div className="user-prompt-meta-row">
+                      <span className="user-prompt-time">{formatUserTime(msg.timestamp)}</span>
+                      <button type="button" className="user-prompt-action" onClick={() => handleRetryInputPrompt(msg.prompt, msg.mode)} title="Retry">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3.2-6.9"/><path d="M21 3v6h-6"/></svg>
+                      </button>
+                      <button type="button" className="user-prompt-action" onClick={() => handleEditInputPrompt(msg.prompt)} title="Edit">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                      </button>
+                      <button type="button" className="user-prompt-action" onClick={() => handleCopyInputPrompt(msg.prompt, `message-${idx}`)} title="Copy">
+                        {copiedInputKey === `message-${idx}` ? (
+                          <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                        ) : (
+                          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        )}
+                      </button>
                     </div>
                     <div style={{ backgroundColor: '#1e1e2e', borderRadius: '12px', border: '1px solid #313244', overflow: 'hidden' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#2a2b3c', padding: '12px 16px', borderBottom: '1px solid #313244' }}>
@@ -274,6 +482,34 @@ const Dashboard = () => {
                         <div style={{ fontSize: '14px', lineHeight: '1.7', whiteSpace: 'pre-wrap' }}>{msgReasonPart}</div>
                       </div>
                     )}
+                    <div className="output-message-actions">
+                      <button
+                        type="button"
+                        className={`output-message-action${outputFeedback[`msg-${idx}`] === 'up' ? ' is-active' : ''}`}
+                        title="Helpful"
+                        onClick={() => handleOutputReaction(`msg-${idx}`, 'up')}
+                      >
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10v11"/><path d="M11 10V5.2A2.2 2.2 0 0 1 13.2 3a2 2 0 0 1 2 2v5h4.1a2 2 0 0 1 2 2.3l-1 7A2 2 0 0 1 18.3 21H7"/><path d="M7 10H4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h3"/></svg>
+                      </button>
+                      <button
+                        type="button"
+                        className={`output-message-action${outputFeedback[`msg-${idx}`] === 'down' ? ' is-active' : ''}`}
+                        title="Not helpful"
+                        onClick={() => handleOutputReaction(`msg-${idx}`, 'down')}
+                      >
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 14V3"/><path d="M11 14v4.8A2.2 2.2 0 0 0 13.2 21a2 2 0 0 0 2-2v-5h4.1a2 2 0 0 0 2-2.3l-1-7A2 2 0 0 0 18.3 3H7"/><path d="M7 14H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3"/></svg>
+                      </button>
+                      <button type="button" className="output-message-action" title="Retry" onClick={() => handleRetryInputPrompt(msg.prompt, msg.mode)}>
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3.2-6.9"/><path d="M21 3v6h-6"/></svg>
+                      </button>
+                      <button type="button" className="output-message-action" title="Copy" onClick={() => copyMessage(msg.result, idx)}>
+                        {copiedMsgIdx === idx ? (
+                          <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                        ) : (
+                          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        )}
+                      </button>
+                    </div>
                   </div>
                   <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: '16px 0' }} />
                 </React.Fragment>
@@ -284,6 +520,22 @@ const Dashboard = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ alignSelf: 'flex-end', backgroundColor: '#2F2F2F', padding: '15px 20px', borderRadius: '18px 18px 0 18px', maxWidth: '80%' }}>
                   <p>{currentPrompt}</p>
+                </div>
+                <div className="user-prompt-meta-row">
+                  <span className="user-prompt-time">{formatUserTime(activePromptTimestamp)}</span>
+                  <button type="button" className="user-prompt-action" onClick={() => handleRetryInputPrompt(currentPrompt, activeResultMode)} title="Retry">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3.2-6.9"/><path d="M21 3v6h-6"/></svg>
+                  </button>
+                  <button type="button" className="user-prompt-action" onClick={() => handleEditInputPrompt(currentPrompt)} title="Edit">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                  </button>
+                  <button type="button" className="user-prompt-action" onClick={() => handleCopyInputPrompt(currentPrompt, 'active')} title="Copy">
+                    {copiedInputKey === 'active' ? (
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                    ) : (
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    )}
+                  </button>
                 </div>
                 <div className="result-box" style={{ alignSelf: 'flex-start', backgroundColor: 'transparent', padding: '0', maxWidth: '100%', marginTop: '0', display: 'flex', flexDirection: 'column', gap: '15px' }}>
                   {(() => {
@@ -317,7 +569,7 @@ const Dashboard = () => {
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                               <span style={{ color: '#a6adc8', fontSize: '14px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Improved Prompt</span>
                               <span style={{ padding: '4px 10px', borderRadius: '999px', backgroundColor: '#1b1c29', color: '#9ac6ff', fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.4px', border: '1px solid #3a3c52' }}>
-                                {formatModeLabel(selectedMode)}
+                                {formatModeLabel(activeResultMode)}
                               </span>
                             </div>
                             <button onClick={copyPrompt} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', color: '#a6adc8', cursor: 'pointer', fontSize: '14px', padding: '4px 8px', borderRadius: '4px', transition: 'color 0.2s' }}>
@@ -441,6 +693,34 @@ const Dashboard = () => {
                     </div>
                     </div>
                   ) : null}
+                  <div className="output-message-actions">
+                    <button
+                      type="button"
+                      className={`output-message-action${outputFeedback.active === 'up' ? ' is-active' : ''}`}
+                      title="Helpful"
+                      onClick={() => handleOutputReaction('active', 'up')}
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10v11"/><path d="M11 10V5.2A2.2 2.2 0 0 1 13.2 3a2 2 0 0 1 2 2v5h4.1a2 2 0 0 1 2 2.3l-1 7A2 2 0 0 1 18.3 21H7"/><path d="M7 10H4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h3"/></svg>
+                    </button>
+                    <button
+                      type="button"
+                      className={`output-message-action${outputFeedback.active === 'down' ? ' is-active' : ''}`}
+                      title="Not helpful"
+                      onClick={() => handleOutputReaction('active', 'down')}
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 14V3"/><path d="M11 14v4.8A2.2 2.2 0 0 0 13.2 21a2 2 0 0 0 2-2v-5h4.1a2 2 0 0 0 2-2.3l-1-7A2 2 0 0 0 18.3 3H7"/><path d="M7 14H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3"/></svg>
+                    </button>
+                    <button type="button" className="output-message-action" title="Retry" onClick={() => handleRetryInputPrompt(currentPrompt, activeResultMode)}>
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3.2-6.9"/><path d="M21 3v6h-6"/></svg>
+                    </button>
+                    <button type="button" className="output-message-action" title="Copy" onClick={copyPrompt}>
+                      {copied ? (
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                      ) : (
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
             ) : null}
@@ -449,8 +729,18 @@ const Dashboard = () => {
 
           {/* Input Area */}
           <div className="input-container">
+            {chatNotice ? (
+              <div className={`chat-notice toast-${chatNotice.tone}`} role="status" aria-live="polite" key={chatNotice.id}>
+                <div className="chat-notice-dot" aria-hidden="true" />
+                <p>{chatNotice.message}</p>
+                <button type="button" className="chat-notice-close" onClick={() => setChatNotice(null)} aria-label="Dismiss message">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12"/><path d="m18 6-12 12"/></svg>
+                </button>
+              </div>
+            ) : null}
             <PromptInputBar
               initialMode={selectedMode}
+              draftPayload={draftPayload}
               loading={promptLoading}
               onModeChange={setSelectedMode}
               onSubmit={handlePromptSubmit}

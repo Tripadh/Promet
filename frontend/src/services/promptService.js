@@ -22,6 +22,19 @@ export const promptService = {
       body: JSON.stringify({ prompt, mode, conversationId })
     });
 
+    if (!response.ok) {
+      let errorMessage = "Failed to improve prompt";
+
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData?.message || errorMessage;
+      } catch (error) {
+        // Keep fallback message when response body is not JSON.
+      }
+
+      throw new Error(errorMessage);
+    }
+
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
 
@@ -65,6 +78,11 @@ export const promptService = {
 
   getHistory: async (page = 1) => {
     const response = await api.get(`/prompts/history?page=${page}`);
+    return response.data;
+  },
+
+  getConversationHistory: async (conversationId) => {
+    const response = await api.get(`/prompts/history/conversation/${conversationId}`);
     return response.data;
   },
 

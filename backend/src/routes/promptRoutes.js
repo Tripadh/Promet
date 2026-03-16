@@ -1,5 +1,5 @@
 import express from "express";
-import { improvePrompt, analyzePrompt, getPromptHistory, deletePrompt, toggleFavorite, togglePin, getPinnedPrompts, getFavoritePrompts } from "../controllers/promptController.js";
+import { improvePrompt, analyzePrompt, getPromptHistory, getConversationPrompts, deletePrompt, toggleFavorite, togglePin, getPinnedPrompts, getFavoritePrompts } from "../controllers/promptController.js";
 import protect from "../middleware/authMiddleware.js";
 import { promptRateLimiter } from "../middleware/rateLimiter.js";
 
@@ -12,6 +12,7 @@ router.post("/analyze", promptRateLimiter, protect, analyzePrompt);
 
 // NEW: Get prompt history
 router.get("/history", protect, getPromptHistory);
+router.get("/history/conversation/:conversationId", protect, getConversationPrompts);
 
 // NEW: Get pinned/favorites for sidebar
 router.get("/pinned", protect, getPinnedPrompts);

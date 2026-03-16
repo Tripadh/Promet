@@ -10,6 +10,7 @@ export const PromptProvider = ({ children }) => {
   const [currentPrompt, setCurrentPrompt] = useState('');
   const [error, setError] = useState(null);
   const [selectedMode, setSelectedMode] = useState('balanced');
+  const [activeResultMode, setActiveResultMode] = useState('balanced');
   const [historyRefreshTrigger, setHistoryRefreshTrigger] = useState(0);
   const [activeConversationId, setActiveConversationId] = useState(null);
 
@@ -30,6 +31,7 @@ export const PromptProvider = ({ children }) => {
 
     try {
       const modeToUse = modeOverride || selectedMode;
+      setActiveResultMode(modeToUse);
 
       // Always analyze the original prompt before AI improvement.
       // This keeps the analyzer visible even if the stream metadata is unavailable.
@@ -85,7 +87,25 @@ export const PromptProvider = ({ children }) => {
     setIsPinned(item.pinned);
     setIsFavorite(item.favorite);
     setSelectedMode(item.mode || 'balanced');
+    setActiveResultMode(item.mode || 'balanced');
     setError(null);
+  };
+
+  const loadConversationThread = (items = []) => {
+    if (!Array.isArray(items) || items.length === 0) {
+      return [];
+    }
+
+    const latestItem = items[items.length - 1];
+    loadHistoryItem(latestItem);
+
+    return items.slice(0, -1).map((item) => ({
+      prompt: item.originalPrompt,
+      result: item.improvedPrompt,
+      analysis: null,
+      mode: item.mode || 'balanced',
+      timestamp: item.createdAt || item.updatedAt || new Date(),
+    }));
   };
 
   const clearPrompt = () => {
@@ -96,6 +116,7 @@ export const PromptProvider = ({ children }) => {
     setActiveConversationId(null);
     setIsPinned(false);
     setIsFavorite(false);
+    setActiveResultMode(selectedMode || 'balanced');
     setError(null);
   };
 
@@ -126,11 +147,12 @@ export const PromptProvider = ({ children }) => {
       improvePrompt, loading, result, setResult, 
       promptAnalysis, setPromptAnalysis,
       currentPrompt, setCurrentPrompt, error, 
-      loadHistoryItem, clearPrompt,
+      loadHistoryItem, loadConversationThread, clearPrompt,
       historyRefreshTrigger,
       activePromptId, isPinned, isFavorite,
       toggleActiveFavorite, toggleActivePin,
       selectedMode, setSelectedMode,
+      activeResultMode,
       activeConversationId
     }}>
       {children}

@@ -124,7 +124,13 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
         key={menuKey} 
         className={`history-item ${isActive ? 'active' : ''}`}
         title={item.originalPrompt}
-        onClick={() => { onBeforeHistoryLoad?.(); loadHistoryItem(item); }}
+        onClick={async () => {
+          const handled = await onBeforeHistoryLoad?.(item);
+          if (handled) {
+            return;
+          }
+          loadHistoryItem(item);
+        }}
       >
         <span className="history-item-text">
           {item.pinned && <span style={{ marginRight: '6px' }} title="Pinned">📌</span>}
