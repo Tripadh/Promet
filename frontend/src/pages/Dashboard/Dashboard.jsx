@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import Sidebar from '../../components/ui/Sidebar';
@@ -21,9 +21,32 @@ const Dashboard = () => {
   const [copied, setCopied] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [hasStartedConversation, setHasStartedConversation] = useState(false);
+  const [isDockingComposer, setIsDockingComposer] = useState(false);
+  const hasContentRef = useRef(false);
 
   useEffect(() => {
-    setHasStartedConversation(Boolean(result || currentPrompt));
+    const hasContent = Boolean(result || currentPrompt);
+
+    if (hasContent && !hasContentRef.current) {
+      setHasStartedConversation(true);
+      setIsDockingComposer(true);
+      hasContentRef.current = true;
+
+      const transitionTimer = setTimeout(() => {
+        setIsDockingComposer(false);
+      }, 520);
+
+      return () => clearTimeout(transitionTimer);
+    }
+
+    if (!hasContent) {
+      hasContentRef.current = false;
+      setIsDockingComposer(false);
+      setHasStartedConversation(false);
+      return;
+    }
+
+    hasContentRef.current = true;
   }, [result, currentPrompt]);
 
   useEffect(() => {
@@ -37,7 +60,6 @@ const Dashboard = () => {
       return;
     }
 
-    setHasStartedConversation(true);
     setSelectedMode(payload.mode);
     await improvePrompt(payload.prompt, payload.mode);
   };
@@ -101,7 +123,7 @@ const Dashboard = () => {
       <Sidebar isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen((open) => !open)} />
 
       <div className="main-content">
-        <div className={`content-container${hasStartedConversation ? ' conversation-started' : ' pre-conversation'}`}>
+        <div className={`content-container${hasStartedConversation ? ' conversation-started' : ' pre-conversation'}${isDockingComposer ? ' is-docking' : ''}`}>
           <div className={`chat-container${hasStartedConversation ? ' chat-active' : ' chat-welcome'}`}>
             {/* Output Area */}
             {result ? (
