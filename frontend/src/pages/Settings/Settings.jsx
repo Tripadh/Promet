@@ -8,6 +8,7 @@ const Settings = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileViewport, setIsMobileViewport] = useState(window.innerWidth <= 960);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -159,18 +160,50 @@ const Settings = () => {
                     </div>
                   </div>
 
-                  <div className="settings-card">
-                    <h3>🔒 Change Password</h3>
-                    <div className="google-auth-box">
-                      <div className="google-logo">G</div>
-                      <div className="google-auth-text">
-                        <h4>Password Managed by Google</h4>
-                        <p>Managed through your Google Account</p>
-                        <button className="google-change-btn">
-                          ↗️ Change on Google
+                  <div className="settings-card password-card">
+                    <div className="password-header">
+                      <div>
+                        <h3 style={{ color: '#f26b21' }}>🔑 Security</h3>
+                        <p className="password-subtitle">
+                          <strong style={{ display: 'block', marginBottom: '4px' }}>Password</strong>
+                          Change using your current password
+                        </p>
+                      </div>
+                      {!isChangingPassword ? (
+                        <button className="cancel-btn" onClick={() => setIsChangingPassword(true)}>Change</button>
+                      ) : (
+                        <button className="cancel-btn" onClick={() => setIsChangingPassword(false)}>Cancel</button>
+                      )}
+                    </div>
+
+                    {isChangingPassword && (
+                      <div className="password-form">
+                        <div className="form-group">
+                          <label>Current password</label>
+                          <div className="input-with-icon">
+                            <input type="password" placeholder="Your current password" />
+                            <button className="eye-btn">👁️</button>
+                          </div>
+                        </div>
+                        <div className="form-group">
+                          <label>New password</label>
+                          <div className="input-with-icon">
+                            <input type="password" placeholder="At least 8 characters" />
+                            <button className="eye-btn">👁️</button>
+                          </div>
+                        </div>
+                        <div className="form-group">
+                          <label>Confirm new password</label>
+                          <div className="input-with-icon">
+                            <input type="password" placeholder="Repeat new password" />
+                            <button className="eye-btn">👁️</button>
+                          </div>
+                        </div>
+                        <button className="update-password-btn">
+                          🔒 Update password
                         </button>
                       </div>
-                    </div>
+                    )}
                   </div>
 
                   <div className="settings-card danger-card">
