@@ -1,8 +1,8 @@
-import { improvePromptWithAI, normalizeMode } from "../services/aiService.js";
+import { improvePromptWithAI, improvePromptWithAIStream, normalizeMode } from "../services/aiService.js";
 import { analyzePrompt as analyzeUserPrompt } from "../services/promptAnalyzer.js";
 import Prompt from "../models/Prompt.js";
 
-/* ================= IMPROVE PROMPT ================= */
+/* ================= IMPROVE PROMPT (WITH STREAMING) ================= */
 
 export const improvePrompt = async (req, res) => {
   try {
@@ -37,39 +37,48 @@ export const improvePrompt = async (req, res) => {
     // Analyze prompt before improvement
     const promptAnalysis = analyzeUserPrompt(prompt);
 
-    // Get complete improved prompt from AI service.
-    // Service assembles stream safely and validates output before returning.
-    const fullImprovedPrompt = await improvePromptWithAI(prompt, selectedMode, isRetry);
-
-    let finalImprovedPrompt = fullImprovedPrompt;
-
-    /* ================= FORMAT SAFETY ================= */
-
-    if (!finalImprovedPrompt.includes("## Improved Prompt")) {
-      finalImprovedPrompt = `## Improved Prompt
-
-\`\`\`
-${finalImprovedPrompt}
-\`\`\`
-
-## Why This Is Better
-
-The prompt has been rewritten to improve clarity, structure, and instructions so another AI system can execute the task more effectively.`;
-    }
-
     /* ================= SSE HEADERS ================= */
 
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
-    res.setHeader("X-Accel-Buffering", "no"); // prevent proxy buffering
+    res.setHeader("X-Accel-Buffering", "no");
 
     res.flushHeaders();
 
-    // Send output as one complete chunk to prevent partial/truncated UI updates.
-    res.write(`data: ${JSON.stringify({ text: finalImprovedPrompt })}\n\n`);
+    // Use actual streaming from AI for fast, letter-by-letter display
+    let finalImprovedPrompt = "";
+
+    const streamResult = await improvePromptWithAIStream(
+      prompt,
+      selectedMode,
+      isRetry,
+      (textChunk) => {
+        finalImprovedPrompt += textChunk;
+        res.write(`data: ${JSON.stringify({ text: textChunk })}\n\n`);
+      }
+    );
+
+    if (streamResult && streamResult.needsClarification) {
+      // If needs clarification, it already streamed out via the callback.
+      // We just need to end it properly with the done signal.
+      res.write(`data: ${JSON.stringify({ done: true, analysis: promptAnalysis })}\n\n`);
+      res.end();
+      return;
+    }
+
+    // Format the final improved prompt with sections if needed,
+    // though streaming means we can't easily prepend headers AFTER it's streamed.
+    // However, we can append the suffix if it missed it. Let's do that cleanly.
+    let suffix = "";
+    if (finalImprovedPrompt && !finalImprovedPrompt.includes("## Improved Prompt") && !finalImprovedPrompt.includes("Why This Is Better")) {
+      suffix = "\n\n## Why This Is Better\n\nThe prompt has been rewritten to improve clarity, structure, and instructions so another AI system can execute the task more effectively.";
+      res.write(`data: ${JSON.stringify({ text: suffix })}\n\n`);
+      finalImprovedPrompt += suffix;
+    }
 
     /* ================= SAVE HISTORY ================= */
+
 
     const newPrompt = await Prompt.create({
       user: req.user.id,
