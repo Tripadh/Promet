@@ -114,6 +114,7 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
   const handleNewPrompt = () => {
     fetchHistory(1);
     clearPrompt();
+    navigate('/');
   };
 
   const handleAccountMenuAction = (id) => {
@@ -179,6 +180,7 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
             return;
           }
           loadHistoryItem(item);
+          navigate('/');
         }}
       >
         <span className="history-item-text">
