@@ -4,6 +4,7 @@ import { usePrompt } from '../../hooks/usePrompt';
 import { useAuth } from '../../hooks/useAuth';
 import { promptService } from '../../services/promptService';
 import './SidebarAccountMenu.css';
+import { useNavigate } from 'react-router-dom';
 
 const SIDEBAR_ACCOUNT_MENU_ITEMS = [
   { id: 'settings', label: 'Settings' },
@@ -31,6 +32,7 @@ const LEARN_MORE_LINKS = [
 const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
   const { token, user, logout } = useAuth();
   const { loadHistoryItem, clearPrompt, historyRefreshTrigger } = usePrompt();
+  const navigate = useNavigate();
   
   const [prompts, setPrompts] = useState([]);
   const [pinnedPrompts, setPinnedPrompts] = useState([]);
@@ -125,6 +127,8 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
 
     if (id === 'logout') {
       logout();
+    } else if (id === 'settings') {
+      navigate('/settings');
     }
   };
 
