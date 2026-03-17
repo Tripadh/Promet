@@ -11,7 +11,7 @@ export const promptService = {
 
   /* ================= STREAM IMPROVED PROMPT ================= */
 
-  improvePromptStream: async (prompt, mode, onToken, onDone, conversationId = null) => {
+  improvePromptStream: async (prompt, mode, isRetry, onToken, onDone, conversationId = null) => {
 
     const response = await fetch(`${API_BASE_URL}/prompts/improve`, {
       method: "POST",
@@ -19,7 +19,7 @@ export const promptService = {
         "Content-Type": "application/json",
         Authorization: `Bearer ${localStorage.getItem("token")}`
       },
-      body: JSON.stringify({ prompt, mode, conversationId })
+      body: JSON.stringify({ prompt, mode, isRetry, conversationId })
     });
 
     if (!response.ok) {

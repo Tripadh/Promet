@@ -19,7 +19,7 @@ export const PromptProvider = ({ children }) => {
   const [isPinned, setIsPinned] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
 
-  const improvePrompt = async (promptText, modeOverride) => {
+  const improvePrompt = async (promptText, modeOverride, isRetry = false) => {
     setLoading(true);
     setError(null);
     setCurrentPrompt(promptText);
@@ -49,6 +49,7 @@ export const PromptProvider = ({ children }) => {
       await promptService.improvePromptStream(
         promptText,
         modeToUse,
+        isRetry,
         (token) => {
           // Check if token is actually the final data object
           if (typeof token === 'object' && token.done) {

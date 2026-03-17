@@ -161,7 +161,7 @@ const Dashboard = () => {
     setSelectedMode(payload.mode);
     setActivePromptTimestamp(payload.timestamp || new Date());
     try {
-      await improvePrompt(payload.prompt, payload.mode);
+      await improvePrompt(payload.prompt, payload.mode, payload.isRetry);
     } catch (error) {
       showChatNotice(error?.message || 'Failed to improve prompt', 'error');
     }
@@ -256,6 +256,7 @@ const Dashboard = () => {
       prompt: promptText,
       mode: mode || selectedMode,
       timestamp: new Date(),
+      isRetry: true,
     });
   };
 

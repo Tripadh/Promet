@@ -6,7 +6,7 @@ import Prompt from "../models/Prompt.js";
 
 export const improvePrompt = async (req, res) => {
   try {
-    const { prompt, mode = "balanced", conversationId } = req.body;
+    const { prompt, mode = "balanced", isRetry = false, conversationId } = req.body;
     const selectedMode = normalizeMode(mode);
     const MAX_PROMPTS_PER_CONVERSATION = 5;
     const conversationKey = typeof conversationId === "string" && conversationId.trim()
@@ -39,7 +39,7 @@ export const improvePrompt = async (req, res) => {
 
     // Get complete improved prompt from AI service.
     // Service assembles stream safely and validates output before returning.
-    const fullImprovedPrompt = await improvePromptWithAI(prompt, selectedMode);
+    const fullImprovedPrompt = await improvePromptWithAI(prompt, selectedMode, isRetry);
 
     let finalImprovedPrompt = fullImprovedPrompt;
 

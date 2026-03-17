@@ -244,17 +244,25 @@ export const generateModeInstruction = (mode) => {
   }
 };
 
-export const buildPrompt = (mode, userPrompt) => {
+export const buildPrompt = (mode, userPrompt, isRetry = false) => {
   const selectedMode = normalizeMode(mode);
   const template = MODE_TEMPLATES[selectedMode];
   const complexity = detectComplexity(userPrompt);
 
+  let systemPrompt = template.systemPrompt;
+  if (isRetry) {
+    systemPrompt += `\n\nNOTE: The user has requested to retry this generation. Provide a slightly different, alternative phrasing and creative approach compared to what you would normally produce.`;
+  }
+
+  // Boost temperature for retries to ensure variety
+  const temperature = isRetry ? Math.min(template.temperature + 0.4, 1.0) : template.temperature;
+
   return {
     selectedMode,
-    temperature: template.temperature,
+    temperature,
     maxTokens: template.maxTokens,
     messages: [
-      { role: "system", content: template.systemPrompt },
+      { role: "system", content: systemPrompt },
       { role: "user", content: template.buildUserPrompt(userPrompt, { complexity }) }
     ],
   };
@@ -293,10 +301,10 @@ Return one improved prompt in clean Markdown.
 ${refined}`.trim();
 };
 
-export const improvePromptWithAI = async (prompt, mode = "balanced") => {
+export const improvePromptWithAI = async (prompt, mode = "balanced", isRetry = false) => {
 
   try {
-    const { selectedMode, temperature, maxTokens, messages } = buildPrompt(mode, prompt);
+    const { selectedMode, temperature, maxTokens, messages } = buildPrompt(mode, prompt, isRetry);
 
     const stream = await groq.chat.completions.create({
       model: "llama-3.1-8b-instant",
