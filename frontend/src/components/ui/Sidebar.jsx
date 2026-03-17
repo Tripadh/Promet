@@ -320,7 +320,12 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
             {error && <div style={{ color: 'red', padding: '10px' }}>{error}</div>}
             
             <ul className="history-list">
-              {loading && <li className="history-item">Loading...</li>}
+              {loading && (
+                <li className="history-item loading-state">
+                  <div className="skeleton-line title"></div>
+                  <div className="skeleton-line detail"></div>
+                </li>
+              )}
               {!loading && prompts.length === 0 && (
                 <li className="history-item" style={{ color: '#8E8EA0' }}>No history yet</li>
               )}

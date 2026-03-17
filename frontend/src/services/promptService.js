@@ -103,6 +103,11 @@ export const promptService = {
     return response.data;
   },
 
+  deleteAllPrompts: async () => {
+    const response = await api.delete(`/prompts/history`);
+    return response.data;
+  },
+
   /* ================= TOGGLE FAVORITE ================= */
 
   toggleFavorite: async (id) => {
@@ -114,6 +119,13 @@ export const promptService = {
 
   togglePin: async (id) => {
     const response = await api.patch(`/prompts/${id}/pin`);
+    return response.data;
+  },
+
+  /* ================= SUBMIT FEEDBACK ================= */
+
+  submitFeedback: async (id, value, tags = [], details = "") => {
+    const response = await api.post(`/prompts/${id}/feedback`, { value, tags, details });
     return response.data;
   },
 

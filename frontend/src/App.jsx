@@ -9,12 +9,14 @@ import PrivateRoute from "./utils/PrivateRoute";
 
 import { AuthProvider } from "./context/AuthContext";
 import { PromptProvider } from "./context/PromptContext";
+import { ThemeProvider } from "./context/ThemeContext";
 
 function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <PromptProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <PromptProvider>
 
           <Routes>
             <Route path="/" element={<Login />} />
@@ -39,8 +41,9 @@ function App() {
             
           </Routes>
 
-        </PromptProvider>
-      </AuthProvider>
+          </PromptProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }

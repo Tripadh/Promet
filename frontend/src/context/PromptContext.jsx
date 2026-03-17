@@ -101,6 +101,7 @@ export const PromptProvider = ({ children }) => {
     loadHistoryItem(latestItem);
 
     return items.slice(0, -1).map((item) => ({
+      id: item._id,
       prompt: item.originalPrompt,
       result: item.improvedPrompt,
       analysis: null,
@@ -143,6 +144,18 @@ export const PromptProvider = ({ children }) => {
     }
   };
 
+  const deleteAllChats = async () => {
+    try {
+      await promptService.deleteAllPrompts();
+      clearPrompt();
+      setHistoryRefreshTrigger(prev => prev + 1);
+      return true;
+    } catch (err) {
+      console.error("Failed to delete all chats:", err);
+      return false;
+    }
+  };
+
   return (
     <PromptContext.Provider value={{ 
       improvePrompt, loading, result, setResult, 
@@ -152,6 +165,7 @@ export const PromptProvider = ({ children }) => {
       historyRefreshTrigger,
       activePromptId, isPinned, isFavorite,
       toggleActiveFavorite, toggleActivePin,
+      deleteAllChats,
       selectedMode, setSelectedMode,
       activeResultMode,
       activeConversationId

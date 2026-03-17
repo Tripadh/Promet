@@ -1,7 +1,7 @@
 .sidebar-account-shell {
   margin-top: auto;
   padding-top: 12px;
-  border-top: 1px solid #393939;
+  border-top: 1px solid var(--border-sidebar);
   position: relative;
 }
 
@@ -10,22 +10,22 @@
   min-height: 70px;
   border: none;
   border-radius: 14px;
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.03) 100%);
+  background: var(--bg-account-trigger);
   padding: 12px;
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #ececec;
+  color: var(--text-main);
   cursor: pointer;
   text-align: left;
   transition: background 0.2s ease, border-color 0.2s ease;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-account-trigger);
   box-sizing: border-box;
 }
 
 .sidebar-account-trigger:hover {
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-  border-color: rgba(255, 255, 255, 0.16);
+  background: var(--bg-account-trigger-hover);
+  border-color: var(--border-light);
 }
 
 .sidebar-account-avatar {
@@ -35,8 +35,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #d9dde6;
-  color: #1d1d1d;
+  background: var(--bg-hover-subtle);
+  color: var(--text-main);
+  border: 1px solid var(--border-light);
   font-weight: 700;
   font-size: 16px;
   flex-shrink: 0;
@@ -54,7 +55,7 @@
   font-size: 16px;
   font-weight: 600;
   line-height: 1.15;
-  color: #f5f7fc;
+  color: var(--text-account-title);
   letter-spacing: -0.01em;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -63,7 +64,7 @@
 
 .sidebar-account-text small {
   font-size: 13px;
-  color: #a9b1c1;
+  color: var(--text-account-sub);
   line-height: 1.25;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -87,8 +88,8 @@
   right: -2px;
   bottom: calc(100% + 10px);
   border-radius: 18px;
-  border: 1px solid #3f3f3f;
-  background: rgba(27, 28, 33, 0.98);
+  border: 1px solid var(--border-account-menu);
+  background: var(--bg-account-menu);
   box-shadow: 0 22px 46px rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(14px);
   overflow: visible;
@@ -98,12 +99,12 @@
 
 .sidebar-account-header {
   padding: 12px 16px 10px;
-  border-bottom: 1px solid #3b3b3b;
+  border-bottom: 1px solid var(--border-account-menu);
 }
 
 .sidebar-account-header p {
   margin: 0;
-  color: #aeb6c8;
+  color: var(--text-account-sub);
   font-size: 14px;
   line-height: 1.3;
   word-break: break-word;
@@ -121,7 +122,7 @@
 .sidebar-account-divider {
   height: 1px;
   margin: 8px 4px;
-  background: #3d3d3d;
+  background: var(--border-account-menu);
 }
 
 .sidebar-account-item {
@@ -129,7 +130,7 @@
   border: none;
   border-radius: 12px;
   background: transparent;
-  color: #d9dde8;
+  color: var(--text-account-item);
   min-height: 44px;
   padding: 10px 12px;
   display: flex;
@@ -143,16 +144,16 @@
 }
 
 .sidebar-account-item:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-account-item-hover);
 }
 
 .sidebar-account-item.is-open {
-  background: rgba(255, 255, 255, 0.08);
-  outline: 1px solid rgba(231, 236, 255, 0.55);
+  background: var(--bg-account-item-hover);
+  outline: 1px solid var(--border-light);
 }
 
 .sidebar-account-item.danger {
-  color: #f2b4bf;
+  color: var(--text-danger);
 }
 
 .sidebar-account-sidepanel {
@@ -161,8 +162,8 @@
   bottom: 12px;
   width: 236px;
   border-radius: 14px;
-  border: 1px solid #3e4250;
-  background: rgba(24, 26, 33, 0.98);
+  border: 1px solid var(--border-account-menu);
+  background: var(--bg-account-menu);
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.4);
   padding: 8px;
 }
@@ -178,7 +179,7 @@
 
 .sidebar-account-subitem {
   text-decoration: none;
-  color: #b4bdcf;
+  color: var(--text-account-sub);
   font-size: 14px;
   display: flex;
   align-items: center;
@@ -191,8 +192,8 @@
 }
 
 .sidebar-account-subitem:hover {
-  background: rgba(255, 255, 255, 0.07);
-  color: #e2e8f7;
+  background: var(--bg-account-item-hover);
+  color: var(--text-account-item);
 }
 
 .sidebar-account-subitem svg {

@@ -7,6 +7,15 @@ import { usePrompt } from '../../hooks/usePrompt';
 import { promptService } from '../../services/promptService';
 import './Dashboard.css';
 
+const FEEDBACK_TAGS = [
+  "Incorrect or incomplete",
+  "Not what I asked for",
+  "Slow or buggy",
+  "Style or tone",
+  "Safety or legal concern",
+  "Other"
+];
+
 const Dashboard = () => {
   const { token, loading, user } = useAuth();
   const {
@@ -18,6 +27,7 @@ const Dashboard = () => {
     selectedMode,
     activeResultMode,
     activeConversationId,
+    activePromptId,
     loadHistoryItem,
     loadConversationThread,
     setSelectedMode,
@@ -37,6 +47,13 @@ const Dashboard = () => {
   const [isMobileViewport, setIsMobileViewport] = useState(
     typeof window !== 'undefined' ? window.innerWidth <= 960 : false
   );
+  
+  // Feedback Modal State
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [selectedTags, setSelectedTags] = useState([]);
+  const [feedbackDetails, setFeedbackDetails] = useState('');
+  const [feedbackTargetKey, setFeedbackTargetKey] = useState(null);
+
   const hasContentRef = useRef(false);
   const skipDockingOnNextLoadRef = useRef(false);
   const chatEndRef = useRef(null);
@@ -86,10 +103,6 @@ const Dashboard = () => {
 
     return () => clearTimeout(transitionTimer);
   }, [isDockingComposer]);
-
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, result]);
 
   useEffect(() => {
     if (!loading && !token) {
@@ -149,6 +162,7 @@ const Dashboard = () => {
       setMessages((prev) => [
         ...prev,
         {
+          id: activePromptId,
           prompt: currentPrompt,
           result,
           analysis: promptAnalysis,
@@ -272,15 +286,66 @@ const Dashboard = () => {
     composerNode?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   };
 
-  const handleOutputReaction = (key, reaction) => {
+  const handleOutputReaction = async (key, reaction) => {
+    let promptIdToRate = null;
+    if (key === 'active') {
+      promptIdToRate = activePromptId;
+    } else if (key.startsWith('msg-')) {
+      const idx = parseInt(key.replace('msg-', ''), 10);
+      promptIdToRate = messages[idx]?.id;
+    }
+
+    if (reaction === 'down') {
+      setFeedbackTargetKey({ key, id: promptIdToRate });
+      setShowFeedbackModal(true);
+      return;
+    }
+
     setOutputFeedback((prev) => ({
       ...prev,
       [key]: reaction,
     }));
 
-    showChatNotice(
-      reaction === 'up' ? 'Thanks for the feedback.' : 'Feedback noted. We will improve this output.',
-      'info'
+    if (promptIdToRate) {
+      try {
+        await promptService.submitFeedback(promptIdToRate, 1);
+      } catch (err) {
+        console.error('Failed to submit like', err);
+      }
+    }
+
+    showChatNotice('Thanks for the feedback.', 'info');
+  };
+
+  const submitDislikeFeedback = async () => {
+    if (!feedbackTargetKey) return;
+
+    const { key, id } = feedbackTargetKey;
+    
+    setOutputFeedback((prev) => ({
+      ...prev,
+      [key]: 'down',
+    }));
+    
+    setShowFeedbackModal(false);
+
+    if (id) {
+      try {
+        await promptService.submitFeedback(id, -1, selectedTags, feedbackDetails);
+      } catch (err) {
+        console.error('Failed to submit dislike', err);
+      }
+    }
+
+    setSelectedTags([]);
+    setFeedbackDetails('');
+    setFeedbackTargetKey(null);
+    showChatNotice('Feedback noted. We will improve this output.', 'info');
+  };
+
+  const toggleTag = (tag) => {
+    setSelectedTags(prev => 
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
     );
   };
 
@@ -663,18 +728,18 @@ const Dashboard = () => {
                       <h3 style={{ margin: 0, color: '#cdd6f4', fontSize: '16px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
                         Prompt Analyzer
                       </h3>
-                      <span style={{ padding: '6px 10px', borderRadius: '999px', backgroundColor: '#24273a', color: '#89dceb', fontSize: '13px', fontWeight: '700' }}>
+                      <span style={{ padding: '6px 10px', borderRadius: '999px', backgroundColor: '#24273a', color: '#89dceb', fontSize: '13px', fontWeight: '700', whiteSpace: 'nowrap' }}>
                         Prompt Score: {promptAnalysis.score}/100
                       </span>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
-                      <div style={{ backgroundColor: '#1e2230', border: '1px solid #2c3245', borderRadius: '10px', padding: '12px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
+                      <div style={{ backgroundColor: '#1e2230', border: '1px solid #2c3245', borderRadius: '10px', padding: '12px', minWidth: 0 }}>
                         <h4 style={{ margin: '0 0 8px 0', color: '#a6e3a1', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Strengths</h4>
                         {promptAnalysis.strengths?.length ? (
-                          <ul style={{ margin: 0, paddingLeft: '18px', color: '#d6f5dd', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '14px' }}>
+                          <ul style={{ margin: 0, paddingLeft: '18px', color: '#d6f5dd', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '14px', wordWrap: 'break-word', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
                             {promptAnalysis.strengths.map((item, index) => (
-                              <li key={`strength-${index}`}>{item}</li>
+                              <li key={`strength-${index}`} style={{ wordWrap: 'break-word', wordBreak: 'break-word', overflowWrap: 'break-word' }}>{item}</li>
                             ))}
                           </ul>
                         ) : (
@@ -682,12 +747,12 @@ const Dashboard = () => {
                         )}
                       </div>
 
-                      <div style={{ backgroundColor: '#2a1f2a', border: '1px solid #46304b', borderRadius: '10px', padding: '12px' }}>
+                      <div style={{ backgroundColor: '#2a1f2a', border: '1px solid #46304b', borderRadius: '10px', padding: '12px', minWidth: 0 }}>
                         <h4 style={{ margin: '0 0 8px 0', color: '#f38ba8', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Weaknesses</h4>
                         {promptAnalysis.weaknesses?.length ? (
-                          <ul style={{ margin: 0, paddingLeft: '18px', color: '#ffd6e0', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '14px' }}>
+                          <ul style={{ margin: 0, paddingLeft: '18px', color: '#ffd6e0', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '14px', wordWrap: 'break-word', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
                             {promptAnalysis.weaknesses.map((item, index) => (
-                              <li key={`weakness-${index}`}>{item}</li>
+                              <li key={`weakness-${index}`} style={{ wordWrap: 'break-word', wordBreak: 'break-word', overflowWrap: 'break-word' }}>{item}</li>
                             ))}
                           </ul>
                         ) : (
@@ -695,12 +760,12 @@ const Dashboard = () => {
                         )}
                       </div>
 
-                      <div style={{ backgroundColor: '#1f2721', border: '1px solid #314438', borderRadius: '10px', padding: '12px' }}>
+                      <div style={{ backgroundColor: '#1f2721', border: '1px solid #314438', borderRadius: '10px', padding: '12px', minWidth: 0 }}>
                         <h4 style={{ margin: '0 0 8px 0', color: '#f9e2af', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Suggestions</h4>
                         {promptAnalysis.suggestions?.length ? (
-                          <ul style={{ margin: 0, paddingLeft: '18px', color: '#fbeac3', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '14px' }}>
+                          <ul style={{ margin: 0, paddingLeft: '18px', color: '#fbeac3', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '14px', wordWrap: 'break-word', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
                             {promptAnalysis.suggestions.map((item, index) => (
-                              <li key={`suggestion-${index}`}>{item}</li>
+                              <li key={`suggestion-${index}`} style={{ wordWrap: 'break-word', wordBreak: 'break-word', overflowWrap: 'break-word' }}>{item}</li>
                             ))}
                           </ul>
                         ) : (
@@ -766,6 +831,52 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Dislike Feedback Modal */}
+      {showFeedbackModal && (
+        <div className="feedback-modal-overlay" onClick={() => setShowFeedbackModal(false)}>
+          <div className="feedback-modal-card" onClick={e => e.stopPropagation()}>
+            <div className="feedback-modal-header">
+              <h3>Share feedback</h3>
+              <button className="feedback-modal-close" onClick={() => setShowFeedbackModal(false)}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+            </div>
+            
+            <div className="feedback-tags">
+              {FEEDBACK_TAGS.map(tag => (
+                <div 
+                  key={tag} 
+                  className={`feedback-tag ${selectedTags.includes(tag) ? 'selected' : ''}`}
+                  onClick={() => toggleTag(tag)}
+                >
+                  {tag}
+                </div>
+              ))}
+            </div>
+
+            <textarea 
+              className="feedback-textarea"
+              placeholder="Share details (optional)"
+              value={feedbackDetails}
+              onChange={(e) => setFeedbackDetails(e.target.value)}
+            />
+
+            <div className="feedback-footer">
+              <div className="feedback-disclaimer">
+                Your conversation will be included with your feedback to help improve the AI model.
+              </div>
+              <button 
+                className="feedback-submit"
+                onClick={submitDislikeFeedback}
+                disabled={selectedTags.length === 0 && feedbackDetails.trim() === ''}
+              >
+                Submit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

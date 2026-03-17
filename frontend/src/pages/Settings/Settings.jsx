@@ -1,14 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { useTheme } from '../../context/ThemeContext';
+import { PromptContext } from '../../context/PromptContext';
 import Sidebar from '../../components/ui/Sidebar';
 import './Settings.css';
 
 const Settings = () => {
   const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const { deleteAllChats } = useContext(PromptContext);
   const [activeTab, setActiveTab] = useState('profile');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileViewport, setIsMobileViewport] = useState(window.innerWidth <= 960);
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -35,6 +39,22 @@ const Settings = () => {
   const totalCredits = 6;
   const maxCredits = 10;
   const creditPercentage = (totalCredits / maxCredits) * 100;
+
+  const handleDeleteAllChats = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeleteAllChats = async () => {
+    const success = await deleteAllChats();
+    setShowDeleteConfirm(false);
+    
+    if (success) {
+      // Optional: non-intrusive notification instead of alert, or just let it passively succeed
+      console.log("All chats have been deleted.");
+    } else {
+      alert("Failed to delete chats. Please try again.");
+    }
+  };
 
   return (
     <div className={`app-layout${isSidebarOpen ? '' : ' sidebar-collapsed'}`}>
@@ -97,34 +117,42 @@ const Settings = () => {
                 </div>
 
                 <div className="model-usage-section">
-                  <div className="model-usage-header">Monthly Model Usage</div>
+                  <div className="model-usage-header">Monthly Prompts Usage</div>
                   
                   <div className="model-usage-item">
                     <div className="model-usage-info">
-                      <span className="dot primer" />
-                      <span className="model-name">Primer</span>
+                      <span className="dot quick" />
+                      <span className="model-name">Quick</span>
                     </div>
                     <span className="model-count">0</span>
                   </div>
 
                   <div className="model-usage-item">
                     <div className="model-usage-info">
-                      <span className="dot amplifier" />
-                      <span className="model-name">AI Amplifier</span>
+                      <span className="dot balanced" />
+                      <span className="model-name">Balanced</span>
                     </div>
                     <span className="model-count">0</span>
                   </div>
-
+                  
                   <div className="model-usage-item">
                     <div className="model-usage-info">
-                      <span className="dot mastermind" />
-                      <span className="model-name">Mastermind</span>
+                      <span className="dot auto" />
+                      <span className="model-name">Auto</span>
                     </div>
                     <span className="model-count">2</span>
                   </div>
+
+                  <div className="model-usage-item">
+                    <div className="model-usage-info">
+                      <span className="dot expert" />
+                      <span className="model-name">Expert</span>
+                    </div>
+                    <span className="model-count">0</span>
+                  </div>
                   
                   <div className="model-usage-total">
-                    <span>Total Generates</span>
+                    <span>Total Prompts Generated</span>
                     <span className="total-highlight">2</span>
                   </div>
                 </div>
@@ -147,13 +175,6 @@ const Settings = () => {
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
                   Billing
-                </button>
-                <button 
-                  className={`tab-btn ${activeTab === 'context' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('context')}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>
-                  Context
                 </button>
                 <button 
                   className={`tab-btn ${activeTab === 'customize' ? 'active' : ''}`}
@@ -187,77 +208,198 @@ const Settings = () => {
                     </div>
                   </section>
 
-                  {/* Security Settings */}
-                  <section className="settings-card password-card">
+                  {/* Clear History Settings */}
+                  <section className="settings-card">
                     <div className="card-header password-header">
                       <div className="header-text">
                         <h3>
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                          Security & Password
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                          Delete All Chats
                         </h3>
-                        <p>Change your account password.</p>
+                        <p>Clear your entire conversation history.</p>
                       </div>
                       <div className="header-action">
-                        {!isChangingPassword ? (
-                          <button className="secondary-btn" onClick={() => setIsChangingPassword(true)}>Change Password</button>
-                        ) : (
-                          <button className="secondary-btn" onClick={() => setIsChangingPassword(false)}>Cancel</button>
-                        )}
+                        <button className="secondary-btn" onClick={handleDeleteAllChats}>Clear History</button>
                       </div>
                     </div>
-
-                    {isChangingPassword && (
-                      <div className="password-form fade-in">
-                        <div className="form-group">
-                          <label>Current password</label>
-                          <div className="input-with-icon">
-                            <input type="password" placeholder="Enter current password" />
-                            <button className="eye-btn" aria-label="Toggle visibility">
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-                            </button>
-                          </div>
-                        </div>
-                        <div className="form-group">
-                          <label>New password</label>
-                          <div className="input-with-icon">
-                            <input type="password" placeholder="At least 8 characters" />
-                            <button className="eye-btn" aria-label="Toggle visibility">
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-                            </button>
-                          </div>
-                        </div>
-                        <div className="form-group">
-                          <label>Confirm new password</label>
-                          <div className="input-with-icon">
-                            <input type="password" placeholder="Repeat new password" />
-                            <button className="eye-btn" aria-label="Toggle visibility">
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-                            </button>
-                          </div>
-                        </div>
-                        <div className="form-actions">
-                          <button className="primary-btn">
-                            Update Password
-                          </button>
-                        </div>
-                      </div>
-                    )}
                   </section>
 
                   {/* Danger Zone */}
-                  <section className="settings-card danger-card">
-                    <div className="danger-content">
-                      <div className="danger-text">
+                  <section className="settings-card">
+                    <div className="card-header password-header">
+                      <div className="header-text">
                         <h3>
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
                           Danger Zone
                         </h3>
                         <p>Permanently delete your account and all associated data. This action is irreversible.</p>
                       </div>
-                      <div className="danger-action">
-                        <button className="delete-btn">
+                      <div className="header-action">
+                        <button className="secondary-btn">
                           Delete Account
                         </button>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              )}
+
+              {activeTab === 'billing' && (
+                <div className="tab-pane">
+                  <section className="settings-card">
+                    <div className="card-header">
+                      <h3>Billing & Subscription</h3>
+                    </div>
+                    
+                    <div className="billing-status">
+                      <div className="billing-current">
+                        <div className="plan-icon">
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        </div>
+                        <div className="plan-details">
+                          <h4>Free <span className="plan-badge">Active</span></h4>
+                          <p>Limited daily prompts</p>
+                        </div>
+                      </div>
+                      <button className="primary-brand-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 4v16M22 4v16M4 8l8 4 8-4M12 12v8"/></svg>
+                        Upgrade to Pro
+                      </button>
+                    </div>
+
+                    <div className="upgrade-grid">
+                      <div className="upgrade-pricing">
+                        <h4>Upgrade to Pro</h4>
+                        <div className="price">$9.99/month</div>
+                        <p className="billing-cycle">Cancel anytime</p>
+                        <button className="primary-brand-btn upgrade-btn-full">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="3 6 12 11 21 6"></polygon><path d="M3 6v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6"></path><path d="M12 11v11"></path></svg>
+                          Upgrade Now
+                        </button>
+                      </div>
+
+                      <div className="upgrade-features">
+                        <div className="feature-card">
+                          <h5>
+                            <svg className="feature-icon-orange" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                            Unlimited Prompts
+                          </h5>
+                          <p>Generate as many as you need</p>
+                        </div>
+                        <div className="feature-card">
+                          <h5>
+                            <svg className="feature-icon-orange" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 4v16M22 4v16M4 8l8 4 8-4M12 12v8"/></svg>
+                            Premium AI Models
+                          </h5>
+                          <p>Claude, GPT-4, Gemini & more</p>
+                        </div>
+                        <div className="feature-card">
+                          <h5>
+                            <svg className="feature-icon-orange" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            Save & Organize
+                          </h5>
+                          <p>Create prompt libraries</p>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              )}
+
+              {activeTab === 'customize' && (
+                <div className="tab-pane">
+                  <section className="settings-card">
+                    <div className="card-header">
+                      <h3>Customization & Preferences</h3>
+                    </div>
+                    
+                    {/* Appearance */}
+                    <div className="settings-section">
+                      <h4 className="section-title">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="section-icon"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+                        Appearance
+                      </h4>
+                      
+                      <div className="settings-list">
+                        <div className="setting-item">
+                          <div className="setting-info">
+                            <div className="setting-label">
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="item-icon"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+                              <span>Light Mode</span>
+                            </div>
+                            <span className="setting-description">Light color scheme</span>
+                          </div>
+                          <div className="setting-action">
+                            <label className="toggle-switch">
+                              <input type="checkbox" checked={theme === 'light'} onChange={toggleTheme} />
+                              <span className="toggle-slider"></span>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Typography */}
+                    <div className="settings-section">
+                      <h4 className="section-title">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="section-icon"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/></svg>
+                        Typography
+                      </h4>
+                      
+                      <div className="settings-list">
+                        <div className="setting-item-stack">
+                          <label className="setting-label-bold">Font Family</label>
+                          <div className="custom-select">
+                            <select defaultValue="default">
+                              <option value="default">Default Font</option>
+                              <option value="serif">Serif</option>
+                              <option value="mono">Monospace</option>
+                            </select>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="select-icon"><polyline points="6 9 12 15 18 9"/></svg>
+                          </div>
+                          <span className="setting-description">Includes accessibility-focused options for better readability</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Interface */}
+                    <div className="settings-section">
+                      <h4 className="section-title">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="section-icon"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                        Interface
+                      </h4>
+                      
+                      <div className="settings-list">
+                        <div className="setting-item">
+                          <div className="setting-info">
+                            <div className="setting-label">
+                              <span>Beta Features</span>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="info-icon"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                            </div>
+                            <span className="setting-description">Early access to experimental features</span>
+                          </div>
+                          <div className="setting-action">
+                            <label className="toggle-switch">
+                              <input type="checkbox" defaultChecked />
+                              <span className="toggle-slider"></span>
+                            </label>
+                          </div>
+                        </div>
+                        
+                        <div className="setting-item">
+                          <div className="setting-info">
+                            <div className="setting-label">
+                              <span>Animations</span>
+                            </div>
+                            <span className="setting-description">Enable smooth transitions and animations</span>
+                          </div>
+                          <div className="setting-action">
+                            <label className="toggle-switch">
+                              <input type="checkbox" defaultChecked />
+                              <span className="toggle-slider"></span>
+                            </label>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </section>
@@ -267,6 +409,25 @@ const Settings = () => {
           </div>
         </div>
       </div>
+
+      {showDeleteConfirm && (
+        <div className="confirm-modal-overlay" onClick={() => setShowDeleteConfirm(false)}>
+          <div className="confirm-modal-card" onClick={e => e.stopPropagation()}>
+            <h3>Delete all chats?</h3>
+            <p>
+              Are you sure you want to delete <strong>all your chats</strong>? This action cannot be undone.
+            </p>
+            <div className="confirm-modal-actions">
+              <button type="button" className="confirm-modal-cancel" onClick={() => setShowDeleteConfirm(false)}>
+                Cancel
+              </button>
+              <button type="button" className="confirm-modal-delete" onClick={confirmDeleteAllChats}>
+                Delete All
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

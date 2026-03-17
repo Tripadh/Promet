@@ -1,16 +1,16 @@
 .input-box {
-  background-color: #2F2F2F;
+  background-color: var(--bg-panel);
   border-radius: 12px;
   padding: 15px;
   display: flex;
   flex-direction: column;
-  border: 1px solid #444;
+  border: 1px solid var(--border-panel);
 }
 
 .input-box textarea {
   background: transparent;
   border: none;
-  color: white;
+  color: var(--text-main);
   resize: none;
   outline: none;
   font-family: inherit;
@@ -24,8 +24,8 @@
 }
 
 .submit-btn {
-  background-color: white;
-  color: black;
+  background-color: var(--text-main);
+  color: var(--bg-app);
   border: none;
   border-radius: 8px;
   padding: 8px 16px;
@@ -66,8 +66,8 @@
   min-height: 120px;
   padding: 16px 20px;
   border-radius: 28px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  background: #18191a;
+  border: 1px solid var(--border-input);
+  background: var(--bg-input);
 }
 
 .prompt-input-textarea-shell {
@@ -86,14 +86,14 @@
   overflow-y: auto;
   max-height: 180px;
   background: transparent;
-  color: #f5f5f5;
+  color: var(--text-main);
   font-family: inherit;
   font-size: 16px;
   line-height: 1.5;
   padding-right: 8px;
   padding-bottom: 2px;
   scrollbar-width: thin;
-  scrollbar-color: rgba(114, 114, 138, 0.9) transparent;
+  scrollbar-color: var(--text-muted) transparent;
   scrollbar-gutter: stable;
 }
 
@@ -106,18 +106,18 @@
 }
 
 .prompt-input-textarea::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, rgba(127, 127, 159, 0.9) 0%, rgba(95, 95, 124, 0.9) 100%);
+  background: var(--text-muted);
   border-radius: 999px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 
 .prompt-input-textarea::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, rgba(154, 154, 183, 0.95) 0%, rgba(111, 111, 140, 0.95) 100%);
+  background: var(--border-focus);
 }
 
 .prompt-input-textarea::placeholder {
-  color: #a6a6b2;
+  color: var(--text-muted);
 }
 
 .prompt-input-bottom-row {
@@ -167,7 +167,7 @@
   border: none;
   border-radius: 50%;
   background: transparent;
-  color: #ececec;
+  color: var(--text-main);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -176,7 +176,7 @@
 }
 
 .prompt-plus-inline:hover {
-  background: #242424;
+  background: var(--bg-hover-subtle);
 }
 
 .prompt-plus-inline svg {
@@ -194,7 +194,7 @@
   padding: 0 16px;
   border-radius: 21px;
   background: transparent;
-  color: #ececec;
+  color: var(--text-main);
   font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -202,13 +202,13 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  border: 1px solid #3c3c3c;
+  border: 1px solid var(--border-panel);
   cursor: pointer;
   transition: background-color 0.18s ease;
 }
 
 .prompt-input-mode-pill:hover {
-  background: #242424;
+  background: var(--bg-hover-subtle);
 }
 
 .prompt-input-mode-pill svg {
@@ -226,7 +226,7 @@
 }
 
 .prompt-input-status {
-  color: #b9bec8;
+  color: var(--text-muted);
   font-size: 12px;
   white-space: nowrap;
   overflow: hidden;
@@ -241,16 +241,16 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  border: 1px solid #3c3c3c;
+  border: 1px solid var(--border-panel);
   background: transparent;
-  color: #ececec;
+  color: var(--text-main);
   cursor: pointer;
   transition: transform 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
 }
 
 .prompt-input-icon-button:hover,
 .prompt-send-button:hover:not(:disabled) {
-  background: #242424;
+  background: var(--bg-hover-subtle);
 }
 
 .prompt-input-icon-button.is-active {
@@ -260,18 +260,18 @@
 }
 
 .prompt-send-button {
-  background: #ececec;
-  color: #000;
-  border-color: #ececec;
+  background: var(--text-main);
+  color: var(--bg-app);
+  border-color: var(--text-main);
 }
 
 .prompt-send-button:hover:not(:disabled) {
-  background: #ffffff;
+  opacity: 0.9;
 }
 
 .prompt-send-button:disabled {
-  background: #e5e5e5;
-  color: #888;
+  background: var(--bg-hover-subtle);
+  color: var(--text-muted);
   cursor: not-allowed;
   opacity: 0.45;
 }
@@ -291,8 +291,8 @@
 .prompt-mode-selector {
   min-width: 220px;
   border-radius: 18px;
-  border: 1px solid #454545;
-  background: rgba(28, 28, 28, 0.98);
+  border: 1px solid var(--border-account-menu);
+  background: var(--bg-account-menu);
   box-shadow: 0 18px 48px rgba(0, 0, 0, 0.36);
   overflow: hidden;
 }
@@ -302,20 +302,20 @@
   padding: 14px 16px;
   border: none;
   background: transparent;
-  color: #f0f0f0;
+  color: var(--text-main);
   text-align: left;
   font-size: 14px;
   cursor: pointer;
 }
 
 .prompt-menu-item:hover {
-  background: #313131;
+  background: var(--bg-hover-subtle);
 }
 
 .prompt-mode-selector-header {
   padding: 14px 16px 10px;
-  border-bottom: 1px solid #343434;
-  color: #d4d4d4;
+  border-bottom: 1px solid var(--border-panel);
+  color: var(--text-muted);
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.03em;
@@ -335,7 +335,7 @@
   border-radius: 10px;
   border: 1px solid transparent;
   background: transparent;
-  color: #ececec;
+  color: var(--text-main);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -357,7 +357,7 @@
 
 .prompt-mode-option-main small {
   font-size: 13px;
-  color: #b6bac4;
+  color: var(--text-muted);
   line-height: 1.25;
 }
 
@@ -373,9 +373,9 @@
 
 .prompt-mode-option:hover,
 .prompt-mode-option.active {
-  border-color: #3f3f3f;
-  background: #2f2f2f;
-  color: #f2f2f2;
+  border-color: var(--border-panel);
+  background: var(--bg-hover-subtle);
+  color: var(--text-main);
 }
 
 @media (max-width: 960px) {

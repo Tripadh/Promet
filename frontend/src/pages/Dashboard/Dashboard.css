@@ -1,14 +1,14 @@
 /* Dashboard layout and page-specific motion states */
 .main-content {
   flex-grow: 1;
-  background-color: #212121;
+  background-color: var(--bg-app);
   display: flex;
   justify-content: center;
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: thin;
-  scrollbar-color: #8a8a8a #202020;
+  scrollbar-color: var(--text-muted) var(--bg-app);
 }
 
 .main-content::-webkit-scrollbar {
@@ -16,13 +16,13 @@
 }
 
 .main-content::-webkit-scrollbar-track {
-  background: #202020;
+  background: var(--bg-app);
 }
 
 .main-content::-webkit-scrollbar-thumb {
-  background: #8a8a8a;
+  background: var(--text-muted);
   border-radius: 999px;
-  border: 2px solid #202020;
+  border: 2px solid var(--bg-app);
 }
 
 .main-content::-webkit-scrollbar-thumb:hover {
@@ -82,7 +82,7 @@
   bottom: 0;
   transform: none;
   padding: 20px 24px 28px;
-  background: linear-gradient(180deg, rgba(33, 33, 33, 0) 0%, rgba(33, 33, 33, 0.82) 28%, #212121 100%);
+  background: linear-gradient(180deg, transparent 0%, var(--bg-app) 28%, var(--bg-app) 100%);
 }
 
 .conversation-started.is-docking .input-container {
@@ -128,8 +128,8 @@
   gap: 10px;
   padding: 9px 12px;
   border-radius: 11px;
-  border: 1px solid rgba(144, 156, 190, 0.24);
-  background: rgba(20, 24, 34, 0.88);
+  border: 1px solid var(--border-light);
+  background: var(--bg-panel);
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
   backdrop-filter: blur(8px);
   animation: chatNoticeIn 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -137,7 +137,7 @@
 
 .chat-notice p {
   margin: 0;
-  color: #c9d2e8;
+  color: var(--text-main);
   font-size: 13px;
   line-height: 1.4;
   flex: 1;
@@ -158,7 +158,7 @@
   border: none;
   border-radius: 8px;
   background: transparent;
-  color: #9da8c3;
+  color: var(--text-muted);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -215,7 +215,7 @@
   width: min(var(--chat-box-max-width, 760px), calc(100% - 48px));
   margin: 0 auto 92px auto;
   text-align: left;
-  color: #efefef;
+  color: var(--text-main);
   animation: welcomeRise 520ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
@@ -224,7 +224,7 @@
   align-items: center;
   gap: 12px;
   margin-bottom: 2px;
-  color: #fff;
+  color: var(--text-main);
   font-size: clamp(24px, 4vw, 36px);
   font-weight: 500;
   letter-spacing: -0.01em;
@@ -246,7 +246,7 @@
   font-size: clamp(38px, 5.4vw, 54px);
   font-weight: 500;
   letter-spacing: -0.02em;
-  color: #efefef;
+  color: var(--text-main);
   line-height: 1.1;
   margin: 0;
 }
@@ -258,12 +258,12 @@
   gap: 6px;
   margin-top: -8px;
   margin-right: 4px;
-  color: #98a1b3;
+  color: var(--text-muted);
 }
 
 .user-prompt-time {
   font-size: 12px;
-  color: #8d97aa;
+  color: var(--text-muted);
   margin-right: 2px;
 }
 
@@ -273,7 +273,7 @@
   border: none;
   border-radius: 8px;
   background: transparent;
-  color: #a6adbb;
+  color: var(--text-muted);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -301,7 +301,7 @@
   align-items: center;
   gap: 8px;
   margin-top: -2px;
-  color: #9ea8bd;
+  color: var(--text-muted);
 }
 
 .output-message-action {
@@ -310,7 +310,7 @@
   border: none;
   border-radius: 8px;
   background: transparent;
-  color: #9ea8bd;
+  color: var(--text-muted);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -395,9 +395,9 @@
     width: 40px;
     height: 40px;
     border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    background: rgba(25, 25, 25, 0.88);
-    color: #dce3f7;
+    border: 1px solid var(--border-light);
+    background: var(--bg-panel);
+    color: var(--text-main);
     align-items: center;
     justify-content: center;
     z-index: 1205;
@@ -491,7 +491,7 @@
 
 /* Result Box */
 .result-box {
-  background-color: #2F2F2F;
+  background-color: var(--bg-panel);
   padding: 20px;
   border-radius: 8px;
   margin-top: 20px;
@@ -504,8 +504,8 @@
 
 .copy-btn {
   background-color: transparent;
-  color: #ECECEC;
-  border: 1px solid #555;
+  color: var(--text-main);
+  border: 1px solid var(--border-panel);
   padding: 6px 12px;
   border-radius: 4px;
   cursor: pointer;
@@ -514,5 +514,5 @@
 }
 
 .copy-btn:hover {
-  background-color: #444;
+  background-color: var(--bg-sidebar-hover);
 }
