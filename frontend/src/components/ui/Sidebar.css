@@ -140,22 +140,25 @@
   margin-bottom: 24px;
   width: 44px;
   height: 44px;
-  border: none;
   border-radius: 50%;
-  background: #d66ab2;
-  color: #fff;
-  font-size: 16px;
-  font-weight: 500;
+  background: linear-gradient(135deg, #2a2b3c 0%, #15161c 100%);
+  color: #cdd6f4;
+  border: 1px solid #3a3c52;
+  font-size: 18px;
+  font-weight: 700;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
 .sidebar-rail-footer:hover {
   transform: scale(1.05);
-  opacity: 0.95;
+  border-color: #555770;
+  background: linear-gradient(135deg, #35374b 0%, #1e1e2e 100%);
+  color: #fff;
 }
 
 .sidebar h2 {
