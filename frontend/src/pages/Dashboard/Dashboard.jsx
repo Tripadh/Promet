@@ -354,13 +354,17 @@ const Dashboard = () => {
 
     let textToCopy = typeof messageResult === 'string' ? messageResult : JSON.stringify(messageResult);
 
-    const improvedPromptIndex = textToCopy.indexOf('## Improved Prompt');
-    const whyBetterIndex = textToCopy.indexOf('## Why This Is Better');
+    const improvedPromptMatch = textToCopy.match(/#*\s*Improved Prompt/i);
+    const whyBetterMatch = textToCopy.match(/#*\s*Why This Is Better/i);
+    const improvedPromptIndex = improvedPromptMatch ? improvedPromptMatch.index : -1;
+    const whyBetterIndex = whyBetterMatch ? whyBetterMatch.index : -1;
 
     if (improvedPromptIndex !== -1 && whyBetterIndex !== -1) {
-      textToCopy = textToCopy.substring(improvedPromptIndex + 18, whyBetterIndex).trim();
+      textToCopy = textToCopy.substring(improvedPromptIndex + improvedPromptMatch[0].length, whyBetterIndex).trim();
     } else if (improvedPromptIndex !== -1) {
-      textToCopy = textToCopy.substring(improvedPromptIndex + 18).trim();
+      textToCopy = textToCopy.substring(improvedPromptIndex + improvedPromptMatch[0].length).trim();
+    } else if (whyBetterIndex !== -1) {
+      textToCopy = textToCopy.substring(0, whyBetterIndex).trim();
     }
 
     if (textToCopy.startsWith('```')) {
@@ -404,14 +408,17 @@ const Dashboard = () => {
     
     let textToCopy = typeof result === 'string' ? result : JSON.stringify(result);
     
-    // Extract only the part between "Improved Prompt" and "Why This Is Better"
-    const improvedPromptIndex = textToCopy.indexOf('## Improved Prompt');
-    const whyBetterIndex = textToCopy.indexOf('## Why This Is Better');
+    const improvedPromptMatch = textToCopy.match(/#*\s*Improved Prompt/i);
+    const whyBetterMatch = textToCopy.match(/#*\s*Why This Is Better/i);
+    const improvedPromptIndex = improvedPromptMatch ? improvedPromptMatch.index : -1;
+    const whyBetterIndex = whyBetterMatch ? whyBetterMatch.index : -1;
     
     if (improvedPromptIndex !== -1 && whyBetterIndex !== -1) {
-      textToCopy = textToCopy.substring(improvedPromptIndex + 18, whyBetterIndex).trim();
+      textToCopy = textToCopy.substring(improvedPromptIndex + improvedPromptMatch[0].length, whyBetterIndex).trim();
     } else if (improvedPromptIndex !== -1) {
-      textToCopy = textToCopy.substring(improvedPromptIndex + 18).trim();
+      textToCopy = textToCopy.substring(improvedPromptIndex + improvedPromptMatch[0].length).trim();
+    } else if (whyBetterIndex !== -1) {
+      textToCopy = textToCopy.substring(0, whyBetterIndex).trim();
     }
     
     // Remove markdown code block symbols if they wrap the prompt
@@ -504,10 +511,16 @@ const Dashboard = () => {
 
             {messages.map((msg, idx) => {
               const msgText = typeof msg.result === 'string' ? msg.result : JSON.stringify(msg.result);
-              const whyIdx = msgText.indexOf('## Why This Is Better');
+              
+              const whyMatch = msgText.match(/#*\s*Why This Is Better/i);
+              const whyIdx = whyMatch ? whyMatch.index : -1;
+              
               let msgPromptPart = whyIdx !== -1 ? msgText.substring(0, whyIdx).trim() : msgText;
-              const msgReasonPart = whyIdx !== -1 ? msgText.substring(whyIdx + 21).trim() : null;
-              if (msgPromptPart.startsWith('## Improved Prompt')) msgPromptPart = msgPromptPart.substring(18).trim();
+              
+              const impMatch = msgPromptPart.match(/#*\s*Improved Prompt/i);
+              if (impMatch && impMatch.index === 0) {
+                msgPromptPart = msgPromptPart.substring(impMatch[0].length).trim();
+              }
               if (msgPromptPart.startsWith('```')) {
                 const nl = msgPromptPart.indexOf('\n');
                 if (nl !== -1) msgPromptPart = msgPromptPart.substring(nl + 1).trim();
@@ -555,15 +568,7 @@ const Dashboard = () => {
                         <pre style={{ whiteSpace: 'pre-wrap', margin: 0, fontFamily: '"Fira Code", "Consolas", monospace', fontSize: '14px', lineHeight: '1.6', color: '#cdd6f4' }}>{msgPromptPart}</pre>
                       </div>
                     </div>
-                    {msgReasonPart && (
-                      <div style={{ padding: '20px', backgroundColor: '#181825', borderRadius: '12px', borderLeft: '4px solid #f9e2af', color: '#bac2de' }}>
-                        <h3 style={{ margin: '0 0 12px 0', color: '#f9e2af', fontSize: '16px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                          Why This Is Better
-                        </h3>
-                        <div style={{ fontSize: '14px', lineHeight: '1.7', whiteSpace: 'pre-wrap' }}>{msgReasonPart}</div>
-                      </div>
-                    )}
+
                     <div className="output-message-actions">
                       <button
                         type="button"
@@ -622,27 +627,29 @@ const Dashboard = () => {
                 <div className="result-box" style={{ alignSelf: 'flex-start', backgroundColor: 'transparent', padding: '0', maxWidth: '100%', marginTop: '0', display: 'flex', flexDirection: 'column', gap: '15px' }}>
                   {(() => {
                   const resultText = typeof result === 'string' ? result : JSON.stringify(result);
-                  const whyBetterIndex = resultText.indexOf('## Why This Is Better');
+                  const whyMatch = resultText.match(/#*\s*Why This Is Better/i);
+                  const whyBetterIndex = whyMatch ? whyMatch.index : -1;
                   
+                  let promptPart = resultText;
                   if (whyBetterIndex !== -1) {
-                    let promptPart = resultText.substring(0, whyBetterIndex).trim();
-                    const reasoningPart = resultText.substring(whyBetterIndex + 21).trim();
+                    promptPart = resultText.substring(0, whyBetterIndex).trim();
+                  }
 
-                    // Strip ### Improved Prompt heading
-                    if (promptPart.startsWith('## Improved Prompt')) {
-                      promptPart = promptPart.substring(18).trim();
-                    }
+                  const impMatch = promptPart.match(/#*\s*Improved Prompt/i);
+                  if (impMatch && impMatch.index === 0) {
+                    promptPart = promptPart.substring(impMatch[0].length).trim();
+                  }
 
-                    // Strip markdown blocks for display
-                    if (promptPart.startsWith('```')) {
-                      const firstNewline = promptPart.indexOf('\n');
-                      if (firstNewline !== -1) {
-                        promptPart = promptPart.substring(firstNewline + 1).trim();
-                      }
-                      if (promptPart.endsWith('```')) {
-                        promptPart = promptPart.substring(0, promptPart.length - 3).trim();
-                      }
+                  // Strip markdown blocks for display
+                  if (promptPart.startsWith('```')) {
+                    const firstNewline = promptPart.indexOf('\n');
+                    if (firstNewline !== -1) {
+                      promptPart = promptPart.substring(firstNewline + 1).trim();
                     }
+                    if (promptPart.endsWith('```')) {
+                      promptPart = promptPart.substring(0, promptPart.length - 3).trim();
+                    }
+                  }
                     
                     return (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
@@ -675,51 +682,9 @@ const Dashboard = () => {
                           </div>
                         </div>
                         
-                        <div style={{ padding: '20px', backgroundColor: '#181825', borderRadius: '12px', borderLeft: '4px solid #f9e2af', color: '#bac2de', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}>
-                          <h3 style={{ margin: '0 0 16px 0', color: '#f9e2af', fontSize: '18px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                            Why This Is Better
-                          </h3>
-                          <div style={{ fontSize: '15px', lineHeight: '1.7', whiteSpace: 'pre-wrap' }}>
-                            {reasoningPart}
-                          </div>
-                        </div>
+
                       </div>
                     );
-                  }
-                  
-                  return (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
-                      <div style={{ backgroundColor: '#1e1e2e', borderRadius: '12px', border: '1px solid #313244', overflow: 'hidden' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#2a2b3c', padding: '12px 16px', borderBottom: '1px solid #313244' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ color: '#a6adc8', fontSize: '14px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Improved Prompt</span>
-                            <span style={{ padding: '4px 10px', borderRadius: '999px', backgroundColor: '#1b1c29', color: '#9ac6ff', fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.4px', border: '1px solid #3a3c52' }}>
-                              {formatModeLabel(selectedMode)}
-                            </span>
-                          </div>
-                          <button onClick={copyPrompt} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', color: '#a6adc8', cursor: 'pointer', fontSize: '14px', padding: '4px 8px', borderRadius: '4px', transition: 'color 0.2s' }}>
-                            {copied ? (
-                              <>
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#a6e3a1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                <span style={{ color: '#a6e3a1' }}>Copied!</span>
-                              </>
-                            ) : (
-                              <>
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                                Copy
-                              </>
-                            )}
-                          </button>
-                        </div>
-                        <div style={{ padding: '20px' }}>
-                          <pre style={{ whiteSpace: 'pre-wrap', margin: 0, fontFamily: '"Fira Code", "Consolas", monospace', fontSize: '14px', lineHeight: '1.6', color: '#cdd6f4' }}>
-                            {resultText}
-                          </pre>
-                        </div>
-                      </div>
-                    </div>
-                  );
                   })()}
 
                   {promptAnalysis ? (

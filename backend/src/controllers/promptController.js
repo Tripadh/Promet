@@ -82,13 +82,6 @@ export const improvePrompt = async (req, res) => {
 
     // Format the final improved prompt with sections if needed,
     // though streaming means we can't easily prepend headers AFTER it's streamed.
-    // However, we can append the suffix if it missed it. Let's do that cleanly.
-    let suffix = "";
-    if (finalImprovedPrompt && !finalImprovedPrompt.includes("## Improved Prompt") && !finalImprovedPrompt.includes("Why This Is Better")) {
-      suffix = "\n\n## Why This Is Better\n\nThe prompt has been rewritten to improve clarity, structure, and instructions so another AI system can execute the task more effectively.";
-      res.write(`data: ${JSON.stringify({ text: suffix })}\n\n`);
-      finalImprovedPrompt += suffix;
-    }
 
     /* ================= SAVE HISTORY ================= */
     

@@ -17,6 +17,7 @@
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "express-rate-limit": "^8.3.1",
+    "google-auth-library": "^10.6.2",
     "groq-sdk": "^1.1.1",
     "jsonwebtoken": "^9.0.3",
     "langfuse": "^3.38.6",

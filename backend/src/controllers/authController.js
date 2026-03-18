@@ -1,6 +1,9 @@
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { OAuth2Client } from "google-auth-library";
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 /* ================= REGISTER USER ================= */
 
@@ -114,5 +117,56 @@ export const getCurrentUser = async (req, res) => {
         return res.status(500).json({
             message: "Server error"
         });
+    }
+};
+
+/* ================= GOOGLE LOGIN ================= */
+
+export const googleLogin = async (req, res) => {
+    try {
+        const { idToken } = req.body;
+
+        // Verify the token with Google
+        const ticket = await client.verifyIdToken({
+            idToken,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+
+        const payload = ticket.getPayload();
+        const { email, name, sub: googleId } = payload;
+
+        // Check if user exists in our DB
+        let user = await User.findOne({ email });
+
+        if (!user) {
+            // If they don't exist, create a new user account without a password
+            user = await User.create({
+                name,
+                email,
+                googleId, 
+                // We won't set a password for Google accounts, so your DB schema might need 
+                // password to be optional, or give them a random dummy password.
+            });
+        }
+
+        // Generate standard JWT token for your app
+        const token = jwt.sign(
+            { id: user._id },
+            process.env.JWT_SECRET,
+            { expiresIn: "7d" }
+        );
+
+        res.json({
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email
+            }
+        });
+
+    } catch (error) {
+        console.error("Google verify error:", error);
+        res.status(400).json({ message: "Invalid Google Token" });
     }
 };

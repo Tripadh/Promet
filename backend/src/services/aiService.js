@@ -47,16 +47,25 @@ ${userPrompt}`,
 
 ${COMMON_PROMPT_RULES}
 
+Rules for AUTO mode expansion:
+- The output MUST ALWAYS be written as a direct request/prompt from the user to an AI system.
+- NEVER use first-person language like "I will create", "I'll build", "We will", "We'll". Instead use imperative commands like "Create a website", "Act as a developer and build", or "Write a".
+- Always expand short prompts into multiple sentences that clarify the task, context, and expected outcome.
+- Add useful context, assumptions, and requirements when they are missing.
+- The improved prompt should usually be longer than the input prompt.
+- Short prompts (1-15 words) → expand to about 6–10 sentences.
+- Moderate prompts (16-50 words) → expand to about 10–18 sentences.
+- Complex prompts (50+ words) → expand to 10+ sentences.
+- Never over-compress prompts.
+
 Use the complexity hint to determine the level of detail and expansion:
-- For simple prompts: slightly expand and clarify intent.
+- For simple prompts: expand and clarify intent into multiple sentences.
 - For moderate prompts: generate a detailed prompt clarifying requirements and adding context.
 - For complex prompts: produce highly descriptive prompts outlining expectations and deep context.
-The result should adapt to input complexity and can reach 10+ lines when the input is complex. Do not limit the prompt to a specific number of sentences.
 
 IMPORTANT — Vague/ambiguous input rule:
 If the complexity hint is "vague" OR the input is fewer than 6 words with no clear domain, treat it as MODERATE complexity.
-Make reasonable assumptions about what the user likely wants (e.g. a software tool, product, or creative output), state those assumptions clearly in the improved prompt, and expand with useful context and requirements.
-Never output fewer than 3 sentences for vague inputs.`,
+Make reasonable assumptions about what the user likely wants (e.g. a software tool, product, or creative output), state those assumptions clearly in the improved prompt, and expand with useful context and requirements.`,
     buildUserPrompt: (userPrompt, context) => `Analyze this prompt and use the following complexity hint:
 
 Complexity: ${context.complexity.level}
@@ -65,8 +74,8 @@ Hint: ${context.complexity.hint}
 User prompt:
 
 ${userPrompt}`,
-    temperature: 0.3,
-    maxTokens: 500,
+    temperature: 0.45,
+    maxTokens: 800,
   },
 
   balanced: {
@@ -361,6 +370,27 @@ export const validatePromptOutput = (output, mode = "balanced") => {
 
   if (!cleaned) errors.push("Output is empty.");
   if (cleaned.length < 10) errors.push("Output is too short and likely incomplete.");
+
+  if (mode === "auto") {
+    const wordCount = cleaned.split(/\s+/).length;
+    if (wordCount < 40) {
+      errors.push("Auto mode output is too short. Expected a properly expanded prompt (at least ~40 words).");
+    }
+    
+    // First-person detection for AUTO mode
+    const firstPersonPatterns = [
+      /^i will\b/i,
+      /^i'll\b/i,
+      /^we will\b/i,
+      /^we'll\b/i,
+      /^i am going to\b/i,
+      /^we are going to\b/i
+    ];
+    
+    if (firstPersonPatterns.some(pattern => pattern.test(cleaned))) {
+      errors.push("Auto mode output illegally begins with first-person language.");
+    }
+  }
 
   if (
     /\b\d+\.[\sA-Za-z]?$/.test(cleaned) ||
