@@ -59,41 +59,66 @@ const PromptResult = () => {
     return null;
   }
 
+  const resultText = typeof result === 'string' ? result : JSON.stringify(result || '');
+
+  // Parse intro vs main prompt
+  let cleanText = resultText.trim();
+  
+  // Clean potential outer markdown code block covering the entire output
+  if (cleanText.startsWith('```')) {
+    // try to strip it if there's an ending ```
+    if (cleanText.endsWith('```')) {
+      const lines = cleanText.split('\n');
+      lines.shift(); // remove first ``` 
+      lines.pop(); // remove last ```
+      cleanText = lines.join('\n').trim();
+    }
+  }
+
+  const whyMatch = cleanText.match(/(?:^|\n)(?:#*\s*\**Why This Is Better\**.*)/i);
+  if (whyMatch) {
+    cleanText = cleanText.substring(0, whyMatch.index).trim();
+  }
+
+  let introText = "";
+  let mainPrompt = cleanText;
+
+  // Extremely robust check for "Improved Prompt:" divider
+  const splitterRegex = /(?:^|\n)(?:#+\s*)?(?:\**Improved Prompt\**[:]?\s*)/i;
+  const match = cleanText.match(splitterRegex);
+
+  if (match) {
+    introText = cleanText.substring(0, match.index).trim();
+    mainPrompt = cleanText.substring(match.index + match[0].length).trim();
+  } else {
+    // Fallback: Check if the first paragraph looks like conversational Intro
+    const parts = cleanText.split(/\n\s*\n/);
+    if (parts.length > 1 && parts[0].length < 200 && /prompt|here|certainly|sure|create/i.test(parts[0])) {
+       introText = parts[0].trim();
+       mainPrompt = parts.slice(1).join('\n\n').trim();
+    }
+  }
+
+  // Remove any remaining markdown formatting inside the pure prompt box
+  if (mainPrompt.startsWith('```')) {
+    const firstNewline = mainPrompt.indexOf('\n');
+    if (firstNewline !== -1) {
+      mainPrompt = mainPrompt.substring(firstNewline + 1).trim();
+    }
+    if (mainPrompt.endsWith('```')) {
+      mainPrompt = mainPrompt.substring(0, mainPrompt.length - 3).trim();
+    }
+  }
+
   const copyPrompt = async () => {
-    if (!result) return;
+    if (!mainPrompt) return;
     
-    let textToCopy = typeof result === 'string' ? result : JSON.stringify(result);
-    
-    const improvedPromptMatch = textToCopy.match(/#*\s*Improved Prompt/i);
-    const whyBetterMatch = textToCopy.match(/#*\s*Why This Is Better/i);
-    const improvedPromptIndex = improvedPromptMatch ? improvedPromptMatch.index : -1;
-    const whyBetterIndex = whyBetterMatch ? whyBetterMatch.index : -1;
-
-    if (improvedPromptIndex !== -1 && whyBetterIndex !== -1) {
-      textToCopy = textToCopy.substring(improvedPromptIndex + improvedPromptMatch[0].length, whyBetterIndex).trim();
-    } else if (improvedPromptIndex !== -1) {
-      textToCopy = textToCopy.substring(improvedPromptIndex + improvedPromptMatch[0].length).trim();
-    } else if (whyBetterIndex !== -1) {
-      textToCopy = textToCopy.substring(0, whyBetterIndex).trim();
-    }
-
-    // Remove markdown code block symbols if they wrap the prompt
-    if (textToCopy.startsWith('```')) {
-      const firstNewline = textToCopy.indexOf('\n');
-      if (firstNewline !== -1) {
-        textToCopy = textToCopy.substring(firstNewline + 1).trim();
-      }
-      if (textToCopy.endsWith('```')) {
-        textToCopy = textToCopy.substring(0, textToCopy.length - 3).trim();
-      }
-    }
-
     try {
       if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(textToCopy);
+        await navigator.clipboard.writeText(mainPrompt);
       } else {
         const textArea = document.createElement("textarea");
-        textArea.value = textToCopy;
+        textArea.value = mainPrompt;
         textArea.style.position = "absolute";
         textArea.style.left = "-999999px";
         document.body.prepend(textArea);
@@ -157,32 +182,6 @@ const PromptResult = () => {
   };
 
   const getResultUI = () => {
-    const resultText = typeof result === 'string' ? result : JSON.stringify(result);
-    const whyMatch = resultText.match(/#*\s*Why This Is Better/i);
-    const whyBetterIndex = whyMatch ? whyMatch.index : -1;
-    
-    let promptPart = resultText;
-
-    if (whyBetterIndex !== -1) {
-      promptPart = resultText.substring(0, whyBetterIndex).trim();
-    }
-
-    const impMatch = promptPart.match(/#*\s*Improved Prompt/i);
-    if (impMatch && impMatch.index === 0) {
-      promptPart = promptPart.substring(impMatch[0].length).trim();
-    }
-
-    // Strip markdown blocks for display
-    if (promptPart.startsWith('```')) {
-      const firstNewline = promptPart.indexOf('\n');
-      if (firstNewline !== -1) {
-        promptPart = promptPart.substring(firstNewline + 1).trim();
-      }
-      if (promptPart.endsWith('```')) {
-        promptPart = promptPart.substring(0, promptPart.length - 3).trim();
-      }
-    }
-
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '30px', maxWidth: '800px', margin: '0 auto', width: '100%' }}>
         
@@ -204,50 +203,100 @@ const PromptResult = () => {
           </div>
         </div>
 
-        {/* Improved Prompt Section */}
-        <div style={{ backgroundColor: '#1e1e2e', borderRadius: '12px', border: '1px solid #313244', overflow: 'hidden', boxShadow: '0 8px 30px rgba(0,0,0,0.3)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#2a2b3c', padding: '12px 16px', borderBottom: '1px solid #313244' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-              <span style={{ color: '#cba6f7', fontSize: '14px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Improved Prompt</span>
-              {activePromptId && (
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <button onClick={toggleActivePin} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: isPinned ? '#f9e2af' : '#6c7086' }} title={isPinned ? 'Unpin' : 'Pin'}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill={isPinned ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v2a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 10z"></path><path d="M11 22V11"></path></svg>
-                  </button>
-                  <button onClick={toggleActiveFavorite} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: isFavorite ? '#fab387' : '#6c7086' }} title={isFavorite ? 'Unfavorite' : 'Favorite'}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill={isFavorite ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                  </button>
-                  <div style={{ width: '1px', height: '18px', backgroundColor: '#45475a', margin: '0 4px' }}></div>
-                  <button 
-                    onClick={() => handleFeedback(1)} 
-                    disabled={feedbackGiven !== null}
-                    style={{ background: 'none', border: 'none', cursor: feedbackGiven === null ? 'pointer' : 'default', padding: '2px', color: feedbackGiven === 1 ? '#a6e3a1' : '#6c7086', opacity: feedbackGiven === -1 ? 0.3 : 1, transition: 'all 0.2s' }} 
-                    title="Good Prompt"
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill={feedbackGiven === 1 ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
-                  </button>
-                  <button 
-                    onClick={() => handleFeedback(-1)} 
-                    disabled={feedbackGiven !== null}
-                    style={{ background: 'none', border: 'none', cursor: feedbackGiven === null ? 'pointer' : 'default', padding: '2px', color: feedbackGiven === -1 ? '#f38ba8' : '#6c7086', opacity: feedbackGiven === 1 ? 0.3 : 1, transition: 'all 0.2s' }} 
-                    title="Bad Prompt"
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill={feedbackGiven === -1 ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path></svg>
-                  </button>
-                </div>
-              )}
-            </div>
-            <button onClick={copyPrompt} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#313244', border: 'none', color: '#cdd6f4', cursor: 'pointer', fontSize: '13px', fontWeight: '600', padding: '6px 12px', borderRadius: '6px', transition: 'background-color 0.2s' }}>
-              {copied ? <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a6e3a1" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg><span style={{ color: '#a6e3a1' }}>Copied!</span></> : <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>Copy</>}
+        {/* Intro Text */}
+        {introText && (
+          <div style={{ color: '#bac2de', fontSize: '15px', lineHeight: '1.6', marginTop: '-10px' }}>
+            {introText}
+          </div>
+        )}
+
+        {/* Improved Prompt Section (Code Block Style) */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ color: '#cba6f7', fontSize: '15px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Improved Prompt</span>
+            
+            {activePromptId && (
+              <div style={{ display: 'flex', gap: '10px', backgroundColor: '#11111b', padding: '4px 8px', borderRadius: '8px', border: '1px solid #313244' }}>
+                <button onClick={toggleActivePin} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: isPinned ? '#f9e2af' : '#6c7086' }} title={isPinned ? 'Unpin' : 'Pin'}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill={isPinned ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v2a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 10z"></path><path d="M11 22V11"></path></svg>
+                </button>
+                <button onClick={toggleActiveFavorite} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: isFavorite ? '#fab387' : '#6c7086' }} title={isFavorite ? 'Unfavorite' : 'Favorite'}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill={isFavorite ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                </button>
+                <div style={{ width: '1px', height: '16px', backgroundColor: '#45475a', margin: '4px 2px' }}></div>
+                <button 
+                  onClick={() => handleFeedback(1)} 
+                  disabled={feedbackGiven !== null}
+                  style={{ background: 'none', border: 'none', cursor: feedbackGiven === null ? 'pointer' : 'default', padding: '4px', color: feedbackGiven === 1 ? '#a6e3a1' : '#6c7086', opacity: feedbackGiven === -1 ? 0.3 : 1, transition: 'all 0.2s' }} 
+                  title="Good Prompt"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill={feedbackGiven === 1 ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+                </button>
+                <button 
+                  onClick={() => handleFeedback(-1)} 
+                  disabled={feedbackGiven !== null}
+                  style={{ background: 'none', border: 'none', cursor: feedbackGiven === null ? 'pointer' : 'default', padding: '4px', color: feedbackGiven === -1 ? '#f38ba8' : '#6c7086', opacity: feedbackGiven === 1 ? 0.3 : 1, transition: 'all 0.2s' }} 
+                  title="Bad Prompt"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill={feedbackGiven === -1 ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path></svg>
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div style={{ 
+            backgroundColor: '#11111b', 
+            borderRadius: '16px', 
+            border: '1px solid #313244', 
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'flex-start'
+          }}>
+            <pre style={{ 
+              flex: 1,
+              whiteSpace: 'pre-wrap', 
+              margin: 0, 
+              padding: '24px',
+              paddingRight: '60px', /* space for absolute floating copy button */
+              fontFamily: '"Fira Code", "JetBrains Mono", monospace', 
+              fontSize: '14.5px', 
+              lineHeight: '1.7', 
+              color: '#cdd6f4',
+              maxHeight: '400px',
+              overflowY: 'auto'
+            }}>
+              {mainPrompt}
+            </pre>
+            <button 
+              onClick={copyPrompt} 
+              style={{ 
+                position: 'absolute',
+                top: '12px',
+                right: '12px',
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                background: copied ? '#313244' : 'transparent', 
+                border: 'none', 
+                color: copied ? '#a6e3a1' : '#a6adc8', 
+                cursor: 'pointer', 
+                padding: '8px', 
+                borderRadius: '8px', 
+                transition: 'all 0.2s',
+                boxShadow: copied ? '0 2px 8px rgba(0,0,0,0.2)' : 'none'
+              }}
+              onMouseEnter={(e) => { if(!copied) e.currentTarget.style.background = '#1e1e2e'; }}
+              onMouseLeave={(e) => { if(!copied) e.currentTarget.style.background = 'transparent'; }}
+              title="Copy"
+            >
+              {copied ? 
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> 
+                : 
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              }
             </button>
           </div>
-          <div style={{ padding: '24px', backgroundColor: '#1e1e2e', maxHeight: '500px', overflowY: 'auto' }}>
-            <pre style={{ whiteSpace: 'pre-wrap', margin: 0, fontFamily: '"Fira Code", "JetBrains Mono", monospace', fontSize: '15px', lineHeight: '1.7', color: '#cdd6f4' }}>
-              {promptPart}
-            </pre>
-          </div>
         </div>
-        
         
       </div>
     );

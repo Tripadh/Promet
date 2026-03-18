@@ -286,6 +286,11 @@
   color: #d7dbe5;
 }
 
+[data-theme='light'] .user-prompt-action:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--text-main);
+}
+
 .user-prompt-action svg {
   width: 16px;
   height: 16px;
@@ -321,6 +326,11 @@
 .output-message-action:hover {
   background: rgba(255, 255, 255, 0.08);
   color: #d7deef;
+}
+
+[data-theme='light'] .output-message-action:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--text-main);
 }
 
 .output-message-action.is-active {

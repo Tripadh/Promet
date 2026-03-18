@@ -15,13 +15,16 @@ const MODE_MODELS = {
 };
 
 const COMMON_PROMPT_RULES = `Core rules:
-- Always preserve the user's original intent.
-- Improve clarity, grammar, and effectiveness of the prompt.
-- When appropriate, expand the prompt by adding useful context, implied requirements, and additional details that help the AI produce better results.
-- Return ONLY the final improved prompt.
-- Do NOT add prompt-engineering sections like "Task", "Constraints", "Expected Output Format", etc.
-- Do NOT include explanations, analysis, or conversational padding.
-- Output must be a single cohesive prompt ready to be pasted directly into an LLM.`;
+1. STRICTLY PRESERVE THE USER'S ORIGINAL INTENT.
+2. CRITICAL: DETECT AND RESPECT ALL NEGATIVE CONSTRAINTS. If the user says "do not include X", "avoid Y", "no Z", or "only basics", you MUST NOT include those topics in the improved prompt. NEVER introduce new topics or sections the user did not request.
+3. Fix grammar and spelling mistakes.
+4. Improve clarity and structure while keeping the exact same meaning.
+5. When expanding, make sure it aligns completely with the user's constraints. Do NOT convert the prompt into a long document or report.
+6. Return ONLY the final improved prompt.
+7. Do NOT add prompt-engineering sections like "Task", "Constraints", "Expected Output Format", etc.
+8. Do NOT include explanations, analysis, or conversational padding.
+9. Output must be a single cohesive prompt ready to be pasted directly into an LLM.
+10. Do NOT add heading labels or titled section markers like "Introduction", "Overview", "Technical Stack", "Architecture", "Operational Concerns", "Deliverables", or markdown-style headings.`;
 
 const MODE_TEMPLATES = {
   quick: {
@@ -29,7 +32,8 @@ const MODE_TEMPLATES = {
 
 ${COMMON_PROMPT_RULES}
 
-Make the prompt concise and practical. Keep the output under 50 words.
+Action: Fix grammar and slightly improve clarity.
+Make the prompt concise and practical. Keep the output under 50 words. Do not add arbitrary new context.
 
 IMPORTANT — Short or vague input rule:
 If the input is fewer than 6 words OR has no clear domain/subject (e.g. "build me something", "make a thing", "write something"), do NOT just echo it.
@@ -48,10 +52,11 @@ ${userPrompt}`,
 ${COMMON_PROMPT_RULES}
 
 Rules for AUTO mode expansion:
+- Use AI to expand slightly while fiercely respecting user constraints. Do NOT arbitrarily add unrelated topics just to make it longer.
 - The output MUST ALWAYS be written as a direct request/prompt from the user to an AI system.
 - NEVER use first-person language like "I will create", "I'll build", "We will", "We'll". Instead use imperative commands like "Create a website", "Act as a developer and build", or "Write a".
 - Always expand short prompts into multiple sentences that clarify the task, context, and expected outcome.
-- Add useful context, assumptions, and requirements when they are missing.
+- Add useful context, assumptions, and requirements when they are missing and permitted.
 - The improved prompt should usually be longer than the input prompt.
 - Short prompts (1-15 words) → expand to about 6–10 sentences.
 - Moderate prompts (16-50 words) → expand to about 10–18 sentences.
@@ -83,8 +88,8 @@ ${userPrompt}`,
 
 ${COMMON_PROMPT_RULES}
 
-Expand the prompt intelligently. Focus on clarifying requirements, improving wording, adding helpful details, and expanding context where appropriate.
-Structure your output with clear numbered requirements or bullet points where it helps readability.
+Expand the prompt intelligently. Focus on fixing grammar, clarifying requirements, improving wording, and adding MINIMAL useful context.
+Do not overcomplicate or bloat the prompt. Structure your output with clear numbered requirements or bullet points where it helps readability.
 Produce a reasonably detailed prompt, typically around 8–12 lines for moderate inputs. Do not restrict length to a specific number of sentences, and avoid unnecessary repetition or filler.`,
     buildUserPrompt: (userPrompt) => `Rewrite this prompt to be balanced, clear, and highly effective. Add useful context and structure requirements clearly:
 
@@ -99,20 +104,21 @@ ${userPrompt}`,
 ${COMMON_PROMPT_RULES}
 
 Your job is to transform the user's prompt into a highly advanced, architecturally rich, and technically detailed prompt suitable for expert-level AI responses.
+CRITICALLY: Even in Expert mode, you MUST explicitly obey user constraints. For example, if they specify to avoid a topic, DO NOT include it; if they want "basics", frame the expert prompt around best practices for teaching those basics, rather than diving into advanced variants.
 
 Guidelines:
-- Expand the request significantly with deeper engineering context.
+- Expand the request significantly with deeper engineering context, carefully avoiding any excluded topics.
 - Include architecture considerations, scalability concerns, integration points, and operational aspects when relevant.
 - Add implied requirements that an experienced software architect would consider.
 - Describe technologies, workflows, system components, and interactions where appropriate.
 - Ensure the prompt is noticeably more detailed than BALANCED mode.
 - The output should resemble a professional system design or engineering specification.
-- IMPORTANT: Format the output in clear paragraphs separated by blank lines. Do NOT write a single run-on sentence or paragraph. Break the output into logical sections: overview, technical requirements, architecture, and deliverables.`,
+- IMPORTANT: Format the output in clear paragraphs separated by blank lines. Do NOT write a single run-on sentence or paragraph. Keep it as continuous prompt text with no explicit section titles or heading labels.`,
     buildUserPrompt: (userPrompt) => `Improve the following prompt into a highly detailed expert-level engineering request.
 
-Expand the prompt with architectural thinking, advanced technical considerations, system components, integration concerns, scalability considerations, and professional context while preserving the original intent.
+Expand the prompt with architectural thinking, advanced technical considerations, system components, integration concerns, scalability considerations, and professional context while strictly preserving the original intent and avoiding any negatively constrained topics.
 
-Format the output as multiple short paragraphs — NOT one long run-on sentence. Each paragraph should cover a distinct aspect: overview, technical stack, architecture, operational concerns, and deliverables.
+  Format the output as multiple short paragraphs — NOT one long run-on sentence. Keep the flow natural and continuous with no section headings or labels.
 
 Prompt:
 ${userPrompt}`,
@@ -127,7 +133,7 @@ ${userPrompt}`,
 // random words, gibberish, single chars, or pure
 // filler with zero actionable meaning.
 // ─────────────────────────────────────────────
-export const isMeaninglessInput = (text = "") => {
+export const isMeaninglessInput = (text = "", isUpdate = false) => {
   const trimmed = String(text || "").trim();
 
   // Empty or just whitespace
@@ -141,7 +147,6 @@ export const isMeaninglessInput = (text = "") => {
 
   const words = trimmed.split(/\s+/).filter(Boolean);
 
-  // Gibberish: very short AND no recognizable English words
   const commonWords = new Set([
     "a", "an", "the", "i", "me", "my", "we", "you", "it", "is", "are", "do",
     "make", "build", "create", "write", "design", "develop", "generate", "give",
@@ -157,42 +162,35 @@ export const isMeaninglessInput = (text = "") => {
 
   const knownWordCount = words.filter(w => commonWords.has(w.toLowerCase())).length;
 
-  // STRICT GIBBERISH CHECK: If 70%+ of words are unknown AND no real English word present
-  const recognizedRatio = knownWordCount / words.length;
-  if (words.length > 2 && recognizedRatio < 0.3) {
-    // 70%+ unknown words with NO known English words = gibberish
-    // Example: "Injbihvug hijnobuivhgu fhvjhkijgukhfmgnmhj" (0 known words)
-    return true;
+  // Gibberish check based on unrealistic word patterns (e.g. "asdfgh")
+  const unknownWords = words.filter(w => !commonWords.has(w.toLowerCase()));
+  let unrealisticWords = 0;
+  
+  for (const word of unknownWords) {
+    const cleaned = word.toLowerCase().replace(/[^a-z]/g, '');
+    if (cleaned.length < 2) continue;
+    
+    // Check for unrealistic English patterns
+    // - 4+ consonants in a row (very rare)
+    // - Less than 15% vowels (too consonant-heavy)
+    const consonantClusters = (cleaned.match(/[bcdfghjklmnpqrstvwxyz]{4,}/g) || []).length;
+    const vowels = cleaned.match(/[aeiou]/g) || [];
+    const vowelRatio = vowels.length / cleaned.length;
+    
+    if (consonantClusters > 0 || vowelRatio < 0.15) {
+      unrealisticWords++;
+    }
+  }
+  
+  // If >50% of unknown words are unrealistic, it's gibberish
+  if (unknownWords.length > 0 && (unrealisticWords / unknownWords.length) > 0.5) {
+    // Only return true if there's hardly any known words to anchor it
+    if (knownWordCount < 2) return true;
   }
 
-  // Secondary check: words with unusual letter patterns
-  if (words.length > 1 && recognizedRatio < 0.5) {
-    // At least 50% unknown - check if those unknown words look realistic
-    const unknownWords = words.filter(w => !commonWords.has(w.toLowerCase()));
-    let unrealisticWords = 0;
-    
-    for (const word of unknownWords) {
-      const cleaned = word.toLowerCase().replace(/[^a-z]/g, '');
-      if (cleaned.length < 2) continue;
-      
-      // Check for unrealistic English patterns
-      // - 4+ consonants in a row (very rare in English)
-      // - Less than 15% vowels (too consonant-heavy)
-      // - More than 70% consonants (unrealistic)
-      const consonantClusters = (cleaned.match(/[bcdfghjklmnpqrstvwxyz]{4,}/g) || []).length;
-      const vowels = cleaned.match(/[aeiou]/g) || [];
-      const vowelRatio = vowels.length / cleaned.length;
-      
-      if (consonantClusters > 0 || vowelRatio < 0.15) {
-        unrealisticWords++;
-      }
-    }
-    
-    // If 75%+ of unknown words are unrealistic, it's gibberish
-    if (unknownWords.length > 0 && unrealisticWords / unknownWords.length > 0.75) {
-      return true;
-    }
-  }
+  // If this is an update to an existing prompt (like "change the name to apple"), 
+  // we do NOT want to apply the strict length/domain rules. It's valid context.
+  if (isUpdate) return false;
 
   // Pure filler: all words are generic fillers with zero domain signal
   const fillerOnlyPatterns = [
@@ -485,9 +483,10 @@ export const clearPromptMemory = (store) => {
 // ─────────────────────────────────────────────
 export const improvePromptWithAI = async (prompt, mode = "balanced", isRetry = false, store = null) => {
   const memStore = store || createMemoryStore();
+  const isUpdate = Boolean(memStore.memory) && !isRetry;
 
   // NEW: check for meaningless input before hitting the LLM
-  if (isMeaninglessInput(prompt)) {
+  if (isMeaninglessInput(prompt, isUpdate)) {
     return buildClarificationResponse(prompt);
   }
 
@@ -533,9 +532,10 @@ export const improvePromptWithAI = async (prompt, mode = "balanced", isRetry = f
 // ─────────────────────────────────────────────
 export const improvePromptWithAIStream = async (prompt, mode = "balanced", isRetry = false, onToken, store = null) => {
   const memStore = store || createMemoryStore();
+  const isUpdate = Boolean(memStore.memory) && !isRetry;
 
   // NEW: check for meaningless input before hitting the LLM
-  if (isMeaninglessInput(prompt)) {
+  if (isMeaninglessInput(prompt, isUpdate)) {
     const clarification = buildClarificationResponse(prompt);
     // Stream the clarification message token by token so UI stays consistent
     for (const char of clarification.message) {

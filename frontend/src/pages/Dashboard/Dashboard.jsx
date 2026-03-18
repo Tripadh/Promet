@@ -458,7 +458,7 @@ const Dashboard = () => {
     }
   };
 
-  if (loading || !token) return <div style={{ color: 'white', padding: '20px' }}>Loading...</div>;
+  if (loading || !token) return <div style={{ color: 'var(--text-main)', padding: '20px' }}>Loading...</div>;
 
   return (
     <div className={`app-layout${isSidebarOpen ? '' : ' sidebar-collapsed'}`}>
@@ -529,7 +529,7 @@ const Dashboard = () => {
               return (
                 <React.Fragment key={idx}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    <div style={{ alignSelf: 'flex-end', backgroundColor: '#2F2F2F', padding: '15px 20px', borderRadius: '18px 18px 0 18px', maxWidth: '80%' }}>
+                    <div style={{ alignSelf: 'flex-end', backgroundColor: 'var(--bg-panel)', color: 'var(--text-main)', border: '1px solid var(--border-panel)', padding: '15px 20px', borderRadius: '18px 18px 0 18px', maxWidth: '80%' }}>
                       <p>{msg.prompt}</p>
                     </div>
                     <div className="user-prompt-meta-row">
@@ -548,15 +548,15 @@ const Dashboard = () => {
                         )}
                       </button>
                     </div>
-                    <div style={{ backgroundColor: '#1e1e2e', borderRadius: '12px', border: '1px solid #313244', overflow: 'hidden' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#2a2b3c', padding: '12px 16px', borderBottom: '1px solid #313244' }}>
+                    <div style={{ backgroundColor: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border-panel)', overflow: 'hidden' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--bg-panel)', padding: '12px 16px', borderBottom: '1px solid var(--border-panel)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ color: '#a6adc8', fontSize: '14px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Improved Prompt</span>
-                          <span style={{ padding: '4px 10px', borderRadius: '999px', backgroundColor: '#1b1c29', color: '#9ac6ff', fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.4px', border: '1px solid #3a3c52' }}>
+                          <span style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Improved Prompt</span>
+                          <span style={{ padding: '4px 10px', borderRadius: '999px', backgroundColor: 'var(--bg-hover)', color: 'var(--text-main)', fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.4px', border: '1px solid var(--border-panel)' }}>
                             {formatModeLabel(msg.mode)}
                           </span>
                         </div>
-                        <button onClick={() => copyMessage(msg.result, idx)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', color: '#a6adc8', cursor: 'pointer', fontSize: '14px', padding: '4px 8px', borderRadius: '4px' }}>
+                        <button onClick={() => copyMessage(msg.result, idx)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '14px', padding: '4px 8px', borderRadius: '4px' }}>
                           {copiedMsgIdx === idx ? (
                             <><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#a6e3a1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg><span style={{ color: '#a6e3a1' }}>Copied!</span></>
                           ) : (
@@ -565,7 +565,7 @@ const Dashboard = () => {
                         </button>
                       </div>
                       <div style={{ padding: '20px' }}>
-                        <pre style={{ whiteSpace: 'pre-wrap', margin: 0, fontFamily: '"Fira Code", "Consolas", monospace', fontSize: '14px', lineHeight: '1.6', color: '#cdd6f4' }}>{msgPromptPart}</pre>
+                        <pre style={{ whiteSpace: 'pre-wrap', margin: 0, fontFamily: '"Fira Code", "Consolas", monospace', fontSize: '14px', lineHeight: '1.6', color: 'var(--text-main)' }}>{msgPromptPart}</pre>
                       </div>
                     </div>
 
@@ -598,14 +598,14 @@ const Dashboard = () => {
                       </button>
                     </div>
                   </div>
-                  <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: '16px 0' }} />
+                  <div style={{ height: '1px', background: 'var(--border-panel)', margin: '16px 0' }} />
                 </React.Fragment>
               );
             })}
 
             {result ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div style={{ alignSelf: 'flex-end', backgroundColor: '#2F2F2F', padding: '15px 20px', borderRadius: '18px 18px 0 18px', maxWidth: '80%' }}>
+                <div style={{ alignSelf: 'flex-end', backgroundColor: 'var(--bg-panel)', color: 'var(--text-main)', border: '1px solid var(--border-panel)', padding: '15px 20px', borderRadius: '18px 18px 0 18px', maxWidth: '80%' }}>
                   <p>{currentPrompt}</p>
                 </div>
                 <div className="user-prompt-meta-row">
@@ -653,15 +653,15 @@ const Dashboard = () => {
                     
                     return (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
-                        <div style={{ backgroundColor: '#1e1e2e', borderRadius: '12px', border: '1px solid #313244', overflow: 'hidden' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#2a2b3c', padding: '12px 16px', borderBottom: '1px solid #313244' }}>
+                        <div style={{ backgroundColor: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border-panel)', overflow: 'hidden' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--bg-panel)', padding: '12px 16px', borderBottom: '1px solid var(--border-panel)' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <span style={{ color: '#a6adc8', fontSize: '14px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Improved Prompt</span>
-                              <span style={{ padding: '4px 10px', borderRadius: '999px', backgroundColor: '#1b1c29', color: '#9ac6ff', fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.4px', border: '1px solid #3a3c52' }}>
+                              <span style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Improved Prompt</span>
+                              <span style={{ padding: '4px 10px', borderRadius: '999px', backgroundColor: 'var(--bg-hover)', color: 'var(--text-main)', fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.4px', border: '1px solid var(--border-panel)' }}>
                                 {formatModeLabel(activeResultMode)}
                               </span>
                             </div>
-                            <button onClick={copyPrompt} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', color: '#a6adc8', cursor: 'pointer', fontSize: '14px', padding: '4px 8px', borderRadius: '4px', transition: 'color 0.2s' }}>
+                            <button onClick={copyPrompt} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '14px', padding: '4px 8px', borderRadius: '4px', transition: 'color 0.2s' }}>
                               {copied ? (
                                 <>
                                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#a6e3a1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -676,7 +676,7 @@ const Dashboard = () => {
                             </button>
                           </div>
                           <div style={{ padding: '20px' }}>
-                            <pre style={{ whiteSpace: 'pre-wrap', margin: 0, fontFamily: '"Fira Code", "Consolas", monospace', fontSize: '14px', lineHeight: '1.6', color: '#cdd6f4' }}>
+                            <pre style={{ whiteSpace: 'pre-wrap', margin: 0, fontFamily: '"Fira Code", "Consolas", monospace', fontSize: '14px', lineHeight: '1.6', color: 'var(--text-main)' }}>
                               {promptPart}
                             </pre>
                           </div>
@@ -688,53 +688,53 @@ const Dashboard = () => {
                   })()}
 
                   {promptAnalysis ? (
-                    <div style={{ backgroundColor: '#15161c', borderRadius: '12px', border: '1px solid #303245', padding: '18px' }}>
+                    <div style={{ backgroundColor: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border-panel)', padding: '18px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', gap: '12px', flexWrap: 'wrap' }}>
-                      <h3 style={{ margin: 0, color: '#cdd6f4', fontSize: '16px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                      <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '16px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
                         Prompt Analyzer
                       </h3>
-                      <span style={{ padding: '6px 10px', borderRadius: '999px', backgroundColor: '#24273a', color: '#89dceb', fontSize: '13px', fontWeight: '700', whiteSpace: 'nowrap' }}>
+                      <span style={{ padding: '6px 10px', borderRadius: '999px', backgroundColor: 'var(--bg-hover)', color: 'var(--text-main)', fontSize: '13px', fontWeight: '700', whiteSpace: 'nowrap', border: '1px solid var(--border-panel)' }}>
                         Prompt Score: {promptAnalysis.score}/100
                       </span>
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
-                      <div style={{ backgroundColor: '#1e2230', border: '1px solid #2c3245', borderRadius: '10px', padding: '12px', minWidth: 0 }}>
+                      <div style={{ backgroundColor: 'var(--bg-panel)', border: '1px solid var(--border-panel)', borderRadius: '10px', padding: '12px', minWidth: 0 }}>
                         <h4 style={{ margin: '0 0 8px 0', color: '#a6e3a1', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Strengths</h4>
                         {promptAnalysis.strengths?.length ? (
-                          <ul style={{ margin: 0, paddingLeft: '18px', color: '#d6f5dd', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '14px', wordWrap: 'break-word', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
+                          <ul style={{ margin: 0, paddingLeft: '18px', color: 'var(--text-main)', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '14px', wordWrap: 'break-word', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
                             {promptAnalysis.strengths.map((item, index) => (
                               <li key={`strength-${index}`} style={{ wordWrap: 'break-word', wordBreak: 'break-word', overflowWrap: 'break-word' }}>{item}</li>
                             ))}
                           </ul>
                         ) : (
-                          <p style={{ margin: 0, color: '#9ba3b8', fontSize: '13px' }}>No major strengths detected yet.</p>
+                          <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '13px' }}>No major strengths detected yet.</p>
                         )}
                       </div>
 
-                      <div style={{ backgroundColor: '#2a1f2a', border: '1px solid #46304b', borderRadius: '10px', padding: '12px', minWidth: 0 }}>
+                      <div style={{ backgroundColor: 'var(--bg-panel)', border: '1px solid var(--border-panel)', borderRadius: '10px', padding: '12px', minWidth: 0 }}>
                         <h4 style={{ margin: '0 0 8px 0', color: '#f38ba8', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Weaknesses</h4>
                         {promptAnalysis.weaknesses?.length ? (
-                          <ul style={{ margin: 0, paddingLeft: '18px', color: '#ffd6e0', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '14px', wordWrap: 'break-word', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
+                          <ul style={{ margin: 0, paddingLeft: '18px', color: 'var(--text-main)', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '14px', wordWrap: 'break-word', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
                             {promptAnalysis.weaknesses.map((item, index) => (
                               <li key={`weakness-${index}`} style={{ wordWrap: 'break-word', wordBreak: 'break-word', overflowWrap: 'break-word' }}>{item}</li>
                             ))}
                           </ul>
                         ) : (
-                          <p style={{ margin: 0, color: '#f2c1d1', fontSize: '13px' }}>No major weaknesses detected.</p>
+                          <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '13px' }}>No major weaknesses detected.</p>
                         )}
                       </div>
 
-                      <div style={{ backgroundColor: '#1f2721', border: '1px solid #314438', borderRadius: '10px', padding: '12px', minWidth: 0 }}>
+                      <div style={{ backgroundColor: 'var(--bg-panel)', border: '1px solid var(--border-panel)', borderRadius: '10px', padding: '12px', minWidth: 0 }}>
                         <h4 style={{ margin: '0 0 8px 0', color: '#f9e2af', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Suggestions</h4>
                         {promptAnalysis.suggestions?.length ? (
-                          <ul style={{ margin: 0, paddingLeft: '18px', color: '#fbeac3', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '14px', wordWrap: 'break-word', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
+                          <ul style={{ margin: 0, paddingLeft: '18px', color: 'var(--text-main)', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '14px', wordWrap: 'break-word', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
                             {promptAnalysis.suggestions.map((item, index) => (
                               <li key={`suggestion-${index}`} style={{ wordWrap: 'break-word', wordBreak: 'break-word', overflowWrap: 'break-word' }}>{item}</li>
                             ))}
                           </ul>
                         ) : (
-                          <p style={{ margin: 0, color: '#d8c99b', fontSize: '13px' }}>No additional suggestions.</p>
+                          <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '13px' }}>No additional suggestions.</p>
                         )}
                       </div>
                     </div>

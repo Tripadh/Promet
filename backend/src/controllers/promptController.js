@@ -35,6 +35,19 @@ export const improvePrompt = async (req, res) => {
       }
     }
 
+    // Fetch the previous prompt if there's an ongoing conversation, to maintain memory
+    let previousPromptText = null;
+    if (conversationKey && !isRetry) {
+      const lastPrompt = await Prompt.findOne({
+        user: req.user.id,
+        conversationId: conversationKey,
+      }).sort({ createdAt: -1 });
+
+      if (lastPrompt && lastPrompt.improvedPrompt) {
+        previousPromptText = lastPrompt.improvedPrompt;
+      }
+    }
+
     // Analyze prompt before improvement
     const promptAnalysis = analyzeUserPrompt(prompt);
 
@@ -69,7 +82,8 @@ export const improvePrompt = async (req, res) => {
       (textChunk) => {
         finalImprovedPrompt += textChunk;
         res.write(`data: ${JSON.stringify({ text: textChunk })}\n\n`);
-      }
+      },
+      { memory: previousPromptText }
     );
 
     if (streamResult && streamResult.needsClarification) {
