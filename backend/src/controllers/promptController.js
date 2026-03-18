@@ -1,7 +1,10 @@
 import { improvePromptWithAI, improvePromptWithAIStream, normalizeMode } from "../services/aiService.js";
 import { analyzePrompt as analyzeUserPrompt } from "../services/promptAnalyzer.js";
 import Prompt from "../models/Prompt.js";
+import MonthlyUsage from "../models/MonthlyUsage.js";
+import ConversationShare from "../models/ConversationShare.js";
 import { langfuse } from "../utils/langfuseClient.js";
+import { randomBytes } from "crypto";
 
 /* ================= IMPROVE PROMPT (WITH STREAMING) ================= */
 
@@ -113,6 +116,23 @@ export const improvePrompt = async (req, res) => {
       createdAt: new Date(),
     });
 
+    const now = new Date();
+    const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+
+    await MonthlyUsage.findOneAndUpdate(
+      { user: req.user.id, monthKey },
+      {
+        $inc: {
+          totalPrompts: 1,
+          [`byMode.${selectedMode}`]: 1,
+        },
+      },
+      {
+        upsert: true,
+        new: true,
+      }
+    );
+
     langfuse.flushAsync();
 
     /* ================= END STREAM ================= */
@@ -197,6 +217,83 @@ export const getPromptHistory = async (req, res) => {
 
     res.status(500).json({
       message: "Failed to fetch prompt history",
+    });
+  }
+};
+
+/* ================= GET MONTHLY USAGE SUMMARY ================= */
+
+export const getMonthlyUsageSummary = async (req, res) => {
+  try {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+
+    const persisted = await MonthlyUsage.findOne({
+      user: req.user._id,
+      monthKey,
+    }).lean();
+
+    const byMode = {
+      quick: 0,
+      balanced: 0,
+      auto: 0,
+      expert: 0,
+    };
+
+    let totalPrompts = 0;
+
+    if (persisted) {
+      byMode.quick = Number(persisted.byMode?.quick || 0);
+      byMode.balanced = Number(persisted.byMode?.balanced || 0);
+      byMode.auto = Number(persisted.byMode?.auto || 0);
+      byMode.expert = Number(persisted.byMode?.expert || 0);
+      totalPrompts = Number(persisted.totalPrompts || 0);
+    } else {
+      // Backfill from existing prompt docs for users who used the app before this change.
+      const usage = await Prompt.aggregate([
+        {
+          $match: {
+            user: req.user._id,
+            createdAt: { $gte: monthStart, $lte: now },
+          },
+        },
+        {
+          $group: {
+            _id: "$mode",
+            count: { $sum: 1 },
+          },
+        },
+      ]);
+
+      for (const item of usage) {
+        const modeKey = String(item._id || "").toLowerCase();
+        const count = Number(item.count || 0);
+        totalPrompts += count;
+
+        if (Object.prototype.hasOwnProperty.call(byMode, modeKey)) {
+          byMode[modeKey] = count;
+        }
+      }
+
+      if (totalPrompts > 0) {
+        await MonthlyUsage.findOneAndUpdate(
+          { user: req.user._id, monthKey },
+          { $set: { byMode, totalPrompts } },
+          { upsert: true, new: true }
+        );
+      }
+    }
+
+    return res.status(200).json({
+      month: monthStart.toISOString(),
+      byMode,
+      totalPrompts,
+    });
+  } catch (error) {
+    console.error("Monthly usage summary error:", error);
+    return res.status(500).json({
+      message: "Failed to fetch monthly usage summary",
     });
   }
 };
@@ -475,6 +572,89 @@ export const getConversationPrompts = async (req, res) => {
 
     return res.status(500).json({
       message: "Failed to fetch conversation prompts",
+    });
+  }
+};
+
+/* ================= CREATE CONVERSATION SHARE ================= */
+
+export const createConversationShare = async (req, res) => {
+  try {
+    const { conversationId } = req.body;
+
+    if (!conversationId || typeof conversationId !== "string") {
+      return res.status(400).json({
+        message: "conversationId is required",
+      });
+    }
+
+    const prompts = await Prompt.find({
+      user: req.user.id,
+      conversationId: conversationId.trim(),
+    })
+      .sort({ createdAt: 1 })
+      .select("originalPrompt improvedPrompt mode createdAt");
+
+    if (!prompts.length) {
+      return res.status(404).json({
+        message: "No prompts found for this conversation",
+      });
+    }
+
+    const shareId = randomBytes(9).toString("base64url");
+    const firstPrompt = prompts[0]?.originalPrompt || "Shared chat";
+    const title = firstPrompt.length > 80 ? `${firstPrompt.slice(0, 77)}...` : firstPrompt;
+
+    const share = await ConversationShare.create({
+      owner: req.user.id,
+      shareId,
+      conversationId: conversationId.trim(),
+      title,
+      prompts: prompts.map((item) => ({
+        originalPrompt: item.originalPrompt,
+        improvedPrompt: item.improvedPrompt,
+        mode: item.mode,
+        createdAt: item.createdAt,
+      })),
+    });
+
+    return res.status(201).json({
+      shareId: share.shareId,
+      title: share.title,
+      createdAt: share.createdAt,
+    });
+  } catch (error) {
+    console.error("Create conversation share error:", error);
+    return res.status(500).json({
+      message: "Failed to create share link",
+    });
+  }
+};
+
+/* ================= GET SHARED CONVERSATION ================= */
+
+export const getSharedConversation = async (req, res) => {
+  try {
+    const { shareId } = req.params;
+
+    const share = await ConversationShare.findOne({ shareId }).lean();
+
+    if (!share) {
+      return res.status(404).json({
+        message: "Shared conversation not found",
+      });
+    }
+
+    return res.status(200).json({
+      shareId: share.shareId,
+      title: share.title,
+      prompts: share.prompts || [],
+      createdAt: share.createdAt,
+    });
+  } catch (error) {
+    console.error("Get shared conversation error:", error);
+    return res.status(500).json({
+      message: "Failed to fetch shared conversation",
     });
   }
 };

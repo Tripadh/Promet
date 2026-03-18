@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../context/ThemeContext';
 import { PromptContext } from '../../context/PromptContext';
+import { promptService } from '../../services/promptService';
 import Sidebar from '../../components/ui/Sidebar';
 import './Settings.css';
 
@@ -13,6 +14,14 @@ const Settings = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileViewport, setIsMobileViewport] = useState(window.innerWidth <= 960);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [usageSummary, setUsageSummary] = useState({
+    month: null,
+    quick: 0,
+    balanced: 0,
+    auto: 0,
+    expert: 0,
+    totalPrompts: 0,
+  });
 
   useEffect(() => {
     const handleResize = () => {
@@ -31,14 +40,54 @@ const Settings = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  useEffect(() => {
+    let mounted = true;
+
+    const fetchUsageSummary = async () => {
+      try {
+        const summary = await promptService.getMonthlyUsageSummary();
+        if (!mounted) return;
+
+        setUsageSummary({
+          month: summary?.month || null,
+          quick: summary?.byMode?.quick || 0,
+          balanced: summary?.byMode?.balanced || 0,
+          auto: summary?.byMode?.auto || 0,
+          expert: summary?.byMode?.expert || 0,
+          totalPrompts: summary?.totalPrompts || 0,
+        });
+      } catch (error) {
+        if (!mounted) return;
+        console.error('Failed to fetch monthly usage summary:', error);
+      }
+    };
+
+    fetchUsageSummary();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const username = user?.name || user?.username || 'Tripadh';
   const email = user?.email || 'vtripadh@gmail.com';
   const initial = username.charAt(0).toUpperCase();
 
-  // Mocked credit values
-  const totalCredits = 6;
-  const maxCredits = 10;
-  const creditPercentage = (totalCredits / maxCredits) * 100;
+  const usageMonthLabel = usageSummary.month
+    ? new Date(usageSummary.month).toLocaleString([], { month: 'long', year: 'numeric' })
+    : 'This month';
+
+  const modeStats = [
+    { label: 'Quick', value: usageSummary.quick },
+    { label: 'Balanced', value: usageSummary.balanced },
+    { label: 'Auto', value: usageSummary.auto },
+    { label: 'Expert', value: usageSummary.expert },
+  ];
+
+  const topModeEntry = [...modeStats].sort((a, b) => b.value - a.value)[0];
+  const topModeLabel = topModeEntry && topModeEntry.value > 0 ? topModeEntry.label : 'None yet';
+  const activeModesCount = modeStats.filter((mode) => mode.value > 0).length;
+  const avgPerDay = (usageSummary.totalPrompts / Math.max(new Date().getDate(), 1)).toFixed(1);
 
   const handleDeleteAllChats = () => {
     setShowDeleteConfirm(true);
@@ -104,16 +153,24 @@ const Settings = () => {
 
                 <div className="credits-section">
                   <div className="credits-header">
-                    <span className="credits-title">Credits Usage</span>
-                    <span className="credits-ratio">{totalCredits} / {maxCredits}</span>
+                    <span className="credits-title">Monthly Activity</span>
+                    <span className="credits-ratio">{usageMonthLabel}</span>
                   </div>
-                  <div className="progress-bar-container">
-                    <div 
-                      className="progress-bar-fill" 
-                      style={{ width: `${creditPercentage}%` }}
-                    />
+                  <div className="activity-stats-grid">
+                    <div className="activity-stat-card">
+                      <span className="activity-stat-label">Top Mode</span>
+                      <span className="activity-stat-value">{topModeLabel}</span>
+                    </div>
+                    <div className="activity-stat-card">
+                      <span className="activity-stat-label">Active Modes</span>
+                      <span className="activity-stat-value">{activeModesCount}</span>
+                    </div>
+                    <div className="activity-stat-card">
+                      <span className="activity-stat-label">Avg / Day</span>
+                      <span className="activity-stat-value">{avgPerDay}</span>
+                    </div>
                   </div>
-                  <div className="credits-subtext">1 daily + 5 bonus active</div>
+                  <div className="credits-subtext">Based on prompts generated this month.</div>
                 </div>
 
                 <div className="model-usage-section">
@@ -124,7 +181,7 @@ const Settings = () => {
                       <span className="dot quick" />
                       <span className="model-name">Quick</span>
                     </div>
-                    <span className="model-count">0</span>
+                    <span className="model-count">{usageSummary.quick}</span>
                   </div>
 
                   <div className="model-usage-item">
@@ -132,7 +189,7 @@ const Settings = () => {
                       <span className="dot balanced" />
                       <span className="model-name">Balanced</span>
                     </div>
-                    <span className="model-count">0</span>
+                    <span className="model-count">{usageSummary.balanced}</span>
                   </div>
                   
                   <div className="model-usage-item">
@@ -140,7 +197,7 @@ const Settings = () => {
                       <span className="dot auto" />
                       <span className="model-name">Auto</span>
                     </div>
-                    <span className="model-count">2</span>
+                    <span className="model-count">{usageSummary.auto}</span>
                   </div>
 
                   <div className="model-usage-item">
@@ -148,12 +205,12 @@ const Settings = () => {
                       <span className="dot expert" />
                       <span className="model-name">Expert</span>
                     </div>
-                    <span className="model-count">0</span>
+                    <span className="model-count">{usageSummary.expert}</span>
                   </div>
                   
                   <div className="model-usage-total">
                     <span>Total Prompts Generated</span>
-                    <span className="total-highlight">2</span>
+                    <span className="total-highlight">{usageSummary.totalPrompts}</span>
                   </div>
                 </div>
               </div>

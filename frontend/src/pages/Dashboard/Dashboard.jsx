@@ -42,6 +42,7 @@ const Dashboard = () => {
   const [draftPayload, setDraftPayload] = useState(null);
   const [copiedInputKey, setCopiedInputKey] = useState(null);
   const [copiedMsgIdx, setCopiedMsgIdx] = useState(null);
+  const [shareStatusKey, setShareStatusKey] = useState(null);
   const [outputFeedback, setOutputFeedback] = useState({});
   const [chatNotice, setChatNotice] = useState(null);
   const [isMobileViewport, setIsMobileViewport] = useState(
@@ -458,6 +459,51 @@ const Dashboard = () => {
     }
   };
 
+  const shouldShowPromptAnalysis = Boolean(promptAnalysis) && Boolean(result) && !promptLoading;
+
+  const shareConversation = async (statusKey = 'active') => {
+    if (!activeConversationId) {
+      showChatNotice('No active chat to share yet.', 'warning');
+      return;
+    }
+
+    try {
+      const share = await promptService.createConversationShare(activeConversationId);
+      const shareUrl = `${window.location.origin}/shared/${share.shareId}`;
+
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: share.title || 'Shared chat',
+            text: 'Take a look at this shared Promet chat.',
+            url: shareUrl,
+          });
+        } catch (shareError) {
+          // Fall back to clipboard below if native share is canceled or unavailable.
+        }
+      }
+
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(shareUrl);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = shareUrl;
+        textArea.style.position = 'absolute';
+        textArea.style.left = '-999999px';
+        document.body.prepend(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        textArea.remove();
+      }
+
+      setShareStatusKey(statusKey);
+      setTimeout(() => setShareStatusKey((prev) => (prev === statusKey ? null : prev)), 1800);
+      showChatNotice('Share link copied to clipboard.', 'info');
+    } catch (err) {
+      showChatNotice(err?.message || 'Failed to create share link.', 'error');
+    }
+  };
+
   if (loading || !token) return <div style={{ color: 'var(--text-main)', padding: '20px' }}>Loading...</div>;
 
   return (
@@ -596,6 +642,13 @@ const Dashboard = () => {
                           <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                         )}
                       </button>
+                      <button type="button" className="output-message-action" title="Share" onClick={() => shareConversation(`msg-${idx}`)}>
+                        {shareStatusKey === `msg-${idx}` ? (
+                          <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                        ) : (
+                          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/><line x1="15.4" y1="6.5" x2="8.6" y2="10.5"/></svg>
+                        )}
+                      </button>
                     </div>
                   </div>
                   <div style={{ height: '1px', background: 'var(--border-panel)', margin: '16px 0' }} />
@@ -687,22 +740,22 @@ const Dashboard = () => {
                     );
                   })()}
 
-                  {promptAnalysis ? (
-                    <div style={{ backgroundColor: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border-panel)', padding: '18px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', gap: '12px', flexWrap: 'wrap' }}>
-                      <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '16px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                  {shouldShowPromptAnalysis ? (
+                    <div className="prompt-analyzer-card">
+                    <div className="prompt-analyzer-header">
+                      <h3 className="prompt-analyzer-title">
                         Prompt Analyzer
                       </h3>
-                      <span style={{ padding: '6px 10px', borderRadius: '999px', backgroundColor: 'var(--bg-hover)', color: 'var(--text-main)', fontSize: '13px', fontWeight: '700', whiteSpace: 'nowrap', border: '1px solid var(--border-panel)' }}>
+                      <span className="prompt-analyzer-score">
                         Prompt Score: {promptAnalysis.score}/100
                       </span>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
-                      <div style={{ backgroundColor: 'var(--bg-panel)', border: '1px solid var(--border-panel)', borderRadius: '10px', padding: '12px', minWidth: 0 }}>
+                    <div className="prompt-analyzer-grid">
+                      <div className="prompt-analyzer-section-card">
                         <h4 style={{ margin: '0 0 8px 0', color: '#a6e3a1', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Strengths</h4>
                         {promptAnalysis.strengths?.length ? (
-                          <ul style={{ margin: 0, paddingLeft: '18px', color: 'var(--text-main)', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '14px', wordWrap: 'break-word', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
+                          <ul className="prompt-analyzer-list">
                             {promptAnalysis.strengths.map((item, index) => (
                               <li key={`strength-${index}`} style={{ wordWrap: 'break-word', wordBreak: 'break-word', overflowWrap: 'break-word' }}>{item}</li>
                             ))}
@@ -712,10 +765,10 @@ const Dashboard = () => {
                         )}
                       </div>
 
-                      <div style={{ backgroundColor: 'var(--bg-panel)', border: '1px solid var(--border-panel)', borderRadius: '10px', padding: '12px', minWidth: 0 }}>
+                      <div className="prompt-analyzer-section-card">
                         <h4 style={{ margin: '0 0 8px 0', color: '#f38ba8', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Weaknesses</h4>
                         {promptAnalysis.weaknesses?.length ? (
-                          <ul style={{ margin: 0, paddingLeft: '18px', color: 'var(--text-main)', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '14px', wordWrap: 'break-word', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
+                          <ul className="prompt-analyzer-list">
                             {promptAnalysis.weaknesses.map((item, index) => (
                               <li key={`weakness-${index}`} style={{ wordWrap: 'break-word', wordBreak: 'break-word', overflowWrap: 'break-word' }}>{item}</li>
                             ))}
@@ -725,10 +778,10 @@ const Dashboard = () => {
                         )}
                       </div>
 
-                      <div style={{ backgroundColor: 'var(--bg-panel)', border: '1px solid var(--border-panel)', borderRadius: '10px', padding: '12px', minWidth: 0 }}>
+                      <div className="prompt-analyzer-section-card">
                         <h4 style={{ margin: '0 0 8px 0', color: '#f9e2af', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Suggestions</h4>
                         {promptAnalysis.suggestions?.length ? (
-                          <ul style={{ margin: 0, paddingLeft: '18px', color: 'var(--text-main)', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '14px', wordWrap: 'break-word', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
+                          <ul className="prompt-analyzer-list">
                             {promptAnalysis.suggestions.map((item, index) => (
                               <li key={`suggestion-${index}`} style={{ wordWrap: 'break-word', wordBreak: 'break-word', overflowWrap: 'break-word' }}>{item}</li>
                             ))}
@@ -765,6 +818,13 @@ const Dashboard = () => {
                         <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
                       ) : (
                         <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      )}
+                    </button>
+                    <button type="button" className="output-message-action" title="Share" onClick={() => shareConversation('active')}>
+                      {shareStatusKey === 'active' ? (
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                      ) : (
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/><line x1="15.4" y1="6.5" x2="8.6" y2="10.5"/></svg>
                       )}
                     </button>
                   </div>

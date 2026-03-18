@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { usePrompt } from '../../hooks/usePrompt';
 import { useAuth } from '../../hooks/useAuth';
 import { promptService } from '../../services/promptService';
+import { useTransitionLoader } from '../../context/TransitionContext';
 import './SidebarAccountMenu.css';
 import { useNavigate } from 'react-router-dom';
 
@@ -11,27 +12,37 @@ const SIDEBAR_ACCOUNT_MENU_ITEMS = [
   { id: 'help', label: 'Get help' },
   { id: 'divider-1', divider: true },
   { id: 'upgrade', label: 'Upgrade plan' },
-  { id: 'learn', label: 'Learn more', hasArrow: true },
   { id: 'divider-2', divider: true },
   { id: 'logout', label: 'Log out', danger: true },
 ];
 
-const LEARN_MORE_LINKS = [
+const HELP_LINKS = [
   {
-    id: 'usage-policy',
-    label: 'Usage policy',
-    href: 'https://www.anthropic.com/legal/aup',
+    id: 'help-center',
+    label: 'Help center',
+    href: 'https://github.com/Tripadh/Promet#readme',
   },
   {
-    id: 'privacy-policy',
-    label: 'Privacy policy',
-    href: 'https://www.anthropic.com/legal/privacy',
+    id: 'release-notes',
+    label: 'Release notes',
+    href: 'https://github.com/Tripadh/Promet/releases',
+  },
+  {
+    id: 'terms-policies',
+    label: 'Terms & policies',
+    href: 'https://github.com/Tripadh/Promet',
+  },
+  {
+    id: 'report-bug',
+    label: 'Report a bug',
+    href: 'https://github.com/Tripadh/Promet/issues/new',
   },
 ];
 
 const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
   const { token, user, logout } = useAuth();
   const { loadHistoryItem, clearPrompt, historyRefreshTrigger } = usePrompt();
+  const { withTransition, showFor } = useTransitionLoader();
   const navigate = useNavigate();
   
   const [prompts, setPrompts] = useState([]);
@@ -46,7 +57,7 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
   const [promptToDelete, setPromptToDelete] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
-  const [isLearnMoreOpen, setIsLearnMoreOpen] = useState(false);
+  const [isHelpMenuOpen, setIsHelpMenuOpen] = useState(false);
 
   const fetchHistory = async (page = 1) => {
     if (!token) return;
@@ -89,7 +100,7 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
     const handleClickOutside = () => {
       setActiveMenuId(null);
       setIsAccountMenuOpen(false);
-      setIsLearnMoreOpen(false);
+      setIsHelpMenuOpen(false);
     };
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
@@ -111,25 +122,38 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
     };
   }, [promptToDelete]);
 
-  const handleNewPrompt = () => {
-    fetchHistory(1);
-    clearPrompt();
-    navigate('/');
+  const closeSidebarOnMobile = () => {
+    if (typeof window === 'undefined') return;
+    if (window.innerWidth <= 960 && isOpen) {
+      onToggle?.();
+    }
+  };
+
+  const handleNewPrompt = async () => {
+    await withTransition(async () => {
+      await fetchHistory(1);
+      clearPrompt();
+      navigate('/dashboard');
+      closeSidebarOnMobile();
+    }, 280);
   };
 
   const handleAccountMenuAction = (id) => {
-    if (id === 'learn') {
-      setIsLearnMoreOpen((open) => !open);
+    if (id === 'help') {
+      setIsHelpMenuOpen((open) => !open);
       return;
     }
 
     setIsAccountMenuOpen(false);
-    setIsLearnMoreOpen(false);
+    setIsHelpMenuOpen(false);
 
     if (id === 'logout') {
       logout();
+      closeSidebarOnMobile();
     } else if (id === 'settings') {
+      showFor(220);
       navigate('/settings');
+      closeSidebarOnMobile();
     }
   };
 
@@ -174,14 +198,16 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
         key={menuKey} 
         className={`history-item ${isActive ? 'active' : ''}`}
         title={item.originalPrompt}
-        onClick={async () => {
+        onClick={() => withTransition(async () => {
           const handled = await onBeforeHistoryLoad?.(item);
           if (handled) {
+            closeSidebarOnMobile();
             return;
           }
           loadHistoryItem(item);
-          navigate('/');
-        }}
+          navigate('/dashboard');
+          closeSidebarOnMobile();
+        }, 300)}
       >
         <span className="history-item-text">
           {item.pinned && <span style={{ marginRight: '6px' }} title="Pinned">📌</span>}
@@ -371,11 +397,11 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
                         <li key={item.id}>
                           <button
                             type="button"
-                            className={`sidebar-account-item${item.danger ? ' danger' : ''}${item.id === 'learn' && isLearnMoreOpen ? ' is-open' : ''}`}
+                            className={`sidebar-account-item${item.danger ? ' danger' : ''}${item.id === 'help' && isHelpMenuOpen ? ' is-open' : ''}`}
                             onClick={() => handleAccountMenuAction(item.id)}
                           >
                             <span>{item.label}</span>
-                            {item.hasArrow ? (
+                            {item.id === 'help' ? (
                               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
                             ) : null}
                           </button>
@@ -384,10 +410,10 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
                     })}
                   </ul>
 
-                  {isLearnMoreOpen ? (
-                    <aside className="sidebar-account-sidepanel" aria-label="Learn more links">
+                  {isHelpMenuOpen ? (
+                    <aside className="sidebar-account-sidepanel" aria-label="Help links">
                       <ul className="sidebar-account-sidepanel-list">
-                        {LEARN_MORE_LINKS.map((link) => (
+                        {HELP_LINKS.map((link) => (
                           <li key={link.id}>
                             <a
                               className="sidebar-account-subitem"
@@ -396,7 +422,8 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
                               rel="noopener noreferrer"
                               onClick={() => {
                                 setIsAccountMenuOpen(false);
-                                setIsLearnMoreOpen(false);
+                                setIsHelpMenuOpen(false);
+                                closeSidebarOnMobile();
                               }}
                             >
                               <span>{link.label}</span>
@@ -417,7 +444,7 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
                   event.stopPropagation();
                   setIsAccountMenuOpen((open) => {
                     if (open) {
-                      setIsLearnMoreOpen(false);
+                      setIsHelpMenuOpen(false);
                     }
                     return !open;
                   });

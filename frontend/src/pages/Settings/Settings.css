@@ -224,6 +224,37 @@
   color: var(--text-muted);
 }
 
+.activity-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.activity-stat-card {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px 8px;
+  background: var(--bg-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.activity-stat-label {
+  color: var(--text-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+
+.activity-stat-value {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
 /* Model Usage Details */
 .model-usage-section {
   padding: 28px;

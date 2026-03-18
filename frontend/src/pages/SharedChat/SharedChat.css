@@ -1,0 +1,96 @@
+.shared-chat-page {
+  min-height: 100vh;
+  padding: 32px 20px 48px;
+  background: var(--bg-app);
+  color: var(--text-main);
+}
+
+.shared-chat-header {
+  max-width: 900px;
+  margin: 0 auto 20px;
+}
+
+.shared-chat-header h1 {
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.2;
+}
+
+.shared-chat-header p {
+  margin: 8px 0 0;
+  color: var(--text-secondary);
+}
+
+.shared-chat-list {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.shared-chat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.shared-user-bubble {
+  align-self: flex-end;
+  max-width: 80%;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-panel);
+  border-radius: 16px 16px 2px 16px;
+  padding: 12px 14px;
+  color: var(--text-main);
+  line-height: 1.5;
+}
+
+.shared-ai-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-panel);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.shared-ai-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-panel);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.shared-mode-pill {
+  border: 1px solid var(--border-panel);
+  border-radius: 999px;
+  padding: 3px 9px;
+  text-transform: capitalize;
+  color: var(--text-main);
+  background: var(--bg-hover);
+}
+
+.shared-ai-card pre {
+  margin: 0;
+  padding: 16px;
+  white-space: pre-wrap;
+  font-family: "Fira Code", "Consolas", monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-main);
+}
+
+.shared-chat-state {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-app);
+  color: var(--text-main);
+  font-size: 16px;
+}

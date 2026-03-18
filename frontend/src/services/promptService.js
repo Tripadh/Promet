@@ -86,6 +86,21 @@ export const promptService = {
     return response.data;
   },
 
+  getMonthlyUsageSummary: async () => {
+    const response = await api.get('/prompts/usage/summary');
+    return response.data;
+  },
+
+  createConversationShare: async (conversationId) => {
+    const response = await api.post('/prompts/share', { conversationId });
+    return response.data;
+  },
+
+  getSharedConversation: async (shareId) => {
+    const response = await api.get(`/prompts/shared/${shareId}`);
+    return response.data;
+  },
+
   /* ================= GET PINNED/FAVORITES ================= */
 
   getPinned: async () => {

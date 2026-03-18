@@ -103,7 +103,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--bg-app);
   color: var(--text-main);
-  height: 100vh;
+  min-height: 100vh;
+  min-height: 100dvh;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -127,9 +128,58 @@ body {
 .app-layout {
   display: flex;
   height: 100vh;
-  width: 100vw;
+  height: 100dvh;
+  width: 100%;
   overflow: hidden;
   --chat-box-max-width: 870px;
+}
+
+.mobile-sidebar-open-btn,
+.mobile-sidebar-backdrop {
+  display: none;
+}
+
+@media (max-width: 960px) {
+  .mobile-sidebar-open-btn {
+    display: inline-flex;
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    border: 1px solid var(--border-light);
+    background: var(--bg-panel);
+    color: var(--text-main);
+    align-items: center;
+    justify-content: center;
+    z-index: 1205;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .mobile-sidebar-open-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .mobile-sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1190;
+    background: rgba(0, 0, 0, 0.45);
+    border: none;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+  }
 }
 
 /* Feedback Modal Styles */
@@ -324,6 +374,67 @@ body {
   color: var(--text-primary);
 }
 
+.transition-loader-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(2px);
+  z-index: 20000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.transition-loader-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.transition-loader-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  padding: 10px 16px;
+  box-shadow: var(--shadow-card);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.transition-loader-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: #89b4fa;
+  box-shadow: 0 0 0 0 rgba(137, 180, 250, 0.6);
+  animation: transitionPulse 1s ease-in-out infinite;
+}
+
+.transition-loader-text {
+  letter-spacing: 0.02em;
+}
+
+@keyframes transitionPulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(137, 180, 250, 0.45);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px rgba(137, 180, 250, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(137, 180, 250, 0);
+  }
+}
+
 @keyframes toastFadeInUp {
   from { opacity: 0; transform: translate(-50%, 20px); }
   to { opacity: 1; transform: translate(-50%, 0); }
@@ -332,4 +443,4 @@ body {
 @keyframes toastFadeOutDown {
   from { opacity: 1; transform: translate(-50%, 0); }
   to { opacity: 0; transform: translate(-50%, 20px); }
-}
+}

@@ -29,11 +29,6 @@
   background: #a1a1a1;
 }
 
-.mobile-sidebar-open-btn,
-.mobile-sidebar-backdrop {
-  display: none;
-}
-
 .content-container {
   width: 100%;
   max-width: 1080px;
@@ -397,46 +392,6 @@
 }
 
 @media (max-width: 960px) {
-  .mobile-sidebar-open-btn {
-    display: inline-flex;
-    position: fixed;
-    top: 12px;
-    left: 12px;
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    border: 1px solid var(--border-light);
-    background: var(--bg-panel);
-    color: var(--text-main);
-    align-items: center;
-    justify-content: center;
-    z-index: 1205;
-    cursor: pointer;
-    backdrop-filter: blur(10px);
-  }
-
-  .mobile-sidebar-open-btn svg {
-    width: 20px;
-    height: 20px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-
-  .mobile-sidebar-backdrop {
-    display: block;
-    position: fixed;
-    inset: 0;
-    z-index: 1190;
-    background: rgba(0, 0, 0, 0.45);
-    border: none;
-    margin: 0;
-    padding: 0;
-    cursor: pointer;
-  }
-
   .main-content {
     width: 100%;
   }
@@ -525,4 +480,66 @@
 
 .copy-btn:hover {
   background-color: var(--bg-sidebar-hover);
+}
+
+.prompt-analyzer-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-panel);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.prompt-analyzer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.prompt-analyzer-title {
+  margin: 0;
+  color: var(--text-main);
+  font-size: 15px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.prompt-analyzer-score {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--bg-hover);
+  border: 1px solid var(--border-panel);
+  color: var(--text-main);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.prompt-analyzer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.prompt-analyzer-section-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-panel);
+  border-radius: 10px;
+  padding: 10px;
+  min-width: 0;
+}
+
+.prompt-analyzer-list {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text-main);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 13px;
+  max-height: 220px;
+  overflow-y: auto;
 }

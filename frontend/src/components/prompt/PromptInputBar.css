@@ -378,22 +378,6 @@
   color: var(--text-main);
 }
 
-@media (max-width: 960px) {
-  .sidebar {
-    position: fixed;
-    inset: 0 auto 0 0;
-    z-index: 60;
-    height: 100vh;
-  }
-
-  .sidebar.closed {
-    transform: translateX(-100%);
-    width: 260px;
-    padding: 10px;
-    opacity: 1;
-  }
-}
-
 @media (max-width: 640px) {
   .prompt-input-bar {
     gap: 10px;
@@ -425,4 +409,4 @@
     font-size: 22px;
   }
 }
-
+
