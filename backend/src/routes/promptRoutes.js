@@ -1,5 +1,5 @@
 import express from "express";
-import { improvePrompt, analyzePrompt, getPromptHistory, getConversationPrompts, deletePrompt, toggleFavorite, togglePin, getPinnedPrompts, getFavoritePrompts } from "../controllers/promptController.js";
+import { improvePrompt, analyzePrompt, getPromptHistory, getConversationPrompts, deletePrompt, deleteAllPrompts, toggleFavorite, togglePin, getPinnedPrompts, getFavoritePrompts, submitPromptFeedback } from "../controllers/promptController.js";
 import protect from "../middleware/authMiddleware.js";
 import { promptRateLimiter } from "../middleware/rateLimiter.js";
 
@@ -21,8 +21,14 @@ router.get("/favorites", protect, getFavoritePrompts);
 // NEW: Delete specific prompt
 router.delete("/history/:id", protect, deletePrompt);
 
+// NEW: Delete all prompts
+router.delete("/history", protect, deleteAllPrompts);
+
 // NEW: Toggle favorite/pin
 router.patch("/:id/favorite", protect, toggleFavorite);
 router.patch("/:id/pin", protect, togglePin);
+
+// NEW: Submit prompt feedback
+router.post("/:id/feedback", protect, submitPromptFeedback);
 
 export default router;

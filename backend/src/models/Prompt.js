@@ -41,6 +41,16 @@ const promptSchema = new mongoose.Schema(
             enum: ["quick", "balanced", "expert", "auto"],
             default: "balanced",
         },
+
+        langfuseTraceId: {
+            type: String,
+        },
+        
+        feedback: {
+            type: Number,
+            enum: [1, -1, null],
+            default: null,
+        },
     },
     {
         timestamps: true, // automatically creates createdAt and updatedAt

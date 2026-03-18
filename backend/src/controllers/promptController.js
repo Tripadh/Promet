@@ -1,6 +1,7 @@
 import { improvePromptWithAI, improvePromptWithAIStream, normalizeMode } from "../services/aiService.js";
 import { analyzePrompt as analyzeUserPrompt } from "../services/promptAnalyzer.js";
 import Prompt from "../models/Prompt.js";
+import { langfuse } from "../utils/langfuseClient.js";
 
 /* ================= IMPROVE PROMPT (WITH STREAMING) ================= */
 
@@ -36,6 +37,18 @@ export const improvePrompt = async (req, res) => {
 
     // Analyze prompt before improvement
     const promptAnalysis = analyzeUserPrompt(prompt);
+
+    /* ================= LANGFUSE TRACE ================= */
+    const trace = langfuse.trace({
+      name: "improve_prompt",
+      userId: req.user.id,
+      input: prompt,
+      metadata: {
+        mode: selectedMode,
+        isRetry: isRetry,
+        conversationId: conversationKey
+      }
+    });
 
     /* ================= SSE HEADERS ================= */
 
@@ -78,7 +91,10 @@ export const improvePrompt = async (req, res) => {
     }
 
     /* ================= SAVE HISTORY ================= */
-
+    
+    trace.update({
+      output: finalImprovedPrompt
+    });
 
     const newPrompt = await Prompt.create({
       user: req.user.id,
@@ -86,8 +102,11 @@ export const improvePrompt = async (req, res) => {
       improvedPrompt: finalImprovedPrompt,
       mode: selectedMode,
       conversationId: conversationKey,
+      langfuseTraceId: trace.id,
       createdAt: new Date(),
     });
+
+    langfuse.flushAsync();
 
     /* ================= END STREAM ================= */
 
@@ -198,12 +217,73 @@ export const deletePrompt = async (req, res) => {
     res.status(200).json({
       message: "Prompt deleted successfully",
     });
-
   } catch (error) {
     console.error("Delete prompt error:", error);
-
     res.status(500).json({
       message: "Failed to delete prompt",
+    });
+  }
+};
+
+/* ================= SUBMIT FEEDBACK ================= */
+
+export const submitPromptFeedback = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { value, tags = [], details = "" } = req.body; // value: 1 or -1
+
+    const prompt = await Prompt.findOne({ _id: id, user: req.user.id });
+    if (!prompt) {
+      return res.status(404).json({ message: "Prompt not found" });
+    }
+
+    if (prompt.langfuseTraceId) {
+      let commentText = value === 1 ? "User liked the prompt" : "User disliked the prompt";
+      
+      if (tags.length > 0) {
+        commentText += `\nTags: ${tags.join(", ")}`;
+      }
+      if (details) {
+        commentText += `\nDetails: ${details}`;
+      }
+
+      langfuse.score({
+        traceId: prompt.langfuseTraceId,
+        name: "user_feedback",
+        value: value,
+        comment: commentText,
+      });
+      // Optionally await flush to ensure the score is out
+      await langfuse.flushAsync();
+    }
+
+    prompt.feedback = value;
+    await prompt.save();
+
+    res.status(200).json({ message: "Feedback submitted successfully", feedback: prompt.feedback });
+  } catch (error) {
+    console.error("Feedback error:", error);
+    res.status(500).json({ message: "Failed to submit feedback" });
+  }
+};
+
+
+/* ================= DELETE ALL PROMPTS ================= */
+
+export const deleteAllPrompts = async (req, res) => {
+  try {
+    const result = await Prompt.deleteMany({ user: req.user.id });
+
+    res.status(200).json({
+      message: "All prompts deleted successfully",
+      deletedCount: result.deletedCount
+    });
+
+  } catch (error) {
+    console.error("Delete all prompts error:", error);
+
+    res.status(500).json({
+      message: "Failed to delete all prompts",
     });
   }
 };
