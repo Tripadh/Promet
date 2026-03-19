@@ -1,5 +1,5 @@
 import './Sidebar.css';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { usePrompt } from '../../hooks/usePrompt';
 import { useAuth } from '../../hooks/useAuth';
 import { promptService } from '../../services/promptService';
@@ -58,6 +58,8 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [isHelpMenuOpen, setIsHelpMenuOpen] = useState(false);
+  const [shouldFocusSearch, setShouldFocusSearch] = useState(false);
+  const searchInputRef = useRef(null);
 
   const fetchHistory = async (page = 1) => {
     if (!token) return;
@@ -122,6 +124,20 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
     };
   }, [promptToDelete]);
 
+  useEffect(() => {
+    if (!isOpen || !shouldFocusSearch) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      searchInputRef.current?.focus();
+      searchInputRef.current?.select();
+      setShouldFocusSearch(false);
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [isOpen, shouldFocusSearch]);
+
   const closeSidebarOnMobile = () => {
     if (typeof window === 'undefined') return;
     if (window.innerWidth <= 960 && isOpen) {
@@ -136,6 +152,17 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
       navigate('/dashboard');
       closeSidebarOnMobile();
     }, 280);
+  };
+
+  const handleCollapsedSearch = () => {
+    if (!isOpen) {
+      setShouldFocusSearch(true);
+      onToggle?.();
+      return;
+    }
+
+    searchInputRef.current?.focus();
+    searchInputRef.current?.select();
   };
 
   const handleAccountMenuAction = (id) => {
@@ -271,7 +298,16 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
   const searchText = normalize(searchQuery).trim();
   const filterBySearch = (items) => {
     if (!searchText) return items;
-    return items.filter((item) => normalize(item.originalPrompt).includes(searchText));
+
+    return items.filter((item) => {
+      const searchableFields = [
+        item?.originalPrompt,
+        item?.improvedPrompt,
+        item?.mode,
+      ];
+
+      return searchableFields.some((field) => normalize(field).includes(searchText));
+    });
   };
 
   const filteredPinnedPrompts = filterBySearch(pinnedPrompts);
@@ -279,16 +315,13 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
   const filteredRecentPrompts = filterBySearch(prompts);
   const displayEmail = user?.email || 'account@promet.ai';
   const displayName = user?.name || 'Account';
-  const avatarLabel = String(displayName || 'A').trim().charAt(0).toUpperCase() || 'A';
 
   return (
     <>
       <div className={`sidebar ${isOpen ? 'open' : 'closed'}`}>
         <div className="sidebar-topbar">
           <div className="sidebar-brand" aria-label="Prompt Improver">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M12 2a4 4 0 0 1 4 4v1a4 4 0 0 1 0 8h-1a4 4 0 0 1-8 0H6a4 4 0 0 1 0-8V6a4 4 0 0 1 4-4h2Z"></path>
-            </svg>
+            <span className="sidebar-brand-mark" aria-hidden="true">P</span>
           </div>
           <button
             className="sidebar-toggle-btn"
@@ -315,6 +348,7 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
                 <path d="m21 21-4.3-4.3"></path>
               </svg>
               <input
+                ref={searchInputRef}
                 type="text"
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
@@ -452,7 +486,9 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
                 aria-label="Open account menu"
                 aria-expanded={isAccountMenuOpen}
               >
-                <span className="sidebar-account-avatar">{avatarLabel}</span>
+                <span className="sidebar-account-avatar" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="8" r="4"/></svg>
+                </span>
                 <span className="sidebar-account-text">
                   <strong>{displayName}</strong>
                   <small>{displayEmail}</small>
@@ -469,16 +505,10 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
                 <path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4Z"></path>
               </svg>
             </button>
-            <button className="sidebar-rail-btn" title="Search chats" aria-label="Search chats">
+            <button className="sidebar-rail-btn" title="Search chats" aria-label="Search chats" onClick={handleCollapsedSearch}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <circle cx="11" cy="11" r="8"></circle>
                 <path d="m21 21-4.3-4.3"></path>
-              </svg>
-            </button>
-            <button className="sidebar-rail-btn" title="Library" aria-label="Library">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M3 7a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v11H5a2 2 0 0 0-2 2V7Z"></path>
-                <path d="M16 5h3a2 2 0 0 1 2 2v13a2 2 0 0 0-2-2h-3"></path>
               </svg>
             </button>
 
@@ -491,7 +521,7 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
               }}
               aria-label="Account menu"
             >
-              {avatarLabel}
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="8" r="4"/></svg>
             </button>
           </div>
         )}

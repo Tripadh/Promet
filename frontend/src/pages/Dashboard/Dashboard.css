@@ -176,6 +176,15 @@
   stroke-linejoin: round;
 }
 
+.chat-bottom-disclaimer {
+  margin: 10px auto 0;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.4;
+  width: min(var(--chat-box-max-width, 760px), calc(100% - 48px));
+}
+
 .chat-notice.toast-warning {
   border-color: rgba(249, 226, 175, 0.4);
 }
@@ -428,6 +437,11 @@
 
   .chat-notice {
     width: calc(100% - 32px);
+  }
+
+  .chat-bottom-disclaimer {
+    width: calc(100% - 32px);
+    font-size: 11px;
   }
 }
 

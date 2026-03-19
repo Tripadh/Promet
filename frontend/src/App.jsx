@@ -6,6 +6,7 @@ import Register from "./pages/Register/Register";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Settings from "./pages/Settings/Settings";
 import SharedChat from "./pages/SharedChat/SharedChat";
+import Home from "./pages/Home/Home";
 
 import PrivateRoute from "./utils/PrivateRoute";
 
@@ -32,7 +33,8 @@ function AppRoutes() {
     <>
       <TransitionOverlay />
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/shared/:shareId" element={<SharedChat />} />
 

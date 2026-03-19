@@ -827,6 +827,12 @@
   background-color: var(--bg-hover);
 }
 
+.setting-action {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
 .setting-item-stack {
   display: flex;
   flex-direction: column;
@@ -912,53 +918,55 @@
 .toggle-switch {
   position: relative;
   display: inline-block;
-  width: 40px;
-  height: 22px;
+  width: 64px;
+  height: 34px;
+  --light: #d8dbe0;
+  --dark: #28292c;
 }
 
-.toggle-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
+.toggle-switch .checkbox {
+  position: absolute;
+  display: none;
 }
 
 .toggle-slider {
   position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: var(--dark);
+  border-radius: 999px;
   cursor: pointer;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: var(--border-color);
-  transition: .2s;
-  border-radius: 22px;
-  border: 1px solid var(--border-focus);
+  border: 2px solid var(--dark);
+  transition: 0.3s;
 }
 
-.toggle-slider:before {
-  position: absolute;
+.toggle-switch .checkbox:checked + .toggle-slider {
+  background-color: var(--light);
+}
+
+.toggle-slider::before {
   content: "";
-  height: 16px;
-  width: 16px;
-  left: 2px;
-  bottom: 2px;
-  background-color: #a1a1aa; /* Zinc 400 */
-  transition: .2s;
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
+  box-shadow: inset 8px -3px 0px 0px var(--light);
+  background-color: var(--dark);
+  transition: 0.3s;
 }
 
-.toggle-switch input:checked + .toggle-slider {
-  background-color: var(--text-primary);
-  border-color: var(--text-primary);
+.toggle-switch .checkbox:checked + .toggle-slider::before {
+  transform: translateX(28px);
+  background-color: var(--dark);
+  box-shadow: none;
 }
 
-.toggle-switch input:checked + .toggle-slider:before {
-  transform: translateX(18px);
-  background-color: var(--bg-primary);
-}
-
-.toggle-switch input:focus + .toggle-slider {
-  box-shadow: 0 0 1px var(--text-primary);
+.toggle-switch .checkbox:focus + .toggle-slider {
+  box-shadow: 0 0 0 2px rgba(40, 41, 44, 0.2);
 }
 
 /* Custom Confirmation Modal */

@@ -1,6 +1,6 @@
 import '../../components/auth/Auth.css';
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
 import LoginForm from '../../components/auth/LoginForm';
 import { useAuth } from '../../hooks/useAuth';
@@ -39,7 +39,7 @@ const Login = () => {
           />
         </div>
         <p style={{ textAlign: 'center', color: '#ECECEC' }}>
-          Don't have an account? <a href="/register" style={{ color: '#10a37f' }}>Register</a>
+          Don't have an account? <Link to="/register" style={{ color: '#10a37f' }}>Register</Link>
         </p>
       </div>
     </div>

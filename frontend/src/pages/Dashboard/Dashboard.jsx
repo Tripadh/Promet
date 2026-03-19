@@ -48,7 +48,7 @@ const Dashboard = () => {
   const [isMobileViewport, setIsMobileViewport] = useState(
     typeof window !== 'undefined' ? window.innerWidth <= 960 : false
   );
-  
+
   // Feedback Modal State
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [selectedTags, setSelectedTags] = useState([]);
@@ -107,7 +107,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (!loading && !token) {
-      navigate('/');
+      navigate('/login');
     }
   }, [token, loading, navigate]);
 
@@ -322,12 +322,12 @@ const Dashboard = () => {
     if (!feedbackTargetKey) return;
 
     const { key, id } = feedbackTargetKey;
-    
+
     setOutputFeedback((prev) => ({
       ...prev,
       [key]: 'down',
     }));
-    
+
     setShowFeedbackModal(false);
 
     if (id) {
@@ -345,7 +345,7 @@ const Dashboard = () => {
   };
 
   const toggleTag = (tag) => {
-    setSelectedTags(prev => 
+    setSelectedTags(prev =>
       prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
     );
   };
@@ -406,14 +406,14 @@ const Dashboard = () => {
 
   const copyPrompt = async () => {
     if (!result) return;
-    
+
     let textToCopy = typeof result === 'string' ? result : JSON.stringify(result);
-    
+
     const improvedPromptMatch = textToCopy.match(/#*\s*Improved Prompt/i);
     const whyBetterMatch = textToCopy.match(/#*\s*Why This Is Better/i);
     const improvedPromptIndex = improvedPromptMatch ? improvedPromptMatch.index : -1;
     const whyBetterIndex = whyBetterMatch ? whyBetterMatch.index : -1;
-    
+
     if (improvedPromptIndex !== -1 && whyBetterIndex !== -1) {
       textToCopy = textToCopy.substring(improvedPromptIndex + improvedPromptMatch[0].length, whyBetterIndex).trim();
     } else if (improvedPromptIndex !== -1) {
@@ -421,7 +421,7 @@ const Dashboard = () => {
     } else if (whyBetterIndex !== -1) {
       textToCopy = textToCopy.substring(0, whyBetterIndex).trim();
     }
-    
+
     // Remove markdown code block symbols if they wrap the prompt
     if (textToCopy.startsWith('```')) {
       const firstNewline = textToCopy.indexOf('\n');
@@ -516,7 +516,7 @@ const Dashboard = () => {
           aria-label="Open sidebar"
           title="Open sidebar"
         >
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h18"/><path d="M3 6h18"/><path d="M3 18h18"/></svg>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h18" /><path d="M3 6h18" /><path d="M3 18h18" /></svg>
         </button>
       ) : null}
 
@@ -557,12 +557,12 @@ const Dashboard = () => {
 
             {messages.map((msg, idx) => {
               const msgText = typeof msg.result === 'string' ? msg.result : JSON.stringify(msg.result);
-              
+
               const whyMatch = msgText.match(/#*\s*Why This Is Better/i);
               const whyIdx = whyMatch ? whyMatch.index : -1;
-              
+
               let msgPromptPart = whyIdx !== -1 ? msgText.substring(0, whyIdx).trim() : msgText;
-              
+
               const impMatch = msgPromptPart.match(/#*\s*Improved Prompt/i);
               if (impMatch && impMatch.index === 0) {
                 msgPromptPart = msgPromptPart.substring(impMatch[0].length).trim();
@@ -581,16 +581,16 @@ const Dashboard = () => {
                     <div className="user-prompt-meta-row">
                       <span className="user-prompt-time">{formatUserTime(msg.timestamp)}</span>
                       <button type="button" className="user-prompt-action" onClick={() => handleRetryInputPrompt(msg.prompt, msg.mode)} title="Retry">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3.2-6.9"/><path d="M21 3v6h-6"/></svg>
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3.2-6.9" /><path d="M21 3v6h-6" /></svg>
                       </button>
                       <button type="button" className="user-prompt-action" onClick={() => handleEditInputPrompt(msg.prompt)} title="Edit">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4Z" /></svg>
                       </button>
                       <button type="button" className="user-prompt-action" onClick={() => handleCopyInputPrompt(msg.prompt, `message-${idx}`)} title="Copy">
                         {copiedInputKey === `message-${idx}` ? (
-                          <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                          <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12" /></svg>
                         ) : (
-                          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
                         )}
                       </button>
                     </div>
@@ -622,7 +622,7 @@ const Dashboard = () => {
                         title="Helpful"
                         onClick={() => handleOutputReaction(`msg-${idx}`, 'up')}
                       >
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10v11"/><path d="M11 10V5.2A2.2 2.2 0 0 1 13.2 3a2 2 0 0 1 2 2v5h4.1a2 2 0 0 1 2 2.3l-1 7A2 2 0 0 1 18.3 21H7"/><path d="M7 10H4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h3"/></svg>
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10v11" /><path d="M11 10V5.2A2.2 2.2 0 0 1 13.2 3a2 2 0 0 1 2 2v5h4.1a2 2 0 0 1 2 2.3l-1 7A2 2 0 0 1 18.3 21H7" /><path d="M7 10H4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h3" /></svg>
                       </button>
                       <button
                         type="button"
@@ -630,23 +630,23 @@ const Dashboard = () => {
                         title="Not helpful"
                         onClick={() => handleOutputReaction(`msg-${idx}`, 'down')}
                       >
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 14V3"/><path d="M11 14v4.8A2.2 2.2 0 0 0 13.2 21a2 2 0 0 0 2-2v-5h4.1a2 2 0 0 0 2-2.3l-1-7A2 2 0 0 0 18.3 3H7"/><path d="M7 14H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3"/></svg>
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 14V3" /><path d="M11 14v4.8A2.2 2.2 0 0 0 13.2 21a2 2 0 0 0 2-2v-5h4.1a2 2 0 0 0 2-2.3l-1-7A2 2 0 0 0 18.3 3H7" /><path d="M7 14H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3" /></svg>
                       </button>
                       <button type="button" className="output-message-action" title="Retry" onClick={() => handleRetryInputPrompt(msg.prompt, msg.mode)}>
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3.2-6.9"/><path d="M21 3v6h-6"/></svg>
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3.2-6.9" /><path d="M21 3v6h-6" /></svg>
                       </button>
                       <button type="button" className="output-message-action" title="Copy" onClick={() => copyMessage(msg.result, idx)}>
                         {copiedMsgIdx === idx ? (
-                          <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                          <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12" /></svg>
                         ) : (
-                          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
                         )}
                       </button>
                       <button type="button" className="output-message-action" title="Share" onClick={() => shareConversation(`msg-${idx}`)}>
                         {shareStatusKey === `msg-${idx}` ? (
-                          <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                          <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12" /></svg>
                         ) : (
-                          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/><line x1="15.4" y1="6.5" x2="8.6" y2="10.5"/></svg>
+                          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><line x1="8.6" y1="13.5" x2="15.4" y2="17.5" /><line x1="15.4" y1="6.5" x2="8.6" y2="10.5" /></svg>
                         )}
                       </button>
                     </div>
@@ -664,46 +664,46 @@ const Dashboard = () => {
                 <div className="user-prompt-meta-row">
                   <span className="user-prompt-time">{formatUserTime(activePromptTimestamp)}</span>
                   <button type="button" className="user-prompt-action" onClick={() => handleRetryInputPrompt(currentPrompt, activeResultMode)} title="Retry">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3.2-6.9"/><path d="M21 3v6h-6"/></svg>
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3.2-6.9" /><path d="M21 3v6h-6" /></svg>
                   </button>
                   <button type="button" className="user-prompt-action" onClick={() => handleEditInputPrompt(currentPrompt)} title="Edit">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4Z" /></svg>
                   </button>
                   <button type="button" className="user-prompt-action" onClick={() => handleCopyInputPrompt(currentPrompt, 'active')} title="Copy">
                     {copiedInputKey === 'active' ? (
-                      <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12" /></svg>
                     ) : (
-                      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
                     )}
                   </button>
                 </div>
                 <div className="result-box" style={{ alignSelf: 'flex-start', backgroundColor: 'transparent', padding: '0', maxWidth: '100%', marginTop: '0', display: 'flex', flexDirection: 'column', gap: '15px' }}>
                   {(() => {
-                  const resultText = typeof result === 'string' ? result : JSON.stringify(result);
-                  const whyMatch = resultText.match(/#*\s*Why This Is Better/i);
-                  const whyBetterIndex = whyMatch ? whyMatch.index : -1;
-                  
-                  let promptPart = resultText;
-                  if (whyBetterIndex !== -1) {
-                    promptPart = resultText.substring(0, whyBetterIndex).trim();
-                  }
+                    const resultText = typeof result === 'string' ? result : JSON.stringify(result);
+                    const whyMatch = resultText.match(/#*\s*Why This Is Better/i);
+                    const whyBetterIndex = whyMatch ? whyMatch.index : -1;
 
-                  const impMatch = promptPart.match(/#*\s*Improved Prompt/i);
-                  if (impMatch && impMatch.index === 0) {
-                    promptPart = promptPart.substring(impMatch[0].length).trim();
-                  }
+                    let promptPart = resultText;
+                    if (whyBetterIndex !== -1) {
+                      promptPart = resultText.substring(0, whyBetterIndex).trim();
+                    }
 
-                  // Strip markdown blocks for display
-                  if (promptPart.startsWith('```')) {
-                    const firstNewline = promptPart.indexOf('\n');
-                    if (firstNewline !== -1) {
-                      promptPart = promptPart.substring(firstNewline + 1).trim();
+                    const impMatch = promptPart.match(/#*\s*Improved Prompt/i);
+                    if (impMatch && impMatch.index === 0) {
+                      promptPart = promptPart.substring(impMatch[0].length).trim();
                     }
-                    if (promptPart.endsWith('```')) {
-                      promptPart = promptPart.substring(0, promptPart.length - 3).trim();
+
+                    // Strip markdown blocks for display
+                    if (promptPart.startsWith('```')) {
+                      const firstNewline = promptPart.indexOf('\n');
+                      if (firstNewline !== -1) {
+                        promptPart = promptPart.substring(firstNewline + 1).trim();
+                      }
+                      if (promptPart.endsWith('```')) {
+                        promptPart = promptPart.substring(0, promptPart.length - 3).trim();
+                      }
                     }
-                  }
-                    
+
                     return (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
                         <div style={{ backgroundColor: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border-panel)', overflow: 'hidden' }}>
@@ -734,7 +734,7 @@ const Dashboard = () => {
                             </pre>
                           </div>
                         </div>
-                        
+
 
                       </div>
                     );
@@ -742,55 +742,55 @@ const Dashboard = () => {
 
                   {shouldShowPromptAnalysis ? (
                     <div className="prompt-analyzer-card">
-                    <div className="prompt-analyzer-header">
-                      <h3 className="prompt-analyzer-title">
-                        Prompt Analyzer
-                      </h3>
-                      <span className="prompt-analyzer-score">
-                        Prompt Score: {promptAnalysis.score}/100
-                      </span>
-                    </div>
-
-                    <div className="prompt-analyzer-grid">
-                      <div className="prompt-analyzer-section-card">
-                        <h4 style={{ margin: '0 0 8px 0', color: '#a6e3a1', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Strengths</h4>
-                        {promptAnalysis.strengths?.length ? (
-                          <ul className="prompt-analyzer-list">
-                            {promptAnalysis.strengths.map((item, index) => (
-                              <li key={`strength-${index}`} style={{ wordWrap: 'break-word', wordBreak: 'break-word', overflowWrap: 'break-word' }}>{item}</li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '13px' }}>No major strengths detected yet.</p>
-                        )}
+                      <div className="prompt-analyzer-header">
+                        <h3 className="prompt-analyzer-title">
+                          Prompt Analyzer
+                        </h3>
+                        <span className="prompt-analyzer-score">
+                          Prompt Score: {promptAnalysis.score}/100
+                        </span>
                       </div>
 
-                      <div className="prompt-analyzer-section-card">
-                        <h4 style={{ margin: '0 0 8px 0', color: '#f38ba8', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Weaknesses</h4>
-                        {promptAnalysis.weaknesses?.length ? (
-                          <ul className="prompt-analyzer-list">
-                            {promptAnalysis.weaknesses.map((item, index) => (
-                              <li key={`weakness-${index}`} style={{ wordWrap: 'break-word', wordBreak: 'break-word', overflowWrap: 'break-word' }}>{item}</li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '13px' }}>No major weaknesses detected.</p>
-                        )}
-                      </div>
+                      <div className="prompt-analyzer-grid">
+                        <div className="prompt-analyzer-section-card">
+                          <h4 style={{ margin: '0 0 8px 0', color: '#a6e3a1', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Strengths</h4>
+                          {promptAnalysis.strengths?.length ? (
+                            <ul className="prompt-analyzer-list">
+                              {promptAnalysis.strengths.map((item, index) => (
+                                <li key={`strength-${index}`} style={{ wordWrap: 'break-word', wordBreak: 'break-word', overflowWrap: 'break-word' }}>{item}</li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '13px' }}>No major strengths detected yet.</p>
+                          )}
+                        </div>
 
-                      <div className="prompt-analyzer-section-card">
-                        <h4 style={{ margin: '0 0 8px 0', color: '#f9e2af', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Suggestions</h4>
-                        {promptAnalysis.suggestions?.length ? (
-                          <ul className="prompt-analyzer-list">
-                            {promptAnalysis.suggestions.map((item, index) => (
-                              <li key={`suggestion-${index}`} style={{ wordWrap: 'break-word', wordBreak: 'break-word', overflowWrap: 'break-word' }}>{item}</li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '13px' }}>No additional suggestions.</p>
-                        )}
+                        <div className="prompt-analyzer-section-card">
+                          <h4 style={{ margin: '0 0 8px 0', color: '#f38ba8', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Weaknesses</h4>
+                          {promptAnalysis.weaknesses?.length ? (
+                            <ul className="prompt-analyzer-list">
+                              {promptAnalysis.weaknesses.map((item, index) => (
+                                <li key={`weakness-${index}`} style={{ wordWrap: 'break-word', wordBreak: 'break-word', overflowWrap: 'break-word' }}>{item}</li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '13px' }}>No major weaknesses detected.</p>
+                          )}
+                        </div>
+
+                        <div className="prompt-analyzer-section-card">
+                          <h4 style={{ margin: '0 0 8px 0', color: '#f9e2af', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Suggestions</h4>
+                          {promptAnalysis.suggestions?.length ? (
+                            <ul className="prompt-analyzer-list">
+                              {promptAnalysis.suggestions.map((item, index) => (
+                                <li key={`suggestion-${index}`} style={{ wordWrap: 'break-word', wordBreak: 'break-word', overflowWrap: 'break-word' }}>{item}</li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '13px' }}>No additional suggestions.</p>
+                          )}
+                        </div>
                       </div>
-                    </div>
                     </div>
                   ) : null}
                   <div className="output-message-actions">
@@ -800,7 +800,7 @@ const Dashboard = () => {
                       title="Helpful"
                       onClick={() => handleOutputReaction('active', 'up')}
                     >
-                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10v11"/><path d="M11 10V5.2A2.2 2.2 0 0 1 13.2 3a2 2 0 0 1 2 2v5h4.1a2 2 0 0 1 2 2.3l-1 7A2 2 0 0 1 18.3 21H7"/><path d="M7 10H4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h3"/></svg>
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10v11" /><path d="M11 10V5.2A2.2 2.2 0 0 1 13.2 3a2 2 0 0 1 2 2v5h4.1a2 2 0 0 1 2 2.3l-1 7A2 2 0 0 1 18.3 21H7" /><path d="M7 10H4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h3" /></svg>
                     </button>
                     <button
                       type="button"
@@ -808,23 +808,23 @@ const Dashboard = () => {
                       title="Not helpful"
                       onClick={() => handleOutputReaction('active', 'down')}
                     >
-                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 14V3"/><path d="M11 14v4.8A2.2 2.2 0 0 0 13.2 21a2 2 0 0 0 2-2v-5h4.1a2 2 0 0 0 2-2.3l-1-7A2 2 0 0 0 18.3 3H7"/><path d="M7 14H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3"/></svg>
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 14V3" /><path d="M11 14v4.8A2.2 2.2 0 0 0 13.2 21a2 2 0 0 0 2-2v-5h4.1a2 2 0 0 0 2-2.3l-1-7A2 2 0 0 0 18.3 3H7" /><path d="M7 14H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3" /></svg>
                     </button>
                     <button type="button" className="output-message-action" title="Retry" onClick={() => handleRetryInputPrompt(currentPrompt, activeResultMode)}>
-                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3.2-6.9"/><path d="M21 3v6h-6"/></svg>
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3.2-6.9" /><path d="M21 3v6h-6" /></svg>
                     </button>
                     <button type="button" className="output-message-action" title="Copy" onClick={copyPrompt}>
                       {copied ? (
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12" /></svg>
                       ) : (
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
                       )}
                     </button>
                     <button type="button" className="output-message-action" title="Share" onClick={() => shareConversation('active')}>
                       {shareStatusKey === 'active' ? (
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12" /></svg>
                       ) : (
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/><line x1="15.4" y1="6.5" x2="8.6" y2="10.5"/></svg>
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><line x1="8.6" y1="13.5" x2="15.4" y2="17.5" /><line x1="15.4" y1="6.5" x2="8.6" y2="10.5" /></svg>
                       )}
                     </button>
                   </div>
@@ -841,7 +841,7 @@ const Dashboard = () => {
                 <div className="chat-notice-dot" aria-hidden="true" />
                 <p>{chatNotice.message}</p>
                 <button type="button" className="chat-notice-close" onClick={() => setChatNotice(null)} aria-label="Dismiss message">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12"/><path d="m18 6-12 12"/></svg>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12" /><path d="m18 6-12 12" /></svg>
                 </button>
               </div>
             ) : null}
@@ -853,6 +853,9 @@ const Dashboard = () => {
               onSubmit={handlePromptSubmit}
               placeholder="Ask Promet AI"
             />
+            {hasStartedConversation ? (
+              <p className="chat-bottom-disclaimer">Promet can make mistakes. Double-check important details.</p>
+            ) : null}
           </div>
         </div>
       </div>
@@ -867,11 +870,11 @@ const Dashboard = () => {
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
               </button>
             </div>
-            
+
             <div className="feedback-tags">
               {FEEDBACK_TAGS.map(tag => (
-                <div 
-                  key={tag} 
+                <div
+                  key={tag}
                   className={`feedback-tag ${selectedTags.includes(tag) ? 'selected' : ''}`}
                   onClick={() => toggleTag(tag)}
                 >
@@ -880,7 +883,7 @@ const Dashboard = () => {
               ))}
             </div>
 
-            <textarea 
+            <textarea
               className="feedback-textarea"
               placeholder="Share details (optional)"
               value={feedbackDetails}
@@ -891,7 +894,7 @@ const Dashboard = () => {
               <div className="feedback-disclaimer">
                 Your conversation will be included with your feedback to help improve the AI model.
               </div>
-              <button 
+              <button
                 className="feedback-submit"
                 onClick={submitDislikeFeedback}
                 disabled={selectedTags.length === 0 && feedbackDetails.trim() === ''}

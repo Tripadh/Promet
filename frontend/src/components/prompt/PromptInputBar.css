@@ -162,31 +162,61 @@
 }
 
 .prompt-plus-inline {
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
   border: none;
-  border-radius: 50%;
+  border-radius: 999px;
   background: transparent;
-  color: var(--text-main);
+  color: var(--text-secondary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background-color 0.18s ease;
+  transition: transform 0.3s ease;
 }
 
 .prompt-plus-inline:hover {
-  background: var(--bg-hover-subtle);
+  transform: rotate(90deg);
+}
+
+.prompt-plus-inline:active {
+  transition-duration: 0s;
 }
 
 .prompt-plus-inline svg {
-  width: 24px;
-  height: 24px;
+  width: 30px;
+  height: 30px;
   fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
+  stroke: var(--text-secondary);
+  stroke-width: 1.5;
   stroke-linecap: round;
   stroke-linejoin: round;
+  transition: fill 0.3s ease, stroke 0.3s ease;
+}
+
+.prompt-plus-inline:hover svg {
+  fill: rgba(255, 255, 255, 0.06);
+  stroke: #d4d4d8;
+}
+
+.prompt-plus-inline:active svg {
+  stroke: #f4f4f5;
+  fill: rgba(82, 82, 91, 0.55);
+  transition-duration: 0s;
+}
+
+[data-theme='light'] .prompt-plus-inline svg {
+  stroke: #71717a;
+}
+
+[data-theme='light'] .prompt-plus-inline:hover svg {
+  fill: rgba(0, 0, 0, 0.05);
+  stroke: #3f3f46;
+}
+
+[data-theme='light'] .prompt-plus-inline:active svg {
+  fill: rgba(0, 0, 0, 0.1);
+  stroke: #27272a;
 }
 
 .prompt-input-mode-pill {

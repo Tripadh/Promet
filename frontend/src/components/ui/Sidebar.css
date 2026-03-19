@@ -36,6 +36,15 @@
   align-items: center;
   justify-content: center;
   color: var(--text-main);
+  border: 1px solid var(--border-sidebar);
+  background: linear-gradient(155deg, rgba(85, 129, 255, 0.2) 0%, rgba(118, 82, 255, 0.1) 100%);
+}
+
+.sidebar-brand-mark {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--text-main);
 }
 
 .sidebar-brand svg,
@@ -152,6 +161,16 @@
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.sidebar-rail-footer svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .sidebar-rail-footer:hover {

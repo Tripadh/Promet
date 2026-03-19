@@ -15,7 +15,7 @@ const RegisterForm = () => {
     setError('');
     try {
       await register(name, email, password);
-      navigate('/'); // Go to login after successful registration
+      navigate('/login'); // Go to login after successful registration
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed');
     }

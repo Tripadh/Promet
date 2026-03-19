@@ -388,37 +388,14 @@ const Settings = () => {
                           </div>
                           <div className="setting-action">
                             <label className="toggle-switch">
-                              <input type="checkbox" checked={theme === 'light'} onChange={toggleTheme} />
-                              <span className="toggle-slider"></span>
+                              <input className="checkbox" type="checkbox" checked={theme === 'light'} onChange={toggleTheme} />
+                              <span className="slider toggle-slider"></span>
                             </label>
                           </div>
                         </div>
                       </div>
                     </div>
                     
-                    {/* Typography */}
-                    <div className="settings-section">
-                      <h4 className="section-title">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="section-icon"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/></svg>
-                        Typography
-                      </h4>
-                      
-                      <div className="settings-list">
-                        <div className="setting-item-stack">
-                          <label className="setting-label-bold">Font Family</label>
-                          <div className="custom-select">
-                            <select defaultValue="default">
-                              <option value="default">Default Font</option>
-                              <option value="serif">Serif</option>
-                              <option value="mono">Monospace</option>
-                            </select>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="select-icon"><polyline points="6 9 12 15 18 9"/></svg>
-                          </div>
-                          <span className="setting-description">Includes accessibility-focused options for better readability</span>
-                        </div>
-                      </div>
-                    </div>
-
                     {/* Interface */}
                     <div className="settings-section">
                       <h4 className="section-title">
@@ -437,23 +414,8 @@ const Settings = () => {
                           </div>
                           <div className="setting-action">
                             <label className="toggle-switch">
-                              <input type="checkbox" defaultChecked />
-                              <span className="toggle-slider"></span>
-                            </label>
-                          </div>
-                        </div>
-                        
-                        <div className="setting-item">
-                          <div className="setting-info">
-                            <div className="setting-label">
-                              <span>Animations</span>
-                            </div>
-                            <span className="setting-description">Enable smooth transitions and animations</span>
-                          </div>
-                          <div className="setting-action">
-                            <label className="toggle-switch">
-                              <input type="checkbox" defaultChecked />
-                              <span className="toggle-slider"></span>
+                              <input className="checkbox" type="checkbox" defaultChecked />
+                              <span className="slider toggle-slider"></span>
                             </label>
                           </div>
                         </div>
