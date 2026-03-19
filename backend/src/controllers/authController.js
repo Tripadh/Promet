@@ -89,13 +89,13 @@ const verifyCaptchaToken = async (captchaToken) => {
     }
 
     const secret = process.env.RECAPTCHA_SECRET_KEY;
-    const GOOGLE_TEST_SECRET = "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe";
+    const GOOGLE_TEST_SECRET = process.env.RECAPTCHA_TEST_SECRET;
 
     if (!secret || !captchaToken) {
         return false;
     }
 
-    if (secret === GOOGLE_TEST_SECRET && process.env.NODE_ENV !== "production") {
+    if (GOOGLE_TEST_SECRET && secret === GOOGLE_TEST_SECRET && process.env.NODE_ENV !== "production") {
         return true;
     }
 
@@ -116,7 +116,7 @@ const verifyCaptchaToken = async (captchaToken) => {
     } catch (error) {
         // In local development with Google's official test secret, allow non-empty token
         // so registration can proceed even if the verify endpoint is unreachable.
-        if (secret === GOOGLE_TEST_SECRET && process.env.NODE_ENV !== "production") {
+        if (GOOGLE_TEST_SECRET && secret === GOOGLE_TEST_SECRET && process.env.NODE_ENV !== "production") {
             return Boolean(captchaToken);
         }
         return false;
