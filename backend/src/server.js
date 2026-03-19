@@ -4,6 +4,8 @@ import cors from "cors";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import promptRoutes from "./routes/promptRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
+import { globalErrorHandler, notFoundHandler } from "./utils/errorHandlers.js";
 
 const app = express();
 
@@ -26,6 +28,10 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/prompts", promptRoutes);
+app.use("/api/admin", adminRoutes);
+
+app.use(notFoundHandler);
+app.use(globalErrorHandler);
 
 /* SERVER */
 

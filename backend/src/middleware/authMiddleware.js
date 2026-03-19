@@ -18,8 +18,18 @@ const protect = async (req, res, next) => {
             // Verify token
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-            // Get user from DB (without password)
-            req.user = await User.findById(decoded.id).select("-password");
+            // Support token payload with either user id or email.
+            if (decoded.id) {
+                req.user = await User.findById(decoded.id).select("-password");
+            } else if (decoded.email) {
+                req.user = await User.findOne({ email: decoded.email }).select("-password");
+            }
+
+            if (!req.user) {
+                return res.status(401).json({
+                    message: "Not authorized, user not found"
+                });
+            }
 
             next();
 

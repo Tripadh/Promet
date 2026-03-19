@@ -23,6 +23,21 @@ const userSchema = new mongoose.Schema(
         googleId: {
             type: String,
             required: false
+        },
+
+        emailVerified: {
+            type: Boolean,
+            default: false
+        },
+
+        emailVerificationOtpHash: {
+            type: String,
+            required: false
+        },
+
+        emailVerificationOtpExpires: {
+            type: Date,
+            required: false
         }
     },
     {
