@@ -7,6 +7,9 @@ import Dashboard from "./pages/Dashboard/Dashboard";
 import Settings from "./pages/Settings/Settings";
 import SharedChat from "./pages/SharedChat/SharedChat";
 import Home from "./pages/Home/Home";
+import Admin from "./pages/Admin/Admin";
+import AdminUsers from "./pages/Admin/AdminUsers";
+import AdminLogs from "./pages/Admin/AdminLogs";
 
 import PrivateRoute from "./utils/PrivateRoute";
 
@@ -53,6 +56,18 @@ function AppRoutes() {
               <Settings />
             </PrivateRoute>
           }
+        />
+        <Route
+          path="/admin"
+          element={<Admin />}
+        />
+        <Route
+          path="/admin/users"
+          element={<AdminUsers />}
+        />
+        <Route
+          path="/admin/logs"
+          element={<AdminLogs />}
         />
       </Routes>
     </>

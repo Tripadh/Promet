@@ -48,16 +48,20 @@ export const AuthProvider = ({ children }) => {
     syncUser();
   }, [token]);
 
+  const persistAuth = (authToken, profile) => {
+    localStorage.setItem('token', authToken);
+    if (profile) {
+      localStorage.setItem('user', JSON.stringify(profile));
+    }
+    setToken(authToken);
+    setUser(profile || null);
+  };
+
   const login = async (email, password) => {
     const res = await api.post('/auth/login', { email, password });
     if (res.data.token) {
       const profile = res.data.user || null;
-      localStorage.setItem('token', res.data.token);
-      if (profile) {
-        localStorage.setItem('user', JSON.stringify(profile));
-      }
-      setToken(res.data.token);
-      setUser(profile);
+      persistAuth(res.data.token, profile);
     }
     return res.data;
   };
@@ -66,18 +70,30 @@ export const AuthProvider = ({ children }) => {
     const res = await api.post('/auth/google-login', { idToken });
     if (res.data.token) {
       const profile = res.data.user || null;
-      localStorage.setItem('token', res.data.token);
-      if (profile) {
-        localStorage.setItem('user', JSON.stringify(profile));
-      }
-      setToken(res.data.token);
-      setUser(profile);
+      persistAuth(res.data.token, profile);
     }
     return res.data;
   };
 
-  const register = async (name, email, password) => {
-    const res = await api.post('/auth/register', { name, email, password });
+  const sendOtp = async (email, captchaToken) => {
+    const res = await api.post('/auth/send-otp', { email, captchaToken });
+    return res.data;
+  };
+
+  const verifyOtpLogin = async (email, otp) => {
+    const res = await api.post('/auth/verify-otp', { email, otp });
+    const authToken = res.data?.data?.token;
+    const profile = res.data?.data?.user || null;
+
+    if (authToken) {
+      persistAuth(authToken, profile);
+    }
+
+    return res.data;
+  };
+
+  const register = async (payload) => {
+    const res = await api.post('/auth/register', payload);
     return res.data;
   };
 
@@ -89,7 +105,19 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, googleLogin, register, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        loading,
+        login,
+        googleLogin,
+        sendOtp,
+        verifyOtpLogin,
+        register,
+        logout
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
