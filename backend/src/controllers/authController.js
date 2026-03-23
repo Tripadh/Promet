@@ -46,9 +46,6 @@ import User from "../models/User.js";
 import LoginLog from "../models/LoginLog.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { OAuth2Client } from "google-auth-library";
-
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const DEFAULT_BLOCKED_DOMAINS = [
     "example.com",
@@ -286,62 +283,35 @@ export const getCurrentUser = async (req, res) => {
     }
 };
 
-/* ================= GOOGLE LOGIN ================= */
+/* ================= GITHUB LOGIN CALLBACK ================= */
 
-export const googleLogin = async (req, res) => {
+export const githubCallback = async (req, res) => {
     try {
-        const { idToken } = req.body;
-
-        // Verify the token with Google
-        const ticket = await client.verifyIdToken({
-            idToken,
-            audience: process.env.GOOGLE_CLIENT_ID,
-        });
-
-        const payload = ticket.getPayload();
-        const { email, name, sub: googleId } = payload;
-
-        const emailDomain = getEmailDomain(email);
-        const blockedDomains = getBlockedDomains();
-        if (blockedDomains.has(emailDomain)) {
-            return res.status(400).json({ message: "Email domain is not allowed" });
-        }
-
-        // Check if user exists in our DB
-        let user = await User.findOne({ email });
-
+        const user = req.user;
+        
         if (!user) {
-            // If they don't exist, create a new user account without a password
-            user = await User.create({
-                name,
-                email,
-                googleId,
-                emailVerified: true,
-                // We won't set a password for Google accounts, so your DB schema might need 
-                // password to be optional, or give them a random dummy password.
-            });
+            return res.redirect("http://localhost:5173/login?error=github_auth_failed");
         }
 
-        // Generate standard JWT token for your app
+        // Generate standard JWT token for the app
         const token = jwt.sign(
             { id: user._id },
             process.env.JWT_SECRET,
             { expiresIn: "7d" }
         );
 
-        await createLoginLog(req, user, "google");
+        // Log the login event
+        try {
+            await createLoginLog(req, user, "github");
+        } catch (logErr) {
+            console.error("Login log error:", logErr);
+        }
 
-        res.json({
-            token,
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email
-            }
-        });
-
+        // Redirect to the frontend success page with the token
+        res.redirect(`http://localhost:5173/oauth-success?token=${token}`);
     } catch (error) {
-        console.error("Google verify error:", error);
-        res.status(400).json({ message: "Invalid Google Token" });
+        console.error("GitHub callback error:", error);
+        res.redirect("http://localhost:5173/login?error=github_auth_failed");
     }
 };
+

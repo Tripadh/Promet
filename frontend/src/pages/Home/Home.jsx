@@ -81,6 +81,7 @@ const Home = () => {
     <main className="promet-home">
       <div className="noise" aria-hidden="true" />
       <div className="vignette" aria-hidden="true" />
+      <div className="bg-grid" aria-hidden="true" />
 
       <header className="site-header">
         <div className="container wide">
@@ -186,6 +187,7 @@ const Home = () => {
       </section>
 
       <section id="about" className="section split-border">
+        <div className="ambient-glow" aria-hidden="true" />
         <div className="container narrow">
           <div className="center-copy reveal">
             <h2>What is Promet?</h2>
@@ -204,6 +206,7 @@ const Home = () => {
       </section>
 
       <section id="how" className="section split-border">
+        <div className="ambient-glow" aria-hidden="true" />
         <div className="container wide">
           <div className="center-copy reveal">
             <h2>How it works</h2>
@@ -219,6 +222,7 @@ const Home = () => {
       </section>
 
       <section id="modes" className="section split-border">
+        <div className="ambient-glow" aria-hidden="true" />
         <div className="container wide">
           <div className="center-copy reveal">
             <h2>Prompt improvement modes</h2>
@@ -235,6 +239,7 @@ const Home = () => {
       </section>
 
       <section id="why" className="section split-border">
+        <div className="ambient-glow" aria-hidden="true" />
         <div className="container wide">
           <div className="why-grid reveal">
             <div>

@@ -30,7 +30,8 @@ const HELP_LINKS = [
   {
     id: 'terms-policies',
     label: 'Terms & policies',
-    href: 'https://github.com/Tripadh/Promet',
+    href: '/terms',
+    internal: true,
   },
   {
     id: 'report-bug',
@@ -449,20 +450,36 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
                       <ul className="sidebar-account-sidepanel-list">
                         {HELP_LINKS.map((link) => (
                           <li key={link.id}>
-                            <a
-                              className="sidebar-account-subitem"
-                              href={link.href}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={() => {
-                                setIsAccountMenuOpen(false);
-                                setIsHelpMenuOpen(false);
-                                closeSidebarOnMobile();
-                              }}
-                            >
-                              <span>{link.label}</span>
-                              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7"/><path d="M10 14 21 3"/><path d="M21 14v7h-7"/><path d="M3 10v11h11"/></svg>
-                            </a>
+                            {link.internal ? (
+                              <button
+                                style={{ width: '100%', background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', outline: 'none' }}
+                                className="sidebar-account-subitem"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setIsAccountMenuOpen(false);
+                                  setIsHelpMenuOpen(false);
+                                  closeSidebarOnMobile();
+                                  navigate(link.href);
+                                }}
+                              >
+                                <span>{link.label}</span>
+                              </button>
+                            ) : (
+                              <a
+                                className="sidebar-account-subitem"
+                                href={link.href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={() => {
+                                  setIsAccountMenuOpen(false);
+                                  setIsHelpMenuOpen(false);
+                                  closeSidebarOnMobile();
+                                }}
+                              >
+                                <span>{link.label}</span>
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7"/><path d="M10 14 21 3"/><path d="M21 14v7h-7"/><path d="M3 10v11h11"/></svg>
+                              </a>
+                            )}
                           </li>
                         ))}
                       </ul>

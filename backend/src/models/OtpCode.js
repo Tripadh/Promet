@@ -19,8 +19,7 @@ const otpCodeSchema = new mongoose.Schema(
     },
     expiresAt: {
       type: Date,
-      required: true,
-      index: true
+      required: true
     },
     lastSentAt: {
       type: Date,

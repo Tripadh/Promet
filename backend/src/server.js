@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import connectDB from "./config/db.js";
+import passport from "./config/passport.js";
 import authRoutes from "./routes/authRoutes.js";
 import promptRoutes from "./routes/promptRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
@@ -17,6 +18,7 @@ connectDB();
 
 app.use(cors());
 app.use(express.json());
+app.use(passport.initialize());
 
 /* TEST ROUTE */
 

@@ -66,14 +66,6 @@ export const AuthProvider = ({ children }) => {
     return res.data;
   };
 
-  const googleLogin = async (idToken) => {
-    const res = await api.post('/auth/google-login', { idToken });
-    if (res.data.token) {
-      const profile = res.data.user || null;
-      persistAuth(res.data.token, profile);
-    }
-    return res.data;
-  };
 
   const sendOtp = async (email, captchaToken) => {
     const res = await api.post('/auth/send-otp', { email, captchaToken });
@@ -111,7 +103,6 @@ export const AuthProvider = ({ children }) => {
         token,
         loading,
         login,
-        googleLogin,
         sendOtp,
         verifyOtpLogin,
         register,

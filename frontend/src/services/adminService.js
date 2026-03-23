@@ -43,5 +43,10 @@ export const adminService = {
   getLogs: async () => {
     const response = await api.get("/admin/logs", adminService.getAuthHeader());
     return response.data;
+  },
+
+  deleteUser: async (id) => {
+    const response = await api.delete(`/admin/users/${id}`, adminService.getAuthHeader());
+    return response.data;
   }
 };

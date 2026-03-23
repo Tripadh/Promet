@@ -107,7 +107,7 @@ export const getAdminStats = async (req, res) => {
 
 export const getAdminUserNames = async (req, res) => {
   try {
-    const users = await User.find({}, { name: 1, createdAt: 1 })
+    const users = await User.find({}, { name: 1, email: 1, createdAt: 1 })
       .sort({ createdAt: -1 })
       .lean();
 
@@ -130,6 +130,32 @@ export const getAdminLoginLogs = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       message: "Failed to fetch login logs"
+    });
+  }
+};
+
+export const deleteUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Delete associated prompts
+    await Prompt.deleteMany({ user: userId });
+    
+    // Delete the user
+    await User.findByIdAndDelete(userId);
+
+    return res.status(200).json({ message: "User and associated data deleted successfully" });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to delete user"
     });
   }
 };

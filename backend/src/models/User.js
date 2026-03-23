@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema(
             required: false // Made optional for Google Auth users
         },
 
-        googleId: {
+        githubId: {
             type: String,
             required: false
         },

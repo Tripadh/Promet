@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 
 import Login from "./pages/Login/Login";
 import Register from "./pages/Register/Register";
+import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Settings from "./pages/Settings/Settings";
 import SharedChat from "./pages/SharedChat/SharedChat";
@@ -10,6 +11,10 @@ import Home from "./pages/Home/Home";
 import Admin from "./pages/Admin/Admin";
 import AdminUsers from "./pages/Admin/AdminUsers";
 import AdminLogs from "./pages/Admin/AdminLogs";
+
+import Terms from "./pages/Terms/Terms";
+import Privacy from "./pages/Privacy/Privacy";
+import AcceptableUse from "./pages/AcceptableUse/AcceptableUse";
 
 import PrivateRoute from "./utils/PrivateRoute";
 
@@ -39,7 +44,12 @@ function AppRoutes() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/shared/:shareId" element={<SharedChat />} />
+
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/acceptable-use" element={<AcceptableUse />} />
 
         <Route
           path="/dashboard"

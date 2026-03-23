@@ -1,4 +1,4 @@
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import { normalizeEmail } from "../utils/validators.js";
 
 export const otpRequestLimiter = rateLimit({
@@ -6,9 +6,9 @@ export const otpRequestLimiter = rateLimit({
   max: 3,
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => {
+  keyGenerator: (req, res) => {
     const email = normalizeEmail(req.body?.email);
-    return email || `ip:${req.ip}`;
+    return email || ipKeyGenerator(req, res);
   },
   handler: (_req, res) => {
     return res.status(429).json({

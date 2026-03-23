@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import ReCAPTCHA from 'react-google-recaptcha';
 
@@ -7,6 +7,7 @@ const RegisterForm = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [agreed, setAgreed] = useState(false);
   const [captchaToken, setCaptchaToken] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [error, setError] = useState('');
@@ -87,6 +88,21 @@ const RegisterForm = () => {
           </div>
         )}
       </div>
+
+      <div className="auth-field" style={{ flexDirection: 'row', alignItems: 'flex-start', gap: '12px', marginTop: '4px', marginBottom: '16px' }}>
+        <input 
+          type="checkbox" 
+          id="termsAgree" 
+          checked={agreed}
+          onChange={(e) => setAgreed(e.target.checked)}
+          required
+          style={{ width: '16px', height: '16px', marginTop: '2px', cursor: 'pointer', accentColor: '#10a37f' }}
+        />
+        <label htmlFor="termsAgree" style={{ fontSize: '0.8rem', lineHeight: '1.4', color: '#a1a1aa', fontWeight: '400' }}>
+          I agree to the <Link to="/terms" style={{ color: '#fff', fontWeight: '500', textDecoration: 'none' }} target="_blank">Terms of Service</Link>, <Link to="/privacy" style={{ color: '#fff', fontWeight: '500', textDecoration: 'none' }} target="_blank">Privacy Policy</Link>, <Link to="/acceptable-use" style={{ color: '#fff', fontWeight: '500', textDecoration: 'none' }} target="_blank">Acceptable Use Policy</Link>, and I confirm that all the details I have provided are correct and accurate.
+        </label>
+      </div>
+
       <button type="submit">Register</button>
     </form>
   );
