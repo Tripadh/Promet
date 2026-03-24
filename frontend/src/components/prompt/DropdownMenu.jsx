@@ -1,8 +1,9 @@
 import React from 'react';
 
-const DropdownMenu = ({ items, onSelect }) => {
+const DropdownMenu = ({ items, onSelect, children }) => {
   return (
     <div className="prompt-menu" role="menu" aria-label="Prompt actions">
+      {children}
       {items.map((item) => (
         <button
           key={item.id}

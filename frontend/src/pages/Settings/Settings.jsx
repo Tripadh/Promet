@@ -7,7 +7,7 @@ import Sidebar from '../../components/ui/Sidebar';
 import './Settings.css';
 
 const Settings = () => {
-  const { user } = useAuth();
+  const { user, logout, token } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { deleteAllChats } = useContext(PromptContext);
   const [activeTab, setActiveTab] = useState('profile');
@@ -22,6 +22,12 @@ const Settings = () => {
     expert: 0,
     totalPrompts: 0,
   });
+
+  const [showAccountDeleteModal, setShowAccountDeleteModal] = useState(false);
+  const [deleteAccountStep, setDeleteAccountStep] = useState('confirm');
+  const [deleteOtp, setDeleteOtp] = useState('');
+  const [isDeletingLoading, setIsDeletingLoading] = useState(false);
+  const [deleteAccountError, setDeleteAccountError] = useState('');
 
   useEffect(() => {
     const handleResize = () => {
@@ -292,7 +298,15 @@ const Settings = () => {
                         <p>Permanently delete your account and all associated data. This action is irreversible.</p>
                       </div>
                       <div className="header-action">
-                        <button className="secondary-btn">
+                        <button 
+                          className="secondary-btn"
+                          onClick={() => {
+                            setShowAccountDeleteModal(true);
+                            setDeleteAccountStep('confirm');
+                            setDeleteOtp('');
+                            setDeleteAccountError('');
+                          }}
+                        >
                           Delete Account
                         </button>
                       </div>
@@ -444,6 +458,127 @@ const Settings = () => {
                 Delete All
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showAccountDeleteModal && (
+        <div className="confirm-modal-overlay" onClick={() => !isDeletingLoading && setShowAccountDeleteModal(false)}>
+          <div className="confirm-modal-card" onClick={e => e.stopPropagation()}>
+            <h3>Delete Account</h3>
+            
+            {deleteAccountError && (
+              <div style={{ color: '#ef4444', fontSize: '14px', marginBottom: '15px' }}>{deleteAccountError}</div>
+            )}
+
+            {deleteAccountStep === 'confirm' ? (
+              <>
+                <p>
+                  Permanently delete your account and all associated data. This action is irreversible.
+                </p>
+                <p style={{ marginTop: '10px', fontSize: '14px', color: '#a1a1aa' }}>
+                  We will send a 6-digit verification code to <strong>{email}</strong> to confirm your identity.
+                </p>
+                <div className="confirm-modal-actions">
+                  <button 
+                    type="button" 
+                    className="confirm-modal-cancel" 
+                    onClick={() => setShowAccountDeleteModal(false)}
+                    disabled={isDeletingLoading}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="button" 
+                    className="confirm-modal-delete" 
+                    onClick={async () => {
+                      try {
+                        setIsDeletingLoading(true);
+                        setDeleteAccountError('');
+                        const res = await fetch('http://localhost:5000/api/auth/delete-account/send-otp', {
+                          method: 'POST',
+                          headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        const data = await res.json();
+                        if (!res.ok) throw new Error(data.message || 'Failed to send OTP');
+                        
+                        setDeleteAccountStep('otp');
+                      } catch (err) {
+                        setDeleteAccountError(err.message);
+                      } finally {
+                        setIsDeletingLoading(false);
+                      }
+                    }}
+                    disabled={isDeletingLoading}
+                  >
+                    {isDeletingLoading ? 'Sending...' : 'Send Code'}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p>Enter the 6-digit code sent to your email to confirm deletion.</p>
+                
+                <div className="form-group" style={{ marginTop: '15px', marginBottom: '20px' }}>
+                  <input 
+                    type="text" 
+                    placeholder="Enter 6-digit OTP" 
+                    value={deleteOtp}
+                    onChange={(e) => setDeleteOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    disabled={isDeletingLoading}
+                    style={{ textAlign: 'center', letterSpacing: '2px', fontSize: '1.2rem', padding: '10px', width: '100%', backgroundColor: '#18181b', color: '#fff', border: '1px solid #3f3f46', borderRadius: '4px' }}
+                  />
+                </div>
+
+                <div className="confirm-modal-actions">
+                  <button 
+                    type="button" 
+                    className="confirm-modal-cancel" 
+                    onClick={() => setShowAccountDeleteModal(false)}
+                    disabled={isDeletingLoading}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="button" 
+                    className="confirm-modal-delete" 
+                    onClick={async () => {
+                      if (deleteOtp.length !== 6) {
+                        setDeleteAccountError('Please enter a valid 6-digit OTP');
+                        return;
+                      }
+                      
+                      try {
+                        setIsDeletingLoading(true);
+                        setDeleteAccountError('');
+                        
+                        const res = await fetch('http://localhost:5000/api/auth/delete-account', {
+                          method: 'DELETE',
+                          headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                          },
+                          body: JSON.stringify({ otp: deleteOtp })
+                        });
+                        
+                        const data = await res.json();
+                        if (!res.ok) throw new Error(data.message || 'Verification failed');
+                        
+                        setShowAccountDeleteModal(false);
+                        logout();
+                      } catch (err) {
+                        setDeleteAccountError(err.message);
+                      } finally {
+                        setIsDeletingLoading(false);
+                      }
+                    }}
+                    disabled={isDeletingLoading || deleteOtp.length !== 6}
+                  >
+                    {isDeletingLoading ? 'Deleting...' : 'Permanently Delete'}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

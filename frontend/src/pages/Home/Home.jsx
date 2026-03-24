@@ -1,7 +1,63 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import LightRays from '../../components/ui/LightRays';
 import './Home.css';
+
+const faqs = [
+  {
+    q: "What is Promet?",
+    a: "Promet is an AI-powered tool that takes your vague, unstructured ideas and transforms them into highly optimized, context-rich prompts. It ensures you get the best possible results from any AI model."
+  },
+  {
+    q: "Is it free to use?",
+    a: "Yes, Promet offers a generous free tier that is perfect for everyday use. We also have premium plans for power users who need advanced models and unlimited generations."
+  },
+  {
+    q: "Do I need to be a prompt engineer?",
+    a: "Not at all. Promet is designed specifically so you don't have to be one. Just type your goal naturally, and we format it with the structure, tone, and constraints that AI models respond to best."
+  },
+  {
+    q: "Is my data kept private?",
+    a: "Absolutely. Your prompts are stored securely in your own private history. We do not use your personal prompt data to train our own foundation models."
+  }
+];
+
+const FaqItem = ({ faq }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <article 
+      className={`faq-card ${isOpen ? 'open' : ''}`} 
+      onClick={() => setIsOpen(!isOpen)}
+      style={{ 
+        background: 'rgba(24, 24, 27, 0.4)', 
+        border: '1px solid rgba(63, 63, 70, 0.5)', 
+        borderRadius: '12px', 
+        padding: '24px', 
+        cursor: 'pointer',
+        transition: 'background 0.2s ease, border-color 0.2s ease',
+        userSelect: 'none'
+      }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#f8fafc', margin: 0 }}>{faq.q}</h3>
+        <span style={{ fontSize: '24px', color: '#a1a1aa', fontWeight: 300, marginLeft: '16px', lineHeight: 1, display: 'inline-block', transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease' }}>
+          {isOpen ? '−' : '+'}
+        </span>
+      </div>
+      <div style={{
+        maxHeight: isOpen ? '500px' : '0',
+        opacity: isOpen ? 1 : 0,
+        overflow: 'hidden',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+      }}>
+        <p style={{ fontSize: '15px', color: '#a1a1aa', lineHeight: 1.6, marginTop: '16px', marginBottom: 0, userSelect: 'text' }}>
+          {faq.a}
+        </p>
+      </div>
+    </article>
+  );
+};
 
 const Home = () => {
   const currentYear = new Date().getFullYear();
@@ -252,6 +308,22 @@ const Home = () => {
               <article className="mini-card tilt-card"><h3>Consistency</h3><p>Repeatable quality across models and tasks.</p></article>
               <article className="mini-card tilt-card"><h3>Speed</h3><p>Less iteration, more building. Ship faster.</p></article>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="faq" className="section split-border">
+        <div className="ambient-glow" aria-hidden="true" />
+        <div className="container narrow">
+          <div className="center-copy reveal">
+            <h2>Questions?</h2>
+            <p>Here are the ones we get asked most.</p>
+          </div>
+
+          <div className="faq-grid reveal" style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '40px' }}>
+            {faqs.map((faq, idx) => (
+              <FaqItem key={idx} faq={faq} />
+            ))}
           </div>
         </div>
       </section>

@@ -64,7 +64,7 @@
   position: absolute;
   left: 50%;
   width: min(var(--chat-box-max-width, 760px), calc(100% - 48px));
-  top: 64%;
+  top: 69%;
   transform: translate(-50%, -50%);
   animation: promptDockIn 500ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
@@ -419,7 +419,7 @@
 
   .pre-conversation .input-container {
     width: calc(100% - 32px);
-    top: 60%;
+    top: 66%;
   }
 
   .conversation-started .input-container {
@@ -556,4 +556,54 @@
   font-size: 13px;
   max-height: 220px;
   overflow-y: auto;
+}
+
+/* ─── Streaming & Loading ────────────────────── */
+
+.prompt-output-content {
+  white-space: pre-wrap;
+  margin: 0;
+  font-family: "Fira Code", "Consolas", monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-main);
+}
+
+.thinking-indicator {
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-muted);
+  font-style: italic;
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+  opacity: 0.8;
+}
+
+.thinking-indicator span {
+  opacity: 0;
+}
+
+.thinking-indicator .dot-1 { animation: thinkingDot 1.4s infinite; }
+.thinking-indicator .dot-2 { animation: thinkingDot 1.4s infinite 0.2s; }
+.thinking-indicator .dot-3 { animation: thinkingDot 1.4s infinite 0.4s; }
+
+@keyframes thinkingDot {
+  0%, 20% { opacity: 0; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-1px); }
+  100% { opacity: 0; transform: translateY(0); }
+}
+
+.streaming-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 16px;
+  background-color: var(--text-main);
+  border-radius: 1px;
+  margin-left: 6px;
+  vertical-align: text-bottom;
+  animation: blinkCursor 0.9s step-end infinite;
+}
+
+@keyframes blinkCursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }

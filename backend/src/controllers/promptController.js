@@ -1,4 +1,4 @@
-import { improvePromptWithAI, improvePromptWithAIStream, normalizeMode } from "../services/aiService.js";
+import { improvePromptWithAI, improvePromptWithAIStream, normalizeMode, generateChatTitle } from "../services/aiService.js";
 import { analyzePrompt as analyzeUserPrompt } from "../services/promptAnalyzer.js";
 import Prompt from "../models/Prompt.js";
 import MonthlyUsage from "../models/MonthlyUsage.js";
@@ -10,7 +10,7 @@ import { randomBytes } from "crypto";
 
 export const improvePrompt = async (req, res) => {
   try {
-    const { prompt, mode = "balanced", isRetry = false, conversationId } = req.body;
+    const { prompt, mode = "balanced", isRetry = false, conversationId, domain = null } = req.body;
     const selectedMode = normalizeMode(mode);
     const MAX_PROMPTS_PER_CONVERSATION = 5;
     const conversationKey = typeof conversationId === "string" && conversationId.trim()
@@ -36,6 +36,25 @@ export const improvePrompt = async (req, res) => {
           limit: MAX_PROMPTS_PER_CONVERSATION,
         });
       }
+    }
+
+    // Daily limit check: max 15 prompts per day
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const dailyCount = await Prompt.countDocuments({
+      user: req.user.id,
+      createdAt: { $gte: startOfDay, $lte: endOfDay }
+    });
+
+    if (dailyCount >= 15) {
+      return res.status(429).json({
+        message: "You have reached your daily limit of 15 prompts. Please come back tomorrow!",
+        code: "DAILY_LIMIT_REACHED",
+        limit: 15,
+      });
     }
 
     // Fetch the previous prompt if there's an ongoing conversation, to maintain memory
@@ -86,7 +105,8 @@ export const improvePrompt = async (req, res) => {
         finalImprovedPrompt += textChunk;
         res.write(`data: ${JSON.stringify({ text: textChunk })}\n\n`);
       },
-      { memory: previousPromptText }
+      { memory: previousPromptText },
+      domain
     );
 
     if (streamResult && streamResult.needsClarification) {
@@ -106,12 +126,18 @@ export const improvePrompt = async (req, res) => {
       output: finalImprovedPrompt
     });
 
+    let chatTitle = null;
+    if (!conversationKey) {
+      chatTitle = await generateChatTitle(prompt);
+    }
+
     const newPrompt = await Prompt.create({
       user: req.user.id,
       originalPrompt: prompt,
       improvedPrompt: finalImprovedPrompt,
       mode: selectedMode,
       conversationId: conversationKey,
+      title: chatTitle,
       langfuseTraceId: trace.id,
       createdAt: new Date(),
     });
@@ -177,6 +203,7 @@ export const getPromptHistory = async (req, res) => {
           updatedAt: { $first: "$updatedAt" },
           pinned: { $max: "$pinned" },
           favorite: { $max: "$favorite" },
+          title: { $max: "$title" },
         },
       },
       { $sort: { pinned: -1, createdAt: -1 } },
@@ -200,6 +227,7 @@ export const getPromptHistory = async (req, res) => {
       updatedAt: item.updatedAt,
       pinned: item.pinned,
       favorite: item.favorite,
+      title: item.title,
     }));
 
     const total = groupedCount[0]?.total || 0;
@@ -410,6 +438,7 @@ export const getPinnedPrompts = async (req, res) => {
           updatedAt: { $first: "$updatedAt" },
           pinned: { $max: "$pinned" },
           favorite: { $max: "$favorite" },
+          title: { $max: "$title" },
         },
       },
       { $sort: { createdAt: -1 } },
@@ -425,6 +454,7 @@ export const getPinnedPrompts = async (req, res) => {
       updatedAt: item.updatedAt,
       pinned: item.pinned,
       favorite: item.favorite,
+      title: item.title,
     }));
     res.status(200).json(payload);
   } catch (error) {
@@ -450,6 +480,7 @@ export const getFavoritePrompts = async (req, res) => {
           updatedAt: { $first: "$updatedAt" },
           pinned: { $max: "$pinned" },
           favorite: { $max: "$favorite" },
+          title: { $max: "$title" },
         },
       },
       { $sort: { createdAt: -1 } },
@@ -465,6 +496,7 @@ export const getFavoritePrompts = async (req, res) => {
       updatedAt: item.updatedAt,
       pinned: item.pinned,
       favorite: item.favorite,
+      title: item.title,
     }));
 
     res.status(200).json(payload);

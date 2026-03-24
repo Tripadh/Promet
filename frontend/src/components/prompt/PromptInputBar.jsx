@@ -3,15 +3,22 @@ import React, { useEffect, useRef, useState } from 'react';
 import DropdownMenu from './DropdownMenu';
 import PromptModeSelector from './PromptModeSelector';
 
-const MENU_ITEMS = [
-  { id: 'save-prompt', label: 'Save Prompt' },
-];
+const MENU_ITEMS = [];
 
 const PROMPT_MODES = [
   { id: 'quick', label: 'Quick', description: 'Fast short rewrite' },
   { id: 'auto', label: 'Auto', description: 'Chooses complexity automatically' },
   { id: 'balanced', label: 'Balanced', description: 'Clear structure with moderate detail' },
   { id: 'expert', label: 'Expert', description: 'Detailed professional prompt' },
+];
+
+const DOMAIN_CHIPS = [
+  { id: 'tech', label: 'Tech / Code', emoji: '💻' },
+  { id: 'social', label: 'Social Media', emoji: '📱' },
+  { id: 'marketing', label: 'Marketing', emoji: '📣' },
+  { id: 'creative', label: 'Creative', emoji: '✍️' },
+  { id: 'email', label: 'Email', emoji: '📧' },
+  { id: 'education', label: 'Education', emoji: '🎓' },
 ];
 
 const PlusIcon = () => (
@@ -40,6 +47,7 @@ const PromptInputBar = ({
   initialMode = 'balanced',
   draftPayload,
   loading = false,
+  hasStartedConversation = false,
   onMenuAction,
   onModeChange,
   onSubmit,
@@ -47,6 +55,7 @@ const PromptInputBar = ({
 }) => {
   const [promptText, setPromptText] = useState('');
   const [selectedMode, setSelectedMode] = useState(initialMode);
+  const [selectedDomain, setSelectedDomain] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isModeSelectorOpen, setIsModeSelectorOpen] = useState(false);
   const [isListening, setIsListening] = useState(false);
@@ -187,6 +196,10 @@ const PromptInputBar = ({
     textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 180)}px`;
   }, [promptText]);
 
+  const handleDomainSelect = (domainId) => {
+    setSelectedDomain((prev) => (prev === domainId ? null : domainId));
+  };
+
   const handleModeSelect = (mode) => {
     setSelectedMode(mode);
     setIsModeSelectorOpen(false);
@@ -216,14 +229,23 @@ const PromptInputBar = ({
     const payload = {
       prompt: trimmedPrompt,
       mode: selectedMode,
+      domain: selectedDomain,
       timestamp: new Date(),
     };
 
-    await onSubmit?.(payload);
     setPromptText('');
+    setSelectedDomain(null);
     setIsDropdownOpen(false);
     setIsModeSelectorOpen(false);
     setSpeechStatus('');
+
+    try {
+      await onSubmit?.(payload);
+    } catch (error) {
+      // In a real app, you might want to restore the promptText here if it fails, 
+      // but for now swallowing prevents unhandled rejections
+      console.error('Submit failed', error);
+    }
   };
 
   const handleKeyDown = async (event) => {
@@ -263,9 +285,55 @@ const PromptInputBar = ({
 
   return (
     <div className="prompt-input-bar-wrapper" ref={wrapperRef}>
+      {/* Domain Chips Row - Only visible above when chat hasn't started */}
+      {!hasStartedConversation ? (
+        <div className="domain-chips-row">
+          {DOMAIN_CHIPS.map((chip) => (
+            <button
+              key={chip.id}
+              type="button"
+              className={`domain-chip${selectedDomain === chip.id ? ' is-selected' : ''}`}
+              onClick={() => handleDomainSelect(chip.id)}
+              title={chip.label}
+            >
+              <span className="domain-chip-emoji">{chip.emoji}</span>
+              <span>{chip.label}</span>
+            </button>
+          ))}
+        </div>
+      ) : null}
+
       {isDropdownOpen ? (
         <div className="prompt-overlay-panel prompt-menu-panel">
-          <DropdownMenu items={MENU_ITEMS} onSelect={handleMenuSelect} />
+          <DropdownMenu items={MENU_ITEMS} onSelect={handleMenuSelect}>
+            {hasStartedConversation ? (
+              <div className="prompt-menu-domains">
+                <div className="prompt-menu-domains-header">Context Domain</div>
+                <div className="prompt-menu-domains-grid">
+                  {DOMAIN_CHIPS.map((chip) => (
+                    <button
+                      key={chip.id}
+                      type="button"
+                      className={`prompt-menu-domain-btn${selectedDomain === chip.id ? ' is-selected' : ''}`}
+                      onClick={() => {
+                        handleDomainSelect(chip.id);
+                        setIsDropdownOpen(false);
+                      }}
+                      title={chip.label}
+                    >
+                      <span className="domain-btn-icon">{chip.emoji}</span>
+                      <span className="domain-btn-label">{chip.label}</span>
+                      {selectedDomain === chip.id ? (
+                        <svg className="domain-btn-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      ) : null}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </DropdownMenu>
         </div>
       ) : null}
 

@@ -9,9 +9,57 @@ const SUPPORTED_MODES = ["quick", "auto", "balanced", "expert"];
 // Per-mode model — expert gets the big model
 const MODE_MODELS = {
   quick:    "llama-3.1-8b-instant",
-  auto:     "llama-3.1-8b-instant",
+  auto:     "llama-3.3-70b-versatile",
   balanced: "llama-3.1-8b-instant",
   expert:   "llama-3.3-70b-versatile",
+};
+
+// ─────────────────────────────────────────────
+// Domain-specific instruction injections
+// Appended to the system prompt when a domain is selected
+// ─────────────────────────────────────────────
+const DOMAIN_INSTRUCTIONS = {
+  tech: `\n\nDOMAIN CONTEXT — Tech / Code:
+The user is working in a technical/software engineering context. Tailor the improved prompt to reflect:
+- Senior developer tone with precise technical language
+- Include architecture, system design, error handling, and scalability considerations
+- Mention relevant technologies, design patterns, and best practices where appropriate
+- The output should sound like it was written by a Staff Software Engineer`,
+
+  social: `\n\nDOMAIN CONTEXT — Social Media:
+The user wants a prompt optimized for social media content creation. Tailor the improved prompt to:
+- Open with a strong hook that grabs attention in the first sentence
+- Use short, punchy sentences and casual conversational tone
+- Include suggestions for emojis, hashtags, and platform-specific formatting (Instagram, Twitter/X, LinkedIn, TikTok)
+- Focus on engagement, shareability, and emotional impact`,
+
+  marketing: `\n\nDOMAIN CONTEXT — Marketing:
+The user is in a marketing/advertising context. Tailor the improved prompt to:
+- Use persuasive, conversion-focused language
+- Clearly define the target audience, value proposition, and call-to-action (CTA)
+- Include copywriting principles (AIDA: Attention, Interest, Desire, Action)
+- Optimize for the specific marketing channel (email, ad, landing page, etc.)`,
+
+  creative: `\n\nDOMAIN CONTEXT — Creative Writing:
+The user wants a prompt for creative or storytelling purposes. Tailor the improved prompt to:
+- Specify narrative tone, genre, perspective (first/third person), and mood
+- Include rich sensory details, character depth, and world-building cues
+- Encourage originality, metaphor, and stylistic flair
+- Avoid corporate or technical language — keep it literary and evocative`,
+
+  email: `\n\nDOMAIN CONTEXT — Email:
+The user wants a prompt for composing a professional or personal email. Tailor the improved prompt to:
+- Specify the email's purpose, sender/recipient relationship, and desired tone (formal/informal)
+- Include a clear subject line instruction, structured body (opening, main point, closing), and sign-off
+- Keep language concise, professional, and action-oriented
+- Avoid filler phrases — every sentence should serve a purpose`,
+
+  education: `\n\nDOMAIN CONTEXT — Education:
+The user wants a prompt for educational or learning content. Tailor the improved prompt to:
+- Specify the target audience's knowledge level (beginner, intermediate, expert)
+- Use clear, structured explanations with examples, analogies, and step-by-step breakdowns
+- Encourage the AI to check for understanding, anticipate common misconceptions, and explain "why" not just "what"
+- Maintain an encouraging, patient, and approachable tone`,
 };
 
 const COMMON_PROMPT_RULES = `Core rules:
@@ -47,40 +95,32 @@ ${userPrompt}`,
   },
 
   auto: {
-    systemPrompt: `You are Prompt Improver in AUTO mode.
+    systemPrompt: `You are Prompt Improver in AUTO (Creative Thinker) mode.
 
 ${COMMON_PROMPT_RULES}
 
-Rules for AUTO mode expansion:
-- Use AI to expand slightly while fiercely respecting user constraints. Do NOT arbitrarily add unrelated topics just to make it longer.
-- The output MUST ALWAYS be written as a direct request/prompt from the user to an AI system.
-- NEVER use first-person language like "I will create", "I'll build", "We will", "We'll". Instead use imperative commands like "Create a website", "Act as a developer and build", or "Write a".
-- Always expand short prompts into multiple sentences that clarify the task, context, and expected outcome.
-- Add useful context, assumptions, and requirements when they are missing and permitted.
-- The improved prompt should usually be longer than the input prompt.
-- Short prompts (1-15 words) → expand to about 6–10 sentences.
-- Moderate prompts (16-50 words) → expand to about 10–18 sentences.
-- Complex prompts (50+ words) → expand to 10+ sentences.
-- Never over-compress prompts.
-
-Use the complexity hint to determine the level of detail and expansion:
-- For simple prompts: expand and clarify intent into multiple sentences.
-- For moderate prompts: generate a detailed prompt clarifying requirements and adding context.
-- For complex prompts: produce highly descriptive prompts outlining expectations and deep context.
+Rules for AUTO mode:
+- Act as a creative AI and a senior product thinker that thinks outside the box.
+- FIERCELY preserve the user's original core intent, but do not stop there.
+- INJECT 2-3 highly innovative, unconventional ideas or features that the user likely didn't think of.
+- Suggest alternative approaches, better technologies, or modern paradigms that could solve their root problem more elegantly.
+- Challenge any weak or limiting assumptions found in the original prompt. Push the user to build something superior.
+- Write the final prompt as a powerful, structured request from the user to an AI system.
+- Ensure the prompt demands the AI to act as a world-class domain expert.
+- Use imperative language ("Build", "Design", "Create") and absolutely NEVER use first-person language ("I will create").
+- Produce a highly engaging, forward-thinking prompt that transforms a basic idea into an outstanding product vision.
 
 IMPORTANT — Vague/ambiguous input rule:
-If the complexity hint is "vague" OR the input is fewer than 6 words with no clear domain, treat it as MODERATE complexity.
-Make reasonable assumptions about what the user likely wants (e.g. a software tool, product, or creative output), state those assumptions clearly in the improved prompt, and expand with useful context and requirements.`,
-    buildUserPrompt: (userPrompt, context) => `Analyze this prompt and use the following complexity hint:
+If the input is vague or short, assume they are looking for a groundbreaking product or solution. Invent missing context that elevates the concept into something remarkable, explicitly incorporating those visionary assumptions into the improved prompt.`,
+    buildUserPrompt: (userPrompt, context) => `Analyze this prompt. As a senior product thinker, elevate the prompt's ambition. Inject innovative ideas, challenge weak assumptions, and suggest better approaches while keeping the core intent intact.
 
 Complexity: ${context.complexity.level}
-Hint: ${context.complexity.hint}
 
 User prompt:
 
 ${userPrompt}`,
-    temperature: 0.45,
-    maxTokens: 800,
+    temperature: 0.65,
+    maxTokens: 1000,
   },
 
   balanced: {
@@ -103,27 +143,30 @@ ${userPrompt}`,
 
 ${COMMON_PROMPT_RULES}
 
-Your job is to transform the user's prompt into a highly advanced, architecturally rich, and technically detailed prompt suitable for expert-level AI responses.
-CRITICALLY: Even in Expert mode, you MUST explicitly obey user constraints. For example, if they specify to avoid a topic, DO NOT include it; if they want "basics", frame the expert prompt around best practices for teaching those basics, rather than diving into advanced variants.
+**EXPERT OVERRIDES TO COMMON RULES:**
+- IGNORING RULE 7 & 10: You MUST use clean Markdown formatting, structured sections (e.g., "🎯 Project Overview", "⚡ Technical Constraints", "📋 Output Format"), and bullet points to break down complex prompts expertly. 
+- Do NOT just create a giant wall of text. Use headings to make the prompt readable and professional.
+
+Your job is to transform the user's prompt into a perfect 10/10, architecturally rich, and technically detailed prompt suitable for expert-level AI responses.
 
 Guidelines:
-- Expand the request significantly with deeper engineering context, carefully avoiding any excluded topics.
-- Include architecture considerations, scalability concerns, integration points, and operational aspects when relevant.
-- Add implied requirements that an experienced software architect would consider.
-- Describe technologies, workflows, system components, and interactions where appropriate.
-- Ensure the prompt is noticeably more detailed than BALANCED mode.
-- The output should resemble a professional system design or engineering specification.
-- IMPORTANT: Format the output in clear paragraphs separated by blank lines. Do NOT write a single run-on sentence or paragraph. Keep it as continuous prompt text with no explicit section titles or heading labels.`,
-    buildUserPrompt: (userPrompt) => `Improve the following prompt into a highly detailed expert-level engineering request.
+1. **PURE EXECUTION:** Do not just "describe" constraints—execute them within the final improved prompt. If the user asks for a JSON format, provide a structured JSON schema or example in the prompt. If they ask for creative rules (e.g., poetry constraints), explicitly state them as hard LLM rules.
+2. **DEEP CONTEXT:** Expand the request significantly with deeper engineering context, architecture considerations, scalability concerns, integration points, and operational aspects when relevant.
+3. **EDGE CASES & ERROR HANDLING:** Automatically inject instructions for the target LLM to handle errors, edge cases, and fallback scenarios.
+4. **EXPERT PERSONA:** Write the prompt so the target AI acts as a "Senior Staff Developer" or domain expert.
+5. **NO FLUFF:** No conversational padding ("Here is your prompt"). Just return the ultimate, perfect prompt itself.`,
+    buildUserPrompt: (userPrompt) => `Improve the following prompt into a perfect 10/10 expert-level engineering request.
 
-Expand the prompt with architectural thinking, advanced technical considerations, system components, integration concerns, scalability considerations, and professional context while strictly preserving the original intent and avoiding any negatively constrained topics.
-
-  Format the output as multiple short paragraphs — NOT one long run-on sentence. Keep the flow natural and continuous with no section headings or labels.
+Ensure the final prompt has:
+- Beautiful Markdown structuring (Clear headings, bullet points, code blocks for schemas/examples if relevant).
+- Explicit, structured constraints that the target AI cannot misinterpret.
+- Architectural depth, edge case handling, and best-practice engineering guidelines.
+- Absolute adherence to the user's original negative constraints (if any).
 
 Prompt:
 ${userPrompt}`,
-    temperature: 0.22,
-    maxTokens: 900,
+    temperature: 0.3,
+    maxTokens: 1500,
   },
 };
 
@@ -415,19 +458,24 @@ export const generateModeInstruction = (mode) => {
 
   switch (selectedMode) {
     case "quick":   return "Generate a short, concise, and practical prompt.";
-    case "auto":    return "Detect complexity and choose the appropriate level of detail automatically.";
+    case "auto":    return "Act as a senior product thinker: inject innovative ideas, suggest alternatives, and challenge weak assumptions.";
     case "expert":  return "Generate a highly detailed, professional, and comprehensive prompt.";
     case "balanced":
     default:        return "Generate a clear, moderately detailed prompt.";
   }
 };
 
-export const buildPrompt = (mode, userPrompt, isRetry = false, previousPrompt = null) => {
+export const buildPrompt = (mode, userPrompt, isRetry = false, previousPrompt = null, domain = null) => {
   const selectedMode = normalizeMode(mode);
   const template = MODE_TEMPLATES[selectedMode];
   const complexity = detectComplexity(userPrompt);
 
   let systemPrompt = template.systemPrompt;
+
+  // Inject domain-specific instructions when a domain is selected
+  if (domain && DOMAIN_INSTRUCTIONS[domain]) {
+    systemPrompt += DOMAIN_INSTRUCTIONS[domain];
+  }
 
   if (isRetry) {
     systemPrompt += `\n\nNOTE: The user has requested to retry this generation. Provide a slightly different, alternative phrasing and creative approach compared to what you would normally produce.`;
@@ -481,7 +529,7 @@ export const clearPromptMemory = (store) => {
 // Returns { needsClarification, message } if input
 // is meaningless, otherwise returns the improved prompt string.
 // ─────────────────────────────────────────────
-export const improvePromptWithAI = async (prompt, mode = "balanced", isRetry = false, store = null) => {
+export const improvePromptWithAI = async (prompt, mode = "balanced", isRetry = false, store = null, domain = null) => {
   const memStore = store || createMemoryStore();
   const isUpdate = Boolean(memStore.memory) && !isRetry;
 
@@ -492,7 +540,7 @@ export const improvePromptWithAI = async (prompt, mode = "balanced", isRetry = f
 
   try {
     const { selectedMode, temperature, maxTokens, model, messages } = buildPrompt(
-      mode, prompt, isRetry, memStore.memory
+      mode, prompt, isRetry, memStore.memory, domain
     );
 
     const stream = await groq.chat.completions.create({
@@ -530,7 +578,7 @@ export const improvePromptWithAI = async (prompt, mode = "balanced", isRetry = f
 // If input is meaningless, calls onToken with the
 // clarification message and returns early — no LLM call.
 // ─────────────────────────────────────────────
-export const improvePromptWithAIStream = async (prompt, mode = "balanced", isRetry = false, onToken, store = null) => {
+export const improvePromptWithAIStream = async (prompt, mode = "balanced", isRetry = false, onToken, store = null, domain = null) => {
   const memStore = store || createMemoryStore();
   const isUpdate = Boolean(memStore.memory) && !isRetry;
 
@@ -548,7 +596,7 @@ export const improvePromptWithAIStream = async (prompt, mode = "balanced", isRet
 
   try {
     const { selectedMode, temperature, maxTokens, model, messages } = buildPrompt(
-      mode, prompt, isRetry, memStore.memory
+      mode, prompt, isRetry, memStore.memory, domain
     );
 
     const stream = await groq.chat.completions.create({
@@ -587,5 +635,36 @@ export const improvePromptWithAIStream = async (prompt, mode = "balanced", isRet
     const fallback = buildDeterministicFallbackPrompt(prompt);
     if (!isRetry) memStore.memory = fallback;
     return fallback;
+  }
+};
+
+// ─────────────────────────────────────────────
+// Generate Chat Title
+// Returns a short 2-4 word summary for a new chat
+// ─────────────────────────────────────────────
+export const generateChatTitle = async (prompt) => {
+  try {
+    const response = await groq.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      temperature: 0.3,
+      max_tokens: 15,
+      messages: [
+        {
+          role: "system",
+          content: "You are a helpful assistant. Generate a very short, concise title (2-4 words maximum) summarizing the main topic of the following user prompt. Do not use quotes, punctuation, or conversational filler. Return ONLY the title text.",
+        },
+        {
+          role: "user",
+          content: String(prompt).trim(),
+        },
+      ],
+    });
+
+    const title = response?.choices?.[0]?.message?.content?.trim() || "";
+    // Clean up any stray quotes the model might have added
+    return title.replace(/^["']|["']$/g, "").substring(0, 60);
+  } catch (error) {
+    console.error("Generate chat title error:", error);
+    return null;
   }
 };

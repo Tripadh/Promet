@@ -20,6 +20,12 @@ const promptSchema = new mongoose.Schema(
             trim: true,
         },
 
+        title: {
+            type: String,
+            default: null,
+            trim: true,
+        },
+
         conversationId: {
             type: String,
             default: () => new mongoose.Types.ObjectId().toString(),

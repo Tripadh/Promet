@@ -44,6 +44,9 @@ export const resetPassword = async (req, res) => {
 };
 import User from "../models/User.js";
 import LoginLog from "../models/LoginLog.js";
+import Prompt from "../models/Prompt.js";
+import MonthlyUsage from "../models/MonthlyUsage.js";
+import ConversationShare from "../models/ConversationShare.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -312,6 +315,59 @@ export const githubCallback = async (req, res) => {
     } catch (error) {
         console.error("GitHub callback error:", error);
         res.redirect("http://localhost:5173/login?error=github_auth_failed");
+    }
+};
+
+/* ================= SEND DELETE ACCOUNT OTP ================= */
+export const sendDeleteAccountOtp = async (req, res) => {
+    try {
+        if (!req.user || !req.user.email) {
+            return res.status(401).json({ message: "Not authorized" });
+        }
+        
+        const email = req.user.email;
+        const { otp, expiresAt } = await createAndStoreOtp(email);
+        await sendOtpEmail(email, otp);
+        
+        return res.status(200).json({ message: "Verification code sent to email", expiresAt });
+    } catch (error) {
+        console.error("sendDeleteAccountOtp error:", error);
+        return res.status(500).json({ message: "Server error" });
+    }
+};
+
+/* ================= DELETE ACCOUNT ================= */
+export const deleteAccount = async (req, res) => {
+    try {
+        if (!req.user || !req.user.email) {
+            return res.status(401).json({ message: "Not authorized" });
+        }
+        
+        const { otp } = req.body;
+        if (!otp) {
+            return res.status(400).json({ message: "OTP is required" });
+        }
+
+        const email = req.user.email;
+        
+        // Verify OTP
+        await verifyStoredOtp(email, otp);
+        
+        // Delete all user related data
+        const userId = req.user._id;
+        
+        await Prompt.deleteMany({ user: userId });
+        await MonthlyUsage.deleteMany({ user: userId });
+        await ConversationShare.deleteMany({ owner: userId });
+        await LoginLog.deleteMany({ userId: userId });
+        
+        // Delete the user
+        await User.findByIdAndDelete(userId);
+        
+        return res.status(200).json({ message: "Account deleted successfully" });
+    } catch (error) {
+        console.error("deleteAccount error:", error);
+        return res.status(400).json({ message: error.message || "Server error" });
     }
 };
 

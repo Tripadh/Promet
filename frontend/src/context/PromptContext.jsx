@@ -19,7 +19,7 @@ export const PromptProvider = ({ children }) => {
   const [isPinned, setIsPinned] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
 
-  const improvePrompt = async (promptText, modeOverride, isRetry = false) => {
+  const improvePrompt = async (promptText, modeOverride, isRetry = false, domain = null) => {
     setLoading(true);
     setError(null);
     setCurrentPrompt(promptText);
@@ -66,7 +66,8 @@ export const PromptProvider = ({ children }) => {
         () => {
           setHistoryRefreshTrigger(prev => prev + 1);
         },
-        conversationIdToUse
+        conversationIdToUse,
+        domain
       );
 
       return streamedResult;

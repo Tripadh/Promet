@@ -20,7 +20,7 @@
   --text-muted: #71717a; 
 
   /* App specific mappings for unified theme */
-  --bg-app: #212121;
+  --bg-app: #000;
   --text-main: #ECECEC;
   
   --bg-sidebar: rgba(15, 15, 15, 0.55);

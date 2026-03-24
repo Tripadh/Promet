@@ -5,7 +5,9 @@ import {
 	getCurrentUser,
 	githubCallback,
 	forgotPassword,
-	resetPassword
+	resetPassword,
+	sendDeleteAccountOtp,
+	deleteAccount
 } from "../controllers/authController.js";
 import { sendOtp, verifyOtp } from "../controllers/otpAuthController.js";
 import protect from "../middleware/authMiddleware.js";
@@ -36,5 +38,9 @@ router.get("/me", protect, getCurrentUser);
 // Password reset endpoints
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
+
+// Delete account endpoints
+router.post("/delete-account/send-otp", protect, sendDeleteAccountOtp);
+router.delete("/delete-account", protect, deleteAccount);
 
 export default router;

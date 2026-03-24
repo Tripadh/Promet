@@ -105,6 +105,16 @@ const Dashboard = () => {
     return () => clearTimeout(transitionTimer);
   }, [isDockingComposer]);
 
+  // Auto-scroll to the bottom of the chat when loading history or sending a new message
+  useEffect(() => {
+    if (chatEndRef.current && hasStartedConversation) {
+      const scrollTimer = setTimeout(() => {
+        chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      }, 150);
+      return () => clearTimeout(scrollTimer);
+    }
+  }, [messages, currentPrompt, hasStartedConversation]);
+
   useEffect(() => {
     if (!loading && !token) {
       navigate('/login');
@@ -147,7 +157,7 @@ const Dashboard = () => {
   };
 
   const handlePromptSubmit = async (payload) => {
-    const MAX_PROMPTS_PER_CHAT = 5;
+    const MAX_PROMPTS_PER_CHAT = 10;
 
     if (!payload?.prompt?.trim()) {
       return;
@@ -160,23 +170,33 @@ const Dashboard = () => {
     }
 
     if (result && currentPrompt) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: activePromptId,
-          prompt: currentPrompt,
-          result,
-          analysis: promptAnalysis,
-          mode: activeResultMode,
-          timestamp: activePromptTimestamp || new Date(),
-        },
-      ]);
+      setMessages((prev) => {
+        const nextIdx = prev.length;
+        setOutputFeedback((fbPrev) => {
+          if (!fbPrev.active) return fbPrev;
+          const newFb = { ...fbPrev };
+          newFb[`msg-${nextIdx}`] = newFb.active;
+          delete newFb.active;
+          return newFb;
+        });
+        return [
+          ...prev,
+          {
+            id: activePromptId,
+            prompt: currentPrompt,
+            result,
+            analysis: promptAnalysis,
+            mode: activeResultMode,
+            timestamp: activePromptTimestamp || new Date(),
+          },
+        ];
+      });
     }
 
     setSelectedMode(payload.mode);
     setActivePromptTimestamp(payload.timestamp || new Date());
     try {
-      await improvePrompt(payload.prompt, payload.mode, payload.isRetry);
+      await improvePrompt(payload.prompt, payload.mode, payload.isRetry, payload.domain || null);
     } catch (error) {
       showChatNotice(error?.message || 'Failed to improve prompt', 'error');
     }
@@ -188,6 +208,7 @@ const Dashboard = () => {
     setCopiedInputKey(null);
     setActivePromptTimestamp(null);
     setDraftPayload(null);
+    setOutputFeedback({});
     skipDockingOnNextLoadRef.current = true;
     hasContentRef.current = false;
   };
@@ -656,7 +677,7 @@ const Dashboard = () => {
               );
             })}
 
-            {result ? (
+            {(result || promptLoading) ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ alignSelf: 'flex-end', backgroundColor: 'var(--bg-panel)', color: 'var(--text-main)', border: '1px solid var(--border-panel)', padding: '15px 20px', borderRadius: '18px 18px 0 18px', maxWidth: '80%' }}>
                   <p>{currentPrompt}</p>
@@ -729,9 +750,15 @@ const Dashboard = () => {
                             </button>
                           </div>
                           <div style={{ padding: '20px' }}>
-                            <pre style={{ whiteSpace: 'pre-wrap', margin: 0, fontFamily: '"Fira Code", "Consolas", monospace', fontSize: '14px', lineHeight: '1.6', color: 'var(--text-main)' }}>
+                            <div className="prompt-output-content">
+                              {!promptPart && promptLoading ? (
+                                <span className="thinking-indicator">
+                                  Thinking<span className="dot-1">.</span><span className="dot-2">.</span><span className="dot-3">.</span>
+                                </span>
+                              ) : null}
                               {promptPart}
-                            </pre>
+                              {promptLoading && promptPart ? <span className="streaming-cursor" /> : null}
+                            </div>
                           </div>
                         </div>
 
@@ -852,6 +879,7 @@ const Dashboard = () => {
               onModeChange={setSelectedMode}
               onSubmit={handlePromptSubmit}
               placeholder="Ask Promet AI"
+              hasStartedConversation={hasStartedConversation}
             />
             {hasStartedConversation ? (
               <p className="chat-bottom-disclaimer">Promet can make mistakes. Double-check important details.</p>

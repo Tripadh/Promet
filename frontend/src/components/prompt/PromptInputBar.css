@@ -251,9 +251,6 @@
   stroke-linejoin: round;
 }
 
-.prompt-mode-trigger {
-  /* No longer strictly needed as we merged it, leaving empty or keeping just in case */
-}
 
 .prompt-input-status {
   color: var(--text-muted);
@@ -325,6 +322,26 @@
   background: var(--bg-account-menu);
   box-shadow: 0 18px 48px rgba(0, 0, 0, 0.36);
   overflow: hidden;
+}
+
+.prompt-overlay-panel {
+  position: absolute;
+  bottom: 80px;
+  z-index: 50;
+  width: 260px;
+  border-radius: 18px;
+  background: rgba(30, 30, 34, 0.7);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+}
+
+[data-theme='light'] .prompt-overlay-panel {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
 }
 
 .prompt-menu-item {
@@ -434,9 +451,137 @@
     font-size: 18px;
   }
 
-  .confirm-modal-cancel,
-  .confirm-modal-delete {
-    font-size: 22px;
-  }
 }
 
+/* ─── Domain Chips In Menu ─────────────────────── */
+
+.prompt-menu-domains {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-panel);
+}
+
+.prompt-menu-domains-header {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin: 6px 8px 10px;
+  font-weight: 600;
+}
+
+.prompt-menu-domains-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.prompt-menu-domain-btn {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+}
+
+.prompt-menu-domain-btn:hover {
+  background: var(--bg-hover-subtle);
+  color: var(--text-main);
+}
+
+.prompt-menu-domain-btn.is-selected {
+  background: rgba(99, 102, 241, 0.08);
+  color: #a5b4fc;
+}
+
+.domain-btn-icon {
+  margin-right: 12px;
+  font-size: 15px;
+  opacity: 0.9;
+}
+
+.domain-btn-label {
+  flex: 1;
+}
+
+.domain-btn-check {
+  width: 14px;
+  height: 14px;
+  color: #818cf8;
+  margin-left: 8px;
+  animation: scaleInCheck 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes scaleInCheck {
+  from { transform: scale(0.5); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* ─── Domain Chips ─────────────────────────────── */
+
+
+.domain-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 4px 10px 4px;
+  width: 100%;
+  max-width: var(--chat-box-max-width, 760px);
+  margin: 0 auto;
+}
+
+.domain-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border-panel);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.domain-chip:hover {
+  background: var(--bg-hover-subtle);
+  border-color: var(--border-focus);
+  color: var(--text-main);
+}
+
+.domain-chip.is-selected {
+  background: rgba(99, 102, 241, 0.12);
+  border-color: rgba(99, 102, 241, 0.6);
+  color: #a5b4fc;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);
+}
+
+.domain-chip-emoji {
+  font-size: 14px;
+  line-height: 1;
+}
+
+@media (max-width: 640px) {
+  .domain-chips-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 8px;
+  }
+
+  .domain-chips-row::-webkit-scrollbar {
+    display: none;
+  }
+}

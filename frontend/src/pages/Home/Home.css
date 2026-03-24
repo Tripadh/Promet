@@ -1,6 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 .promet-home {
+  margin: 0;
+  padding: 0;
+  border: none;
   --line: rgba(255, 255, 255, 0.08);
   --line-strong: rgba(255, 255, 255, 0.14);
   --text-soft: rgba(255, 255, 255, 0.7);
@@ -9,7 +12,7 @@
   min-height: 100vh;
   min-height: 100dvh;
   background:
-    radial-gradient(1200px 800px at 70% -10%, rgba(255, 255, 255, 0.06), transparent 60%),
+    radial-gradient(1200px 800px at 70% 0%, rgba(255, 255, 255, 0.06), transparent 60%),
     radial-gradient(1000px 700px at -10% 10%, rgba(255, 255, 255, 0.04), transparent 60%),
     #000;
   color: #fff;
@@ -37,10 +40,11 @@
   position: sticky;
   top: 0;
   z-index: 50;
+  padding-top: 16px; /* FIX: replace child margin gap with safe header padding */
 }
 
 .nav-shell {
-  margin-top: 16px;
+  margin-top: 0; /* FIX: prevent top-edge gap in Brave/Chromium sticky layouts */
   border: 1px solid var(--line);
   border-radius: 16px;
   backdrop-filter: blur(16px);
@@ -689,7 +693,7 @@
   position: fixed;
   inset: 0;
   z-index: 39;
-  background: radial-gradient(1200px 700px at 50% -10%, rgba(255, 255, 255, 0.1), transparent 60%),
+  background: radial-gradient(1200px 700px at 50% 0%, rgba(255, 255, 255, 0.1), transparent 60%),
     radial-gradient(1200px 800px at 50% 120%, rgba(255, 255, 255, 0.05), transparent 60%);
 }
 

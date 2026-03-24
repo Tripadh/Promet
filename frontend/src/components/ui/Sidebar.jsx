@@ -225,7 +225,7 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
       <li 
         key={menuKey} 
         className={`history-item ${isActive ? 'active' : ''}`}
-        title={item.originalPrompt}
+        title={item.title || item.originalPrompt}
         onClick={() => withTransition(async () => {
           const handled = await onBeforeHistoryLoad?.(item);
           if (handled) {
@@ -240,7 +240,7 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
         <span className="history-item-text">
           {item.pinned && <span style={{ marginRight: '6px' }} title="Pinned">📌</span>}
           {item.favorite && <span style={{ marginRight: '6px' }} title="Favorite">⭐</span>}
-          {item.originalPrompt}
+          {item.title || item.originalPrompt}
         </span>
         <div style={{ position: 'relative' }}>
           <button 
@@ -279,6 +279,7 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
                   setPromptToDelete({
                     _id: item._id,
                     originalPrompt: item.originalPrompt,
+                    title: item.title,
                   });
                 }}
               >
@@ -302,6 +303,7 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
 
     return items.filter((item) => {
       const searchableFields = [
+        item?.title,
         item?.originalPrompt,
         item?.improvedPrompt,
         item?.mode,
@@ -549,7 +551,7 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
           <div className="confirm-modal-card" onClick={(event) => event.stopPropagation()}>
             <h3>Delete chat?</h3>
             <p>
-              This will delete <strong>{promptToDelete.originalPrompt?.slice(0, 45) || 'this prompt'}</strong>.
+              This will delete <strong>{promptToDelete.title || promptToDelete.originalPrompt?.slice(0, 45) || 'this prompt'}</strong>.
             </p>
             <span>This action cannot be undone.</span>
             <div className="confirm-modal-actions">
