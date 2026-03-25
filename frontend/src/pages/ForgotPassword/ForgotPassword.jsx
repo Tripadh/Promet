@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import api from '../../api';
 import { Link, useNavigate } from 'react-router-dom';
 import '../../components/auth/Auth.css';
 import LightRays from '../../components/ui/LightRays';
@@ -14,15 +15,9 @@ const ForgotPassword = () => {
   const handleSendOtp = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:5000/api/auth/forgot-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
-      const data = await response.json();
-      if (response.ok) {
+      const response = await api.post('/auth/forgot-password', { email });
+      const data = response.data;
+      if (response.status === 200) {
         setStatus({ type: 'success', message: 'Recovery code sent to your email.' });
         setStep(2);
       } else {
@@ -36,15 +31,9 @@ const ForgotPassword = () => {
   const handleResetPassword = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:5000/api/auth/reset-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, otp, newPassword }),
-      });
-      const data = await response.json();
-      if (response.ok) {
+      const response = await api.post('/auth/reset-password', { email, otp, newPassword });
+      const data = response.data;
+      if (response.status === 200) {
         setStatus({ type: 'success', message: 'Password reset successfully! Redirecting...' });
         setTimeout(() => navigate('/login'), 2500);
       } else {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import api from '../../api';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../context/ThemeContext';
 import { PromptContext } from '../../context/PromptContext';
@@ -443,12 +444,8 @@ const Settings = () => {
                       try {
                         setIsDeletingLoading(true);
                         setDeleteAccountError('');
-                        const res = await fetch('http://localhost:5000/api/auth/delete-account/send-otp', {
-                          method: 'POST',
-                          headers: { 'Authorization': `Bearer ${token}` }
-                        });
-                        const data = await res.json();
-                        if (!res.ok) throw new Error(data.message || 'Failed to send OTP');
+                        const res = await api.post('/auth/delete-account/send-otp');
+                        const data = res.data;
                         
                         setDeleteAccountStep('otp');
                       } catch (err) {
@@ -500,17 +497,11 @@ const Settings = () => {
                         setIsDeletingLoading(true);
                         setDeleteAccountError('');
                         
-                        const res = await fetch('http://localhost:5000/api/auth/delete-account', {
-                          method: 'DELETE',
-                          headers: { 
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                          },
-                          body: JSON.stringify({ otp: deleteOtp })
+                        const res = await api.delete('/auth/delete-account', {
+                          data: { otp: deleteOtp }
                         });
                         
-                        const data = await res.json();
-                        if (!res.ok) throw new Error(data.message || 'Verification failed');
+                        const data = res.data;
                         
                         setShowAccountDeleteModal(false);
                         logout();

@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import RegisterForm from '../../components/auth/RegisterForm';
 import { useAuth } from '../../hooks/useAuth';
 import LightRays from '../../components/ui/LightRays';
+import { API_BASE_URL } from '../../api';
 
 const Register = () => {
   const { token, loading } = useAuth();
@@ -44,7 +45,7 @@ const Register = () => {
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: '12px' }}>
         <div className="auth-actions">
           <a
-            href="http://localhost:5000/api/auth/github"
+            href={`${API_BASE_URL}/auth/github`}
             className="btn-secondary"
           >
             <svg height="20" width="20" viewBox="0 0 16 16" fill="currentColor">
