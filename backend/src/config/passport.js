@@ -8,7 +8,8 @@ passport.use(
       clientID: process.env.GITHUB_CLIENT_ID || "missing_client_id",
       clientSecret: process.env.GITHUB_CLIENT_SECRET || "missing_client_secret",
       callbackURL: "/api/auth/github/callback",
-      scope: ["user:email"]
+      scope: ["user:email"],
+      proxy: true
     },
     async (accessToken, refreshToken, profile, done) => {
       try {

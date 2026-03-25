@@ -302,10 +302,12 @@ export const githubCallback = async (req, res) => {
         }
 
         // Redirect to the frontend success page with the token
-        res.redirect(`http://localhost:5173/oauth-success?token=${token}`);
+        const frontendUrl = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
+        res.redirect(`${frontendUrl}/oauth-success?token=${token}`);
     } catch (error) {
         console.error("GitHub callback error:", error);
-        res.redirect("http://localhost:5173/login?error=github_auth_failed");
+        const frontendUrl = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
+        res.redirect(`${frontendUrl}/login?error=github_auth_failed`);
     }
 };
 
