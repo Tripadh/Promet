@@ -285,61 +285,63 @@ All endpoints are prefixed with `/api`.
 ## 📁 Project Structure
 
 ```
-Promet/
-├── backend/
-│   └── src/
-│       ├── config/
-│       │   ├── db.js              # MongoDB connection
-│       │   └── passport.js        # GitHub OAuth strategy
-│       ├── controllers/
-│       │   ├── authController.js  # Register, Login, GitHub OAuth, OTP flows
-│       │   ├── promptController.js# Improve, stream, history, share, feedback
-│       │   └── adminController.js # Admin user management
-│       ├── middleware/
-│       │   └── authMiddleware.js  # JWT verification
-│       ├── models/
-│       │   ├── User.js
-│       │   ├── Prompt.js
-│       │   ├── LoginLog.js
-│       │   ├── MonthlyUsage.js
-│       │   └── ConversationShare.js
-│       ├── routes/
-│       │   ├── authRoutes.js
-│       │   ├── promptRoutes.js
-│       │   └── adminRoutes.js
-│       ├── services/
-│       │   ├── aiService.js       # Core AI logic: modes, streaming, validation
-│       │   ├── otpService.js      # OTP generation & verification
-│       │   └── emailService.js    # Nodemailer email delivery
-│       ├── utils/
-│       │   └── errorHandlers.js   # Global error & 404 handlers
-│       └── server.js              # Express app entry point
-│
-└── frontend/
-    └── src/
-        ├── api/                   # Axios API clients
-        ├── assets/                # Images, logo
-        ├── components/
-        │   ├── auth/              # LoginForm, RegisterForm
-        │   ├── prompt/            # PromptInputBar, ResultCard
-        │   └── ui/                # Sidebar, Header, modals
-        ├── context/               # React Context providers (Auth, Theme)
-        ├── hooks/                 # Custom React hooks
-        ├── pages/
-        │   ├── Home/              # Landing page
-        │   ├── Dashboard/         # Main workspace
-        │   ├── History/           # Prompt history
-        │   ├── Settings/          # User settings
-        │   ├── Admin/             # Admin user management
-        │   ├── Login/ Register/   # Auth pages
-        │   ├── ForgotPassword/    # Password reset flow
-        │   ├── SharedChat/        # Public conversation viewer
-        │   ├── OAuthSuccess/      # OAuth redirect handler
-        │   ├── Privacy/ Terms/    # Legal pages
-        │   └── AcceptableUse/     # Acceptable use policy
-        ├── services/              # Frontend service helpers
-        ├── styles/                # Global CSS tokens and base styles
-        └── utils/                 # Utility helpers
+📦 Promet
+ ┣ 📂 backend
+ ┃ ┗ 📂 src
+ ┃   ┣ 📂 config
+ ┃   ┃ ┣ 📜 db.js               ← MongoDB connection
+ ┃   ┃ ┗ 📜 passport.js         ← GitHub OAuth strategy
+ ┃   ┣ 📂 controllers
+ ┃   ┃ ┣ 📜 authController.js   ← Register, Login, OTP, OAuth
+ ┃   ┃ ┣ 📜 promptController.js ← Improve, stream, share, feedback
+ ┃   ┃ ┗ 📜 adminController.js  ← Admin user management
+ ┃   ┣ 📂 middleware
+ ┃   ┃ ┗ 📜 authMiddleware.js   ← JWT verification
+ ┃   ┣ 📂 models
+ ┃   ┃ ┣ 📜 User.js
+ ┃   ┃ ┣ 📜 Prompt.js
+ ┃   ┃ ┣ 📜 LoginLog.js
+ ┃   ┃ ┣ 📜 MonthlyUsage.js
+ ┃   ┃ ┗ 📜 ConversationShare.js
+ ┃   ┣ 📂 routes
+ ┃   ┃ ┣ 📜 authRoutes.js
+ ┃   ┃ ┣ 📜 promptRoutes.js
+ ┃   ┃ ┗ 📜 adminRoutes.js
+ ┃   ┣ 📂 services
+ ┃   ┃ ┣ 📜 aiService.js        ← Core AI: modes, streaming, validation
+ ┃   ┃ ┣ 📜 otpService.js       ← OTP generation & verification
+ ┃   ┃ ┗ 📜 emailService.js     ← Nodemailer email delivery
+ ┃   ┣ 📂 utils
+ ┃   ┃ ┗ 📜 errorHandlers.js    ← Global error & 404 handlers
+ ┃   ┗ 📜 server.js             ← Express app entry point
+ ┃
+ ┗ 📂 frontend
+   ┗ 📂 src
+     ┣ 📂 api                   ← Axios API clients
+     ┣ 📂 assets                ← Images, logo
+     ┣ 📂 components
+     ┃ ┣ 📂 auth                ← LoginForm, RegisterForm
+     ┃ ┣ 📂 prompt              ← PromptInputBar, ResultCard
+     ┃ ┗ 📂 ui                  ← Sidebar, Header, modals
+     ┣ 📂 context               ← React Context providers (Auth, Theme)
+     ┣ 📂 hooks                 ← Custom React hooks
+     ┣ 📂 pages
+     ┃ ┣ 📂 Home                ← Landing page
+     ┃ ┣ 📂 Dashboard           ← Main workspace
+     ┃ ┣ 📂 History             ← Prompt history
+     ┃ ┣ 📂 Settings            ← User settings & theme
+     ┃ ┣ 📂 Admin               ← Admin user management
+     ┃ ┣ 📂 Login               ← Login page
+     ┃ ┣ 📂 Register            ← Registration page
+     ┃ ┣ 📂 ForgotPassword      ← Password reset flow
+     ┃ ┣ 📂 SharedChat          ← Public conversation viewer
+     ┃ ┣ 📂 OAuthSuccess        ← OAuth redirect handler
+     ┃ ┣ 📂 Privacy             ← Privacy Policy
+     ┃ ┣ 📂 Terms               ← Terms of Service
+     ┃ ┗ 📂 AcceptableUse       ← Acceptable use policy
+     ┣ 📂 services              ← Frontend service helpers
+     ┣ 📂 styles                ← Global CSS tokens & base styles
+     ┗ 📂 utils                 ← Utility helpers
 ```
 
 ---
