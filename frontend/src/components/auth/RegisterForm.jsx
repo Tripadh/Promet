@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import ReCAPTCHA from 'react-google-recaptcha';
+import Turnstile from 'react-turnstile';
 
 const RegisterForm = () => {
   const [name, setName] = useState('');
@@ -14,7 +14,7 @@ const RegisterForm = () => {
   const [error, setError] = useState('');
   const { register, login } = useAuth();
   const navigate = useNavigate();
-  const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LfFUZcsAAAAAGt77FMnsq3xKOeFbqKsKka8UZ6t';
+  const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'; // Test site key
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,7 +22,7 @@ const RegisterForm = () => {
     setSuccessMessage('');
 
     if (!captchaToken) {
-      setError('Please complete the CAPTCHA check');
+      setError('Please complete the security check');
       return;
     }
 
@@ -88,20 +88,14 @@ const RegisterForm = () => {
         </div>
       </div>
       <div className="auth-field">
-        <label>CAPTCHA:</label>
-        {recaptchaSiteKey ? (
-          <div className="captcha-shell">
-            <ReCAPTCHA
-              sitekey={recaptchaSiteKey}
-              onChange={(value) => setCaptchaToken(value || '')}
-              onExpired={() => setCaptchaToken('')}
-            />
-          </div>
-        ) : (
-          <div className="auth-alert auth-alert-warning">
-            Missing VITE_RECAPTCHA_SITE_KEY in frontend env.
-          </div>
-        )}
+        <label>Security Check:</label>
+        <div className="captcha-shell">
+          <Turnstile
+            sitekey={turnstileSiteKey}
+            onVerify={(token) => setCaptchaToken(token)}
+            theme="dark"
+          />
+        </div>
       </div>
 
       <div className="auth-field" style={{ flexDirection: 'row', alignItems: 'flex-start', gap: '12px', marginTop: '4px', marginBottom: '16px' }}>

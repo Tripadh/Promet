@@ -78,7 +78,7 @@ const getEmailDomain = (email) => {
 
 const isCaptchaRequired = () => process.env.CAPTCHA_REQUIRED === "true";
 
-const verifyCaptchaToken = async (captchaToken) => {
+const verifyCaptchaToken = async (captchaToken, req) => {
     if (!isCaptchaRequired()) {
         return true;
     }
@@ -88,37 +88,28 @@ const verifyCaptchaToken = async (captchaToken) => {
         return true;
     }
 
-    const secret = process.env.RECAPTCHA_SECRET_KEY;
-    const GOOGLE_TEST_SECRET = process.env.RECAPTCHA_TEST_SECRET;
+    const secret = process.env.TURNSTILE_SECRET_KEY || '1x0000000000000000000000000000000AA';
 
     if (!secret || !captchaToken) {
         return false;
     }
 
-    if (GOOGLE_TEST_SECRET && secret === GOOGLE_TEST_SECRET && process.env.NODE_ENV !== "production") {
-        return true;
-    }
-
     try {
-        const response = await fetch("https://www.google.com/recaptcha/api/siteverify", {
+        const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
             method: "POST",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded"
             },
             body: new URLSearchParams({
                 secret,
-                response: captchaToken
+                response: captchaToken,
+                remoteip: extractIpAddress(req)
             })
         });
 
         const result = await response.json();
         return Boolean(result?.success);
     } catch (error) {
-        // In local development with Google's official test secret, allow non-empty token
-        // so registration can proceed even if the verify endpoint is unreachable.
-        if (GOOGLE_TEST_SECRET && secret === GOOGLE_TEST_SECRET && process.env.NODE_ENV !== "production") {
-            return Boolean(captchaToken);
-        }
         return false;
     }
 };
@@ -167,7 +158,7 @@ export const registerUser = async (req, res) => {
             });
         }
 
-        const captchaValid = await verifyCaptchaToken(captchaToken);
+        const captchaValid = await verifyCaptchaToken(captchaToken, req);
         if (!captchaValid) {
             return res.status(400).json({
                 message: "CAPTCHA validation failed"

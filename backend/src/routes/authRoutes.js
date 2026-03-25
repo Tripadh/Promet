@@ -10,19 +10,13 @@ import {
 	deleteAccount
 } from "../controllers/authController.js";
 import { sendOtp, verifyOtp } from "../controllers/otpAuthController.js";
+import { verifyCaptchaMiddleware } from "../middleware/captchaMiddleware.js";
 import protect from "../middleware/authMiddleware.js";
 import { otpRequestLimiter } from "../middleware/otpRateLimiter.js";
-import { verifyCaptchaPlaceholder } from "../middleware/captchaMiddleware.js";
-import passport from "passport";
-
-const router = express.Router();
-
-/* ================= AUTH ROUTES ================= */
-
-router.post("/send-otp", otpRequestLimiter, verifyCaptchaPlaceholder, sendOtp);
+router.post("/send-otp", otpRequestLimiter, verifyCaptchaMiddleware, sendOtp);
 router.post("/verify-otp", verifyOtp);
 
-router.post("/register", registerUser);
+router.post("/register", verifyCaptchaMiddleware, registerUser);
 
 router.post("/login", loginUser);
 
