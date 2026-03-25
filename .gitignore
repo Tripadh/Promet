@@ -16,6 +16,4 @@ Thumbs.db
 .vscode/
 .cursor/
 
-# Admin code
-**/Admin/
-**/admin/
+
