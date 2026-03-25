@@ -30,7 +30,10 @@ router.get("/github", passport.authenticate("github", { scope: ["user:email"] })
 
 router.get(
   "/github/callback",
-  passport.authenticate("github", { session: false, failureRedirect: `${(process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "")}/login?error=github_failed` }),
+  passport.authenticate("github", { 
+    session: false, 
+    failureRedirect: `${(process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "")}/login?error=github_failed` 
+  }),
   githubCallback
 );
 

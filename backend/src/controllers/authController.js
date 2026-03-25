@@ -284,7 +284,8 @@ export const githubCallback = async (req, res) => {
         const user = req.user;
         
         if (!user) {
-            return res.redirect("http://localhost:5173/login?error=github_auth_failed");
+            const frontendUrl = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
+            return res.redirect(`${frontendUrl}/login?error=github_auth_failed`);
         }
 
         // Generate standard JWT token for the app
