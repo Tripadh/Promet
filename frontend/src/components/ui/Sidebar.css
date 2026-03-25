@@ -29,22 +29,27 @@
 }
 
 .sidebar-brand {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: 8px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   color: var(--text-main);
   border: 1px solid var(--border-sidebar);
-  background: linear-gradient(155deg, rgba(85, 129, 255, 0.2) 0%, rgba(118, 82, 255, 0.1) 100%);
+  overflow: hidden;
 }
 
 .sidebar-brand-mark {
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  color: var(--text-main);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+[data-theme='light'] .sidebar-brand-mark img {
+  filter: invert(1);
 }
 
 .sidebar-brand svg,

@@ -5,6 +5,9 @@ import Sidebar from '../../components/ui/Sidebar';
 import PromptInputBar from '../../components/prompt/PromptInputBar';
 import { usePrompt } from '../../hooks/usePrompt';
 import { promptService } from '../../services/promptService';
+import logo from '../../assets/logo.png';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import './Dashboard.css';
 
 const FEEDBACK_TAGS = [
@@ -482,6 +485,81 @@ const Dashboard = () => {
 
   const shouldShowPromptAnalysis = Boolean(promptAnalysis) && Boolean(result) && !promptLoading;
 
+  const downloadFullChatAsPDF = () => {
+    if (!messages.length && !result) {
+      showChatNotice('No conversation history to download.', 'warning');
+      return;
+    }
+
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      
+      // Header
+      doc.setFontSize(22);
+      doc.setTextColor(33, 33, 33);
+      doc.text('Promet Conversation Export', 14, 22);
+      
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
+      doc.text(`User: ${displayName}`, 14, 35);
+      
+      doc.setDrawColor(200, 200, 200);
+      doc.line(14, 40, pageWidth - 14, 40);
+
+      const tableData = [];
+
+      // Add past messages
+      messages.forEach((msg) => {
+        tableData.push([
+          { content: 'USER PROMPT', styles: { fontStyle: 'bold', textColor: [80, 80, 80] } },
+          msg.prompt
+        ]);
+        
+        const cleanResult = typeof msg.result === 'string' ? msg.result : JSON.stringify(msg.result);
+        tableData.push([
+          { content: 'IMPROVED PROMPT', styles: { fontStyle: 'bold', textColor: [16, 163, 127] } },
+          cleanResult
+        ]);
+      });
+
+      // Add current result if exists
+      if (result && currentPrompt) {
+        tableData.push([
+          { content: 'USER PROMPT', styles: { fontStyle: 'bold', textColor: [80, 80, 80] } },
+          currentPrompt
+        ]);
+        
+        const cleanActiveResult = typeof result === 'string' ? result : JSON.stringify(result);
+        tableData.push([
+          { content: 'IMPROVED PROMPT', styles: { fontStyle: 'bold', textColor: [16, 163, 127] } },
+          cleanActiveResult
+        ]);
+      }
+
+      autoTable(doc, {
+        startY: 45,
+        head: [['Role', 'Content']],
+        body: tableData,
+        theme: 'striped',
+        headStyles: { fillColor: [33, 33, 33], textColor: [255, 255, 255] },
+        columnStyles: {
+          0: { cellWidth: 40 },
+          1: { cellWidth: 'auto' }
+        },
+        styles: { fontSize: 10, cellPadding: 6 },
+        alternateRowStyles: { fillColor: [250, 250, 250] }
+      });
+
+      doc.save(`Promet-Chat-${Date.now()}.pdf`);
+      showChatNotice('PDF downloaded successfully.', 'info');
+    } catch (error) {
+      console.error('PDF Generation Error:', error);
+      showChatNotice('Failed to generate PDF.', 'error');
+    }
+  };
+
   const shareConversation = async (statusKey = 'active') => {
     if (!activeConversationId) {
       showChatNotice('No active chat to share yet.', 'warning');
@@ -563,10 +641,9 @@ const Dashboard = () => {
                     <path d="M12 0C12 6.62742 17.3726 12 24 12C17.3726 12 12 17.3726 12 24C12 17.3726 6.62742 12 0 12C6.62742 12 12 6.62742 12 0Z" fill="url(#gemini-gradient)" />
                     <defs>
                       <linearGradient id="gemini-gradient" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
-                        <stop offset="0%" stopColor="#418df4" />
-                        <stop offset="25%" stopColor="#80df8f" />
-                        <stop offset="50%" stopColor="#f5e171" />
-                        <stop offset="100%" stopColor="#e382b0" />
+                        <stop offset="0%" stopColor="#D4AF37" />
+                        <stop offset="50%" stopColor="#F5E171" />
+                        <stop offset="100%" stopColor="#C0C0C0" />
                       </linearGradient>
                     </defs>
                   </svg>
@@ -632,7 +709,7 @@ const Dashboard = () => {
                         </button>
                       </div>
                       <div style={{ padding: '20px' }}>
-                        <pre style={{ whiteSpace: 'pre-wrap', margin: 0, fontFamily: '"Fira Code", "Consolas", monospace', fontSize: '14px', lineHeight: '1.6', color: 'var(--text-main)' }}>{msgPromptPart}</pre>
+                        <pre style={{ whiteSpace: 'pre-wrap', margin: 0, fontFamily: 'var(--font-mono)', fontSize: '14px', lineHeight: '1.6', color: 'var(--text-main)' }}>{msgPromptPart}</pre>
                       </div>
                     </div>
 
@@ -880,6 +957,11 @@ const Dashboard = () => {
               onSubmit={handlePromptSubmit}
               placeholder="Ask Promet AI"
               hasStartedConversation={hasStartedConversation}
+              onMenuAction={(action) => {
+                if (action === 'download_pdf') {
+                  downloadFullChatAsPDF();
+                }
+              }}
             />
             {hasStartedConversation ? (
               <p className="chat-bottom-disclaimer">Promet can make mistakes. Double-check important details.</p>

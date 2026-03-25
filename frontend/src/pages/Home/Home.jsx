@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import LightRays from '../../components/ui/LightRays';
+import logo from '../../assets/logo.png';
 import './Home.css';
 
 const faqs = [
@@ -145,9 +146,7 @@ const Home = () => {
             <div className="nav-inner">
               <a href="#" className="brand">
                 <span className="brand-icon" aria-hidden="true">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M6 5h8.5A4.5 4.5 0 0 1 19 9.5A4.5 4.5 0 0 1 14.5 14H10v5H6V5Z" fill="currentColor" />
-                  </svg>
+                  <img src={logo} alt="Promet Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                 </span>
                 <span className="brand-name">Promet</span>
               </a>
@@ -368,9 +367,7 @@ const Home = () => {
             <div className="footer-brand-block">
               <div className="footer-brand">
                 <span className="brand-icon" aria-hidden="true">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M6 5h8.5A4.5 4.5 0 0 1 19 9.5A4.5 4.5 0 0 1 14.5 14H10v5H6V5Z" fill="currentColor" />
-                  </svg>
+                  <img src={logo} alt="Promet Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                 </span>
                 <span className="brand-name">Promet</span>
               </div>

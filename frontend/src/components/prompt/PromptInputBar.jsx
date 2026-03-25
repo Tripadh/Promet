@@ -3,7 +3,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import DropdownMenu from './DropdownMenu';
 import PromptModeSelector from './PromptModeSelector';
 
-const MENU_ITEMS = [];
+const MENU_ITEMS = [
+  { id: 'download_pdf', label: 'Download Chat PDF', icon: '📄' }
+];
 
 const PROMPT_MODES = [
   { id: 'quick', label: 'Quick', description: 'Fast short rewrite' },
@@ -19,6 +21,69 @@ const DOMAIN_CHIPS = [
   { id: 'creative', label: 'Creative', emoji: '✍️' },
   { id: 'email', label: 'Email', emoji: '📧' },
   { id: 'education', label: 'Education', emoji: '🎓' },
+];
+
+const PROMPT_CARDS = [
+  {
+    id: 'tech',
+    label: 'Tech / Code',
+    emoji: '💻',
+    color: '#6366f1',
+    examples: [
+      'Explain this Python function and suggest optimizations',
+      'Write unit tests for a REST API endpoint',
+    ],
+  },
+  {
+    id: 'social',
+    label: 'Social Media',
+    emoji: '📱',
+    color: '#ec4899',
+    examples: [
+      'Write a viral Instagram caption for a product launch',
+      'Create a LinkedIn post showcasing a career milestone',
+    ],
+  },
+  {
+    id: 'marketing',
+    label: 'Marketing',
+    emoji: '📣',
+    color: '#f97316',
+    examples: [
+      'Write a compelling product description for an e-commerce site',
+      'Create a call-to-action for a SaaS landing page',
+    ],
+  },
+  {
+    id: 'creative',
+    label: 'Creative',
+    emoji: '✍️',
+    color: '#a855f7',
+    examples: [
+      'Write the opening paragraph of a thriller short story',
+      'Brainstorm 5 unique concepts for a sci-fi novel',
+    ],
+  },
+  {
+    id: 'email',
+    label: 'Email',
+    emoji: '📧',
+    color: '#14b8a6',
+    examples: [
+      'Write a professional follow-up email after an interview',
+      'Draft a cold outreach email to a potential client',
+    ],
+  },
+  {
+    id: 'education',
+    label: 'Education',
+    emoji: '🎓',
+    color: '#eab308',
+    examples: [
+      'Explain the concept of machine learning in simple terms',
+      'Create a study plan for learning JavaScript in 30 days',
+    ],
+  },
 ];
 
 const PlusIcon = () => (
@@ -285,27 +350,11 @@ const PromptInputBar = ({
 
   return (
     <div className="prompt-input-bar-wrapper" ref={wrapperRef}>
-      {/* Domain Chips Row - Only visible above when chat hasn't started */}
-      {!hasStartedConversation ? (
-        <div className="domain-chips-row">
-          {DOMAIN_CHIPS.map((chip) => (
-            <button
-              key={chip.id}
-              type="button"
-              className={`domain-chip${selectedDomain === chip.id ? ' is-selected' : ''}`}
-              onClick={() => handleDomainSelect(chip.id)}
-              title={chip.label}
-            >
-              <span className="domain-chip-emoji">{chip.emoji}</span>
-              <span>{chip.label}</span>
-            </button>
-          ))}
-        </div>
-      ) : null}
 
       {isDropdownOpen ? (
         <div className="prompt-overlay-panel prompt-menu-panel">
           <DropdownMenu items={MENU_ITEMS} onSelect={handleMenuSelect}>
+            <div className="prompt-menu-separator" />
             {hasStartedConversation ? (
               <div className="prompt-menu-domains">
                 <div className="prompt-menu-domains-header">Context Domain</div>
@@ -417,6 +466,53 @@ const PromptInputBar = ({
           </div>
         </div>
       </div>
+
+      {/* Prompt Cards — Only visible before conversation starts */}
+      {!hasStartedConversation ? (
+        <div className="prompt-cards-row">
+          {PROMPT_CARDS.map((card) => (
+            <div
+              key={card.id}
+              className={`prompt-card${selectedDomain === card.id ? ' is-selected' : ''}`}
+              style={{ '--card-accent': card.color }}
+            >
+              <button
+                type="button"
+                className="prompt-card-header"
+                onClick={() => handleDomainSelect(card.id)}
+              >
+                <span className="prompt-card-emoji">{card.emoji}</span>
+                <span className="prompt-card-label">{card.label}</span>
+                {selectedDomain === card.id ? (
+                  <svg className="prompt-card-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                ) : null}
+              </button>
+              <div className="prompt-card-examples">
+                {card.examples.map((example, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    className="prompt-card-example"
+                    onClick={() => {
+                      handleDomainSelect(card.id);
+                      const ta = document.querySelector('.prompt-input-textarea');
+                      if (ta) {
+                        const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
+                        setter?.call(ta, example);
+                        ta.dispatchEvent(new Event('input', { bubbles: true }));
+                        ta.focus();
+                      }
+                    }}
+                  >
+                    <svg className="prompt-card-example-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    <span>{example}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 };

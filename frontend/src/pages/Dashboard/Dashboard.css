@@ -64,7 +64,7 @@
   position: absolute;
   left: 50%;
   width: min(var(--chat-box-max-width, 760px), calc(100% - 48px));
-  top: 69%;
+  top: 71%;
   transform: translate(-50%, -50%);
   animation: promptDockIn 500ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
@@ -217,20 +217,20 @@
 
 .welcome-hero {
   width: min(var(--chat-box-max-width, 760px), calc(100% - 48px));
-  margin: 0 auto 92px auto;
+  margin: 0 auto 64px auto;
   text-align: left;
   color: var(--text-main);
-  animation: welcomeRise 520ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: welcomeRise 650ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .welcome-kicker {
   display: inline-flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 2px;
-  color: var(--text-main);
-  font-size: clamp(24px, 4vw, 36px);
-  font-weight: 500;
+  margin-bottom: 8px;
+  color: var(--text-secondary);
+  font-size: clamp(20px, 3.5vw, 28px);
+  font-weight: 400;
   letter-spacing: -0.01em;
 }
 
@@ -239,11 +239,18 @@
 }
 
 .welcome-kicker-name {
-  background: linear-gradient(90deg, #e382b0 0%, #f5e171 33%, #80df8f 66%, #418df4 100%);
+  color: var(--text-main);
+  font-weight: 600;
+  background: linear-gradient(180deg, #FFFFFF 0%, #E0E0E0 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  color: transparent;
+}
+
+[data-theme='light'] .welcome-kicker-name {
+  background: none;
+  -webkit-text-fill-color: var(--text-main);
+  color: var(--text-main);
 }
 
 .welcome-hero h1 {
@@ -419,13 +426,14 @@
 
   .pre-conversation .input-container {
     width: calc(100% - 32px);
-    top: 66%;
+    top: 70%;
   }
 
   .conversation-started .input-container {
-    width: 100%;
     padding: 16px 24px 24px;
   }
+
+
 
   .conversation-started.is-docking .input-container {
     width: calc(100% - 32px);
@@ -563,7 +571,7 @@
 .prompt-output-content {
   white-space: pre-wrap;
   margin: 0;
-  font-family: "Fira Code", "Consolas", monospace;
+  font-family: var(--font-mono);
   font-size: 14px;
   line-height: 1.6;
   color: var(--text-main);
@@ -574,7 +582,7 @@
   align-items: center;
   color: var(--text-muted);
   font-style: italic;
-  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   opacity: 0.8;
 }
 
@@ -582,14 +590,35 @@
   opacity: 0;
 }
 
-.thinking-indicator .dot-1 { animation: thinkingDot 1.4s infinite; }
-.thinking-indicator .dot-2 { animation: thinkingDot 1.4s infinite 0.2s; }
-.thinking-indicator .dot-3 { animation: thinkingDot 1.4s infinite 0.4s; }
+.thinking-indicator .dot-1 {
+  animation: thinkingDot 1.4s infinite;
+}
+
+.thinking-indicator .dot-2 {
+  animation: thinkingDot 1.4s infinite 0.2s;
+}
+
+.thinking-indicator .dot-3 {
+  animation: thinkingDot 1.4s infinite 0.4s;
+}
 
 @keyframes thinkingDot {
-  0%, 20% { opacity: 0; transform: translateY(0); }
-  50% { opacity: 1; transform: translateY(-1px); }
-  100% { opacity: 0; transform: translateY(0); }
+
+  0%,
+  20% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateY(-1px);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(0);
+  }
 }
 
 .streaming-cursor {
@@ -604,6 +633,13 @@
 }
 
 @keyframes blinkCursor {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
 }

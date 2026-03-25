@@ -313,10 +313,21 @@ export const getMonthlyUsageSummary = async (req, res) => {
       }
     }
 
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const dailyCount = await Prompt.countDocuments({
+      user: req.user._id,
+      createdAt: { $gte: startOfDay, $lte: endOfDay }
+    });
+
     return res.status(200).json({
       month: monthStart.toISOString(),
       byMode,
       totalPrompts,
+      dailyCount,
     });
   } catch (error) {
     console.error("Monthly usage summary error:", error);

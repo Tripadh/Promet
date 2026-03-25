@@ -92,6 +92,40 @@
   background-color: rgba(0, 0, 0, 0.8);
 }
 
+.password-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.password-input-wrapper input {
+  padding-right: 44px; /* Space for the toggle icon */
+}
+
+.password-toggle-btn {
+  position: absolute !important;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  color: #a1a1aa !important;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: auto !important;
+}
+
+.password-toggle-btn:hover {
+  background: transparent !important;
+  color: #ffffff !important;
+  transform: translateY(-50%) !important;
+  box-shadow: none !important;
+}
+
 
 .auth-form button {
   background: #ffffff;
