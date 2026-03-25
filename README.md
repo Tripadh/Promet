@@ -378,18 +378,6 @@ Select a domain to inject specialized style and vocabulary into the model's inst
 
 ---
 
-## 🛡️ Admin Panel
-
-The Admin Panel (`/admin`) provides a protected view for administrators:
-
-- Browse all registered users with creation timestamps
-- View aggregated usage statistics
-- Access login logs (method, IP, timestamp, user-agent)
-
-> Admin access is role-gated at the API middleware level. Set a user's `role` field to `"admin"` in MongoDB to grant access.
-
----
-
 ## 📊 Observability
 
 Promet integrates with **[Langfuse](https://langfuse.com)** to trace every LLM call:
@@ -429,14 +417,6 @@ This project is licensed under the **MIT License** — see the [LICENSE](./LICEN
 
 ---
 
-## 👤 Author
-
-**Tripadh (Satyanarayana)**
-
-- GitHub: [@Tripadh](https://github.com/Tripadh)
-- Repository: [github.com/Tripadh/Promet](https://github.com/Tripadh/Promet)
-
----
 
 <div align="center">
 
