@@ -14,7 +14,7 @@ const RegisterForm = () => {
   const [error, setError] = useState('');
   const { register, login } = useAuth();
   const navigate = useNavigate();
-  const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '';
+  const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LfFUZcsAAAAAGt77FMnsq3xKOeFbqKsKka8UZ6t';
 
   const handleSubmit = async (e) => {
     e.preventDefault();

@@ -12,7 +12,7 @@ const OtpLoginForm = () => {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '';
+  const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LfFUZcsAAAAAGt77FMnsq3xKOeFbqKsKka8UZ6t';
   const { sendOtp, verifyOtpLogin } = useAuth();
   const navigate = useNavigate();
 
