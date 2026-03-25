@@ -12,6 +12,7 @@ import {
 import { sendOtp, verifyOtp } from "../controllers/otpAuthController.js";
 import { verifyCaptchaMiddleware } from "../middleware/captchaMiddleware.js";
 import protect from "../middleware/authMiddleware.js";
+import { otpRequestLimiter } from "../middleware/rateLimiter.js";
 import passport from "passport";
 
 const router = express.Router();
