@@ -14,6 +14,7 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 .vscode/
+.cursor/
 
 # Admin code
 **/Admin/
