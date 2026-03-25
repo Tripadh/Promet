@@ -15,8 +15,10 @@ const app = express();
 connectDB();
 
 /* MIDDLEWARE */
-
-app.use(cors());
+app.use(cors({
+  origin: process.env.CLIENT_URL, // FIX: restrict frontend access
+  credentials: true
+}));
 app.use(express.json());
 app.use(passport.initialize());
 
