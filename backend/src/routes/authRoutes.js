@@ -12,7 +12,12 @@ import {
 import { sendOtp, verifyOtp } from "../controllers/otpAuthController.js";
 import { verifyCaptchaMiddleware } from "../middleware/captchaMiddleware.js";
 import protect from "../middleware/authMiddleware.js";
-import { otpRequestLimiter } from "../middleware/otpRateLimiter.js";
+import passport from "passport";
+
+const router = express.Router();
+
+/* ================= AUTH ROUTES ================= */
+
 router.post("/send-otp", otpRequestLimiter, verifyCaptchaMiddleware, sendOtp);
 router.post("/verify-otp", verifyOtp);
 
@@ -24,7 +29,7 @@ router.get("/github", passport.authenticate("github", { scope: ["user:email"] })
 
 router.get(
   "/github/callback",
-  passport.authenticate("github", { session: false, failureRedirect: "http://localhost:5173/login?error=github_failed" }),
+  passport.authenticate("github", { session: false, failureRedirect: `${(process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "")}/login?error=github_failed` }),
   githubCallback
 );
 
