@@ -12,6 +12,7 @@ import Home from "./pages/Home/Home";
 import Admin from "./pages/Admin/Admin";
 import AdminUsers from "./pages/Admin/AdminUsers";
 import AdminLogs from "./pages/Admin/AdminLogs";
+import OAuthSuccess from "./pages/OAuthSuccess/OAuthSuccess";
 
 import Terms from "./pages/Terms/Terms";
 import Privacy from "./pages/Privacy/Privacy";
@@ -46,6 +47,7 @@ function AppRoutes() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/oauth-success" element={<OAuthSuccess />} />
         <Route path="/shared/:shareId" element={<SharedChat />} />
 
         <Route path="/terms" element={<Terms />} />
