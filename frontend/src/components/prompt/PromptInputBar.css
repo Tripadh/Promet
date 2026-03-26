@@ -254,10 +254,32 @@
 
 .prompt-input-status {
   color: var(--text-muted);
-  font-size: 12px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 11px;
+  background: var(--bg-hover-subtle);
+  padding: 4px 10px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 180px;
+  border: 1px solid var(--border-panel);
+}
+
+.prompt-status-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.prompt-status-close:hover {
+  color: var(--text-main);
 }
 
 .prompt-input-icon-button,

@@ -156,85 +156,11 @@ const PromptInputBar = ({
 
   useEffect(() => {
     if (typeof window === 'undefined') {
-      return undefined;
+      return;
     }
 
     const SpeechRecognitionApi = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    if (!SpeechRecognitionApi) {
-      setSpeechSupported(false);
-      return undefined;
-    }
-
-    const recognition = new SpeechRecognitionApi();
-    recognition.continuous = false;
-    recognition.interimResults = true;
-    recognition.maxAlternatives = 1;
-    recognition.lang = 'en-US';
-
-    recognition.onstart = () => {
-      setIsListening(true);
-      setSpeechStatus('Listening...');
-    };
-
-    recognition.onresult = (event) => {
-      let transcript = '';
-
-      for (let index = event.resultIndex; index < event.results.length; index += 1) {
-        transcript += event.results[index][0].transcript;
-      }
-
-      const normalizedTranscript = transcript.trim();
-
-      if (!normalizedTranscript) {
-        return;
-      }
-
-      const separator = speechBaseTextRef.current ? ' ' : '';
-      setPromptText(`${speechBaseTextRef.current}${separator}${normalizedTranscript}`);
-    };
-
-    recognition.onerror = (event) => {
-      speechHadErrorRef.current = true;
-
-      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-        setSpeechStatus('Microphone permission denied. Allow mic access and try again.');
-      } else if (event.error === 'audio-capture') {
-        setSpeechStatus('No microphone detected. Check your audio input device.');
-      } else if (event.error === 'network') {
-        setSpeechStatus('Speech service network error. Check internet and retry.');
-      } else if (event.error === 'no-speech') {
-        setSpeechStatus('No speech detected. Try speaking a bit louder.');
-      } else if (event.error === 'aborted') {
-        setSpeechStatus('');
-      } else {
-        setSpeechStatus('Voice input failed. Please try again.');
-      }
-
-      setIsListening(false);
-    };
-
-    recognition.onend = () => {
-      setIsListening(false);
-
-      if (!speechHadErrorRef.current) {
-        setSpeechStatus('');
-      }
-
-      speechHadErrorRef.current = false;
-    };
-
-    recognitionRef.current = recognition;
-    setSpeechSupported(true);
-
-    return () => {
-      recognition.onstart = null;
-      recognition.onresult = null;
-      recognition.onerror = null;
-      recognition.onend = null;
-      recognition.stop();
-      recognitionRef.current = null;
-    };
+    setSpeechSupported(!!SpeechRecognitionApi);
   }, []);
 
   useEffect(() => {
@@ -321,7 +247,7 @@ const PromptInputBar = ({
   };
 
   const handleMicrophoneToggle = () => {
-    if (!speechSupported || !recognitionRef.current) {
+    if (!speechSupported) {
       setSpeechStatus('Speech recognition is not supported in this browser.');
       return;
     }
@@ -331,9 +257,8 @@ const PromptInputBar = ({
       return;
     }
 
-    if (isListening) {
+    if (isListening && recognitionRef.current) {
       recognitionRef.current.stop();
-      setSpeechStatus('');
       return;
     }
 
@@ -342,9 +267,65 @@ const PromptInputBar = ({
     setSpeechStatus('');
 
     try {
-      recognitionRef.current.start();
+      const SpeechRecognitionApi = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognitionApi();
+      
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        setSpeechStatus('Listening...');
+      };
+
+      recognition.onresult = (event) => {
+        let transcript = '';
+        for (let index = event.resultIndex; index < event.results.length; index += 1) {
+          transcript += event.results[index][0].transcript;
+        }
+        const normalizedTranscript = transcript.trim();
+        if (!normalizedTranscript) return;
+        
+        const separator = speechBaseTextRef.current ? ' ' : '';
+        setPromptText(`${speechBaseTextRef.current}${separator}${normalizedTranscript}`);
+      };
+
+      recognition.onerror = (event) => {
+        speechHadErrorRef.current = true;
+        console.error('Speech recognition error:', event.error);
+        
+        if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+          setSpeechStatus('Microphone permission denied.');
+        } else if (event.error === 'audio-capture') {
+          setSpeechStatus('No microphone detected.');
+        } else if (event.error === 'network') {
+          setSpeechStatus('Speech network error. Try Chrome/Edge.');
+        } else if (event.error === 'no-speech') {
+          setSpeechStatus('No speech detected.');
+        } else if (event.error === 'aborted') {
+          setSpeechStatus('');
+        } else {
+          setSpeechStatus('Voice input failed.');
+        }
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+        if (!speechHadErrorRef.current) {
+          setSpeechStatus('');
+        }
+        speechHadErrorRef.current = false;
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
     } catch (error) {
+      console.error('Speech start error:', error);
       setSpeechStatus('Voice input could not start.');
+      setIsListening(false);
     }
   };
 
@@ -421,7 +402,12 @@ const PromptInputBar = ({
               >
                 <PlusIcon />
               </button>
-              {speechStatus ? <span className="prompt-input-status">{speechStatus}</span> : null}
+              {speechStatus ? (
+                <div className="prompt-input-status">
+                  {speechStatus}
+                  <button type="button" onClick={() => setSpeechStatus('')} className="prompt-status-close">×</button>
+                </div>
+              ) : null}
             </div>
 
             <div className="prompt-input-right-actions">
