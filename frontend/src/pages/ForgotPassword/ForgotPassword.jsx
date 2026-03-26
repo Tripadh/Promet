@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import api from '../../api';
 import { Link, useNavigate } from 'react-router-dom';
 import '../../components/auth/Auth.css';
+import logo from '../../assets/logo.png';
 import LightRays from '../../components/ui/LightRays';
 
 const ForgotPassword = () => {
@@ -64,6 +65,9 @@ const ForgotPassword = () => {
       </div>
       <div className="auth-form">
         <div style={{ textAlign: 'center', marginBottom: '4px' }}>
+          <div style={{ marginBottom: '16px' }}>
+            <img src={logo} alt="Promet Logo" style={{ width: '48px', height: '48px', borderRadius: '12px' }} />
+          </div>
           <h1 style={{ margin: 0 }}>Promet</h1>
           <p style={{ margin: '4px 0 0 0', fontWeight: 'bold', color: '#fff' }}>Reset Password</p>
         </div>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { promptService } from '../../services/promptService';
+import logo from '../../assets/logo.png';
 import './SharedChat.css';
 
 const SharedChat = () => {
@@ -45,6 +46,9 @@ const SharedChat = () => {
   return (
     <div className="shared-chat-page">
       <div className="shared-chat-header">
+        <div style={{ marginBottom: '12px' }}>
+          <img src={logo} alt="Promet Logo" style={{ width: '40px', height: '40px', borderRadius: '10px' }} />
+        </div>
         <h1>{data?.title || 'Shared Chat'}</h1>
         <p>Read-only shared conversation</p>
       </div>

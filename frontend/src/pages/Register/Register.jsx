@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import RegisterForm from '../../components/auth/RegisterForm';
 import { useAuth } from '../../hooks/useAuth';
 import LightRays from '../../components/ui/LightRays';
+import logo from '../../assets/logo.png';
 import { API_BASE_URL } from '../../api';
 
 const Register = () => {
@@ -38,6 +39,9 @@ const Register = () => {
       </div>
       <div className="auth-form">
         <div style={{ textAlign: 'center', marginBottom: '8px' }}>
+          <div style={{ marginBottom: '16px' }}>
+            <img src={logo} alt="Promet Logo" style={{ width: '48px', height: '48px', borderRadius: '12px' }} />
+          </div>
           <h1 style={{ margin: 0 }}>Promet</h1>
           <p style={{ margin: '4px 0 0 0' }}>Create a new account</p>
         </div>
