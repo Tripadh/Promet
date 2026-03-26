@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { useEffect, useRef } from "react";
+import { Analytics } from "@vercel/analytics/react";
 
 import Login from "./pages/Login/Login";
 import Register from "./pages/Register/Register";
@@ -92,6 +93,7 @@ function App() {
           <PromptProvider>
             <TransitionProvider>
               <AppRoutes />
+              <Analytics />
             </TransitionProvider>
           </PromptProvider>
         </AuthProvider>
