@@ -284,8 +284,8 @@ export const githubCallback = async (req, res) => {
         const user = req.user;
         
         if (!user) {
-            const frontendUrl = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
-            return res.redirect(`${frontendUrl}/login?error=github_auth_failed`);
+            const CLIENT_URL = (process.env.CLIENT_URL || process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
+            return res.redirect(`${CLIENT_URL}/login?error=github_auth_failed`);
         }
 
         // Generate standard JWT token for the app
@@ -303,12 +303,13 @@ export const githubCallback = async (req, res) => {
         }
 
         // Redirect to the frontend success page with the token
-        const frontendUrl = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
-        res.redirect(`${frontendUrl}/oauth-success?token=${token}`);
+        // Use CLIENT_URL from env, fallback to FRONTEND_URL, then localhost
+        const CLIENT_URL = (process.env.CLIENT_URL || process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
+        res.redirect(`${CLIENT_URL}/oauth-success?token=${token}`);
     } catch (error) {
         console.error("GitHub callback error:", error);
-        const frontendUrl = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
-        res.redirect(`${frontendUrl}/login?error=github_auth_failed`);
+        const CLIENT_URL = (process.env.CLIENT_URL || process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
+        res.redirect(`${CLIENT_URL}/login?error=github_auth_failed`);
     }
 };
 
