@@ -17,31 +17,33 @@ connectDB();
 
 // FIXED: Proper CORS setup for both dev + production
 const allowedOrigins = [
-  "http://localhost:5173",        // local dev
-  "https://promet.indevs.in"     // deployed frontend
-];
+  "http://localhost:5173",
+  process.env.FRONTEND_URL,
+  "https://promet.indevs.in"
+].filter(Boolean);
 
-app.set("trust proxy", true);
+const corsOptions = {
+  origin: function (origin, callback) {
+    // allow requests with no origin (like Postman, mobile apps)
+    if (!origin) return callback(null, true);
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // FIX: allow requests with no origin (like Postman, mobile apps)
-      if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log("❌ Blocked by CORS:", origin);
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
+};
 
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.log("❌ Blocked by CORS:", origin); // DEBUG LOG
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-  })
-);
+app.use(cors(corsOptions));
 
-// FIX: handle preflight requests explicitly
-app.options("*", cors());
+// handle preflight requests explicitly with same options
+app.options("*", cors(corsOptions));
+
 
 app.use(express.json());
 app.use(passport.initialize());
