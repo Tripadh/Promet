@@ -91,8 +91,8 @@ export const promptService = {
     return response.data;
   },
 
-  createConversationShare: async (conversationId) => {
-    const response = await api.post('/prompts/share', { conversationId });
+  createConversationShare: async (conversationId, promptId = null) => {
+    const response = await api.post('/prompts/share', { conversationId, promptId });
     return response.data;
   },
 

@@ -623,7 +623,7 @@ export const getConversationPrompts = async (req, res) => {
 
 export const createConversationShare = async (req, res) => {
   try {
-    const { conversationId } = req.body;
+    const { conversationId, promptId } = req.body;
 
     if (!conversationId || typeof conversationId !== "string") {
       return res.status(400).json({
@@ -631,16 +631,34 @@ export const createConversationShare = async (req, res) => {
       });
     }
 
-    const prompts = await Prompt.find({
-      user: req.user.id,
-      conversationId: conversationId.trim(),
-    })
-      .sort({ createdAt: 1 })
-      .select("originalPrompt improvedPrompt mode createdAt");
+    let prompts = [];
+    if (promptId) {
+      // Share only a specific prompt
+      const prompt = await Prompt.findOne({
+        _id: promptId,
+        user: req.user.id,
+        conversationId: conversationId.trim(),
+      }).select("originalPrompt improvedPrompt mode createdAt");
+
+      if (!prompt) {
+        return res.status(404).json({
+          message: "Prompt not found or unauthorized",
+        });
+      }
+      prompts = [prompt];
+    } else {
+      // Fallback: Share entire conversation
+      prompts = await Prompt.find({
+        user: req.user.id,
+        conversationId: conversationId.trim(),
+      })
+        .sort({ createdAt: 1 })
+        .select("originalPrompt improvedPrompt mode createdAt");
+    }
 
     if (!prompts.length) {
       return res.status(404).json({
-        message: "No prompts found for this conversation",
+        message: "No prompts found to share",
       });
     }
 

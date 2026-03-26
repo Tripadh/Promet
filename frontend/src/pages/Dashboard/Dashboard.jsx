@@ -566,8 +566,16 @@ const Dashboard = () => {
       return;
     }
 
+    let promptIdToShare = null;
+    if (statusKey === 'active') {
+      promptIdToShare = activePromptId;
+    } else if (statusKey.startsWith('msg-')) {
+      const idx = parseInt(statusKey.replace('msg-', ''), 10);
+      promptIdToShare = messages[idx]?.id;
+    }
+
     try {
-      const share = await promptService.createConversationShare(activeConversationId);
+      const share = await promptService.createConversationShare(activeConversationId, promptIdToShare);
       const shareUrl = `${window.location.origin}/shared/${share.shareId}`;
 
       if (navigator.share) {
