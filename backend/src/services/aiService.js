@@ -62,17 +62,17 @@ The user wants a prompt for educational or learning content. Tailor the improved
 - Maintain an encouraging, patient, and approachable tone`,
 };
 
-const COMMON_PROMPT_RULES = `Core rules:
-1. STRICTLY PRESERVE THE USER'S ORIGINAL INTENT.
-2. CRITICAL: DETECT AND RESPECT ALL NEGATIVE CONSTRAINTS. If the user says "do not include X", "avoid Y", "no Z", or "only basics", you MUST NOT include those topics in the improved prompt. NEVER introduce new topics or sections the user did not request.
+const COMMON_PROMPT_RULES = `You are an intelligent AI assistant designed to improve user prompts with precision and restraint.
+
+Core rules:
+1. ALWAYS PRESERVE THE USER'S ORIGINAL INTENT. Do not introduce unrelated ideas.
+2. CRITICAL: DETECT AND RESPECT ALL NEGATIVE CONSTRAINTS. If the user says "do not include X", you MUST NOT include it.
 3. Fix grammar and spelling mistakes.
-4. Improve clarity and structure while keeping the exact same meaning.
-5. When expanding, make sure it aligns completely with the user's constraints. Do NOT convert the prompt into a long document or report.
-6. Return ONLY the final improved prompt.
-7. Do NOT add prompt-engineering sections like "Task", "Constraints", "Expected Output Format", etc.
-8. Do NOT include explanations, analysis, or conversational padding.
-9. Output must be a single cohesive prompt ready to be pasted directly into an LLM.
-10. Do NOT add heading labels or titled section markers like "Introduction", "Overview", "Technical Stack", "Architecture", "Operational Concerns", "Deliverables", or markdown-style headings.`;
+4. Improve clarity, structure, and effectiveness while keeping the exact same meaning.
+5. Return ONLY the improved prompt. Do NOT include explanations, meta commentary, or analysis.
+6. Keep output structured, clear, and ready to use.
+7. Do NOT add prompt-engineering sections like "Task", "Constraints", or markdown-style headings unless the mode allows it (e.g., Expert mode).
+8. Behave like a selective, high-quality system. If the prompt is already excellent, make only minimal refinements.`;
 
 const MODE_TEMPLATES = {
   quick: {
@@ -81,12 +81,8 @@ const MODE_TEMPLATES = {
 ${COMMON_PROMPT_RULES}
 
 Action: Fix grammar and slightly improve clarity.
-Make the prompt concise and practical. Keep the output under 50 words. Do not add arbitrary new context.
-
-IMPORTANT — Short or vague input rule:
-If the input is fewer than 6 words OR has no clear domain/subject (e.g. "build me something", "make a thing", "write something"), do NOT just echo it.
-Instead, assume a software/product context and expand it into at least 2 clear, actionable sentences that specify what to build, for whom, and the expected outcome.
-Never output fewer than 15 words.`,
+Make the prompt concise and practical. Keep the output as brief as possible while remaining effective.
+DO NOT introduce new context or invent details.`,
     buildUserPrompt: (userPrompt) => `Rewrite this prompt to be short, clear, and immediately actionable:
 
 ${userPrompt}`,
@@ -100,18 +96,12 @@ ${userPrompt}`,
 ${COMMON_PROMPT_RULES}
 
 Rules for AUTO mode:
-- Act as a creative AI and a senior product thinker that thinks outside the box.
-- FIERCELY preserve the user's original core intent, but do not stop there.
-- INJECT 2-3 highly innovative, unconventional ideas or features that the user likely didn't think of.
-- Suggest alternative approaches, better technologies, or modern paradigms that could solve their root problem more elegantly.
-- Challenge any weak or limiting assumptions found in the original prompt. Push the user to build something superior.
-- Write the final prompt as a powerful, structured request from the user to an AI system.
-- Ensure the prompt demands the AI to act as a world-class domain expert.
+- Act as a senior product thinker that thinks outside the box.
+- FIERCELY preserve the user's original core intent.
+- Suggest 2-3 innovative, unconventional ideas or features that align with the user's goal but elevate the concept.
+- Suggest alternative approaches or better technologies that solve the root problem more elegantly.
 - Use imperative language ("Build", "Design", "Create") and absolutely NEVER use first-person language ("I will create").
-- Produce a highly engaging, forward-thinking prompt that transforms a basic idea into an outstanding product vision.
-
-IMPORTANT — Vague/ambiguous input rule:
-If the input is vague or short, assume they are looking for a groundbreaking product or solution. Invent missing context that elevates the concept into something remarkable, explicitly incorporating those visionary assumptions into the improved prompt.`,
+- Produce a powerful prompt that transforms a basic idea into an outstanding product vision while remaining disciplined.`,
     buildUserPrompt: (userPrompt, context) => `Analyze this prompt. As a senior product thinker, elevate the prompt's ambition. Inject innovative ideas, challenge weak assumptions, and suggest better approaches while keeping the core intent intact.
 
 Complexity: ${context.complexity.level}
@@ -240,12 +230,12 @@ export const isMeaninglessInput = (text = "", isUpdate = false) => {
     /^(do\s+)?something$/i,
     /^(make|build|create|write|give|do)\s+(me\s+)?(something|anything|stuff|a\s+thing)$/i,
     /^(help|assist)\s+(me\s+)?please$/i,
-    /^(just\s+)?(do|make|write|build)\s+it$/i,
+    /^(just\s+)?(do|make|write|build|fix)\s+it$/i,
     /^idk$/i,
     /^(hi|hey|hello|ok|okay|yes|no|maybe|sure|lol|wtf|hmm+|ugh|meh)$/i,
     /^[a-z]{1,3}$/i,
     /^(.)\1{2,}$/i, // repeated single char like "aaaa", "????"
-    // NEW: Vague action + vague object + optional adjectives
+    /^(make\s+it\s+)?better$/i,
     /^(make|build|create|write|do|give|generate)\s+(something|anything|stuff|it)\s+\w+$/i,
     /^(make|build|create)\s+(something|a\s+thing)\s+(cool|awesome|fun|great|good|nice|better|amazing|interesting|unique|new)$/i,
     /^(just\s+)?(make|build|create|write)\s+(me\s+)?(something|anything)\s*(\w*)$/i,
@@ -295,7 +285,11 @@ export const isMeaninglessInput = (text = "", isUpdate = false) => {
 export const buildClarificationResponse = (userPrompt = "") => {
   return {
     needsClarification: true,
-    message: `Could you be more specific? Your prompt "${userPrompt.trim()}" is too vague for me to improve effectively.\n\nTry answering one or more of these:\n- What do you want to build or create?\n- Who is it for?\n- What should it do?\n\nExample: "build me a task manager app for teams" or "write a professional email declining a job offer".`,
+    message: `Your input is too vague to improve effectively. Please provide more details such as:
+- What you want to create
+- Target audience
+- Desired outcome
+Example: 'Write an Instagram caption for a fitness product launch targeting young adults.'`,
   };
 };
 

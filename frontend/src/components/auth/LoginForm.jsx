@@ -25,19 +25,23 @@ const LoginForm = () => {
     <form onSubmit={handleSubmit}>
       {error && <div className="auth-alert auth-alert-error">{error}</div>}
       <div className="auth-field">
-        <label>Email:</label>
+        <label htmlFor="login-email">Email address</label>
         <input 
+          id="login-email"
           type="email" 
+          autoComplete="email"
           value={email} 
           onChange={(e) => setEmail(e.target.value)} 
           required 
         />
       </div>
       <div className="auth-field">
-        <label>Password:</label>
+        <label htmlFor="login-password">Password</label>
         <div className="password-input-wrapper">
           <input 
+            id="login-password"
             type={showPassword ? "text" : "password"} 
+            autoComplete="current-password"
             value={password} 
             onChange={(e) => setPassword(e.target.value)} 
             required 

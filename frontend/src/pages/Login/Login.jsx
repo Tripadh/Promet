@@ -1,5 +1,5 @@
 import '../../components/auth/Auth.css';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import LoginForm from '../../components/auth/LoginForm';
 import { useAuth } from '../../hooks/useAuth';
@@ -38,17 +38,17 @@ const Login = () => {
         />
       </div>
       <div className="auth-form">
-        <div style={{ textAlign: 'center', marginBottom: '8px' }}>
-          <div style={{ marginBottom: '16px' }}>
-            <img src={logo} alt="Promet Logo" style={{ width: '48px', height: '48px', borderRadius: '12px' }} />
+        <header className="auth-header">
+          <div className="auth-brand-mark">
+            <img src={logo} alt="Promet" width={48} height={48} />
           </div>
-          <h1 style={{ margin: 0 }}>Promet</h1>
-          <p style={{ margin: '4px 0 0 0' }}>Log in to your account</p>
-        </div>
+          <h1 className="auth-title">Welcome back</h1>
+          <p className="auth-lead">Sign in to continue to Promet</p>
+        </header>
         <LoginForm />
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-12px', marginBottom: '8px' }}>
-          <Link to="/forgot-password" style={{ color: '#a1a1aa', fontSize: '0.85rem', textDecoration: 'none', transition: 'color 0.2s', ':hover': { color: '#ffffff' } }}>
+        <div className="auth-forgot-row">
+          <Link to="/forgot-password" className="auth-forgot-link">
             Forgot password?
           </Link>
         </div>
@@ -64,8 +64,11 @@ const Login = () => {
             Continue with GitHub
           </a>
         </div>
-        <p style={{ textAlign: 'center', color: '#ECECEC' }}>
-          Don't have an account? <Link to="/register" style={{ color: '#10a37f' }}>Register</Link>
+        <p className="auth-footer-register">
+          Don&apos;t have an account?{' '}
+          <Link to="/register" className="auth-link-accent">
+            Register
+          </Link>
         </p>
       </div>
     </div>
