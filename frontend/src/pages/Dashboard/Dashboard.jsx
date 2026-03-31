@@ -510,17 +510,17 @@ const Dashboard = () => {
     try {
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.getWidth();
-      
+
       // Header
       doc.setFontSize(22);
       doc.setTextColor(33, 33, 33);
       doc.text('Promet Conversation Export', 14, 22);
-      
+
       doc.setFontSize(10);
       doc.setTextColor(100, 100, 100);
       doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
       doc.text(`User: ${displayName}`, 14, 35);
-      
+
       doc.setDrawColor(200, 200, 200);
       doc.line(14, 40, pageWidth - 14, 40);
 
@@ -532,7 +532,7 @@ const Dashboard = () => {
           { content: 'USER PROMPT', styles: { fontStyle: 'bold', textColor: [80, 80, 80] } },
           msg.prompt
         ]);
-        
+
         const cleanResult = typeof msg.result === 'string' ? msg.result : JSON.stringify(msg.result);
         tableData.push([
           { content: 'IMPROVED PROMPT', styles: { fontStyle: 'bold', textColor: [16, 163, 127] } },
@@ -546,7 +546,7 @@ const Dashboard = () => {
           { content: 'USER PROMPT', styles: { fontStyle: 'bold', textColor: [80, 80, 80] } },
           currentPrompt
         ]);
-        
+
         const cleanActiveResult = typeof result === 'string' ? result : JSON.stringify(result);
         tableData.push([
           { content: 'IMPROVED PROMPT', styles: { fontStyle: 'bold', textColor: [16, 163, 127] } },
@@ -657,7 +657,7 @@ const Dashboard = () => {
       <div className="main-content">
         <div className={`content-container${hasStartedConversation ? ' conversation-started' : ' pre-conversation'}${isDockingComposer ? ' is-docking' : ''}`}>
           <div className="dashboard-top-header">
-            <div className="dashboard-top-header-brand">Promet</div>
+
             <div className="dashboard-top-header-limits">
               <span>{Math.max(0, 25 - dailyCount)}</span> Promets remaining
             </div>
