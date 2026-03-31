@@ -519,6 +519,19 @@ export const clearPromptMemory = (store) => {
 };
 
 // ─────────────────────────────────────────────
+// NEW: Strict Short Input Guard
+// ─────────────────────────────────────────────
+export const isTooShortInput = (text = "") => {
+  const trimmed = String(text || "").trim();
+  const words = trimmed.split(/\s+/).filter(Boolean);
+  
+  // ONLY block: empty input, 1-word inputs
+  if (words.length <= 1) return true;
+  
+  return false;
+};
+
+// ─────────────────────────────────────────────
 // NEW: Detect Intent (Chat vs Improve)
 // ─────────────────────────────────────────────
 export const detectIntent = (text = "", intentMode = "auto") => {
@@ -527,34 +540,35 @@ export const detectIntent = (text = "", intentMode = "auto") => {
 
   const trimmed = String(text || "").trim();
   const lower = trimmed.toLowerCase();
-
-  // If input is multi-line with obvious structure or > 150 chars, it's a prompt
-  if (trimmed.includes('\n') || trimmed.length > 150) {
-    return "improve";
-  }
-
   const words = lower.split(/\s+/).filter(Boolean);
-  
-  if (words.length <= 8) {
-    const chatGreetings = /^(hi|hello|hey|sup|yo|greetings|namaste|bhai|bro|buddy|dude|thanks|thank you|ok|okay|yes|no)$/i;
-    if (words.every(w => chatGreetings.test(w)) || /^(hello|hi|hey) (bhai|bro|buddy|dude|there|man)(!|\.)?$/.test(lower)) {
-      return "chat";
-    }
-    if (words.length <= 2 && chatGreetings.test(words[0])) {
-      return "chat";
-    }
-    if (/^(how are you|who are you|what are you|what can you do)[\?]*$/i.test(lower)) {
-      return "chat";
-    }
+
+  // 1. Run short input guard (1 word goes to chat)
+  if (words.length <= 1) {
+    return "chat";
   }
 
-  // Strong actionable verbs overriding to improve
-  const actionVerbs = ["build", "create", "analyze", "write", "generate", "expand", "summarize", "design", "develop", "make"];
-  if (actionVerbs.some(verb => lower.includes(verb))) {
+  // 2. If input is a 2-word command -> improve
+  const commandWords = ["build", "create", "make", "fix", "write", "design"];
+  if (words.length === 2 && commandWords.includes(words[0])) {
     return "improve";
   }
 
-  return "improve";
+  // 3. If contains action verbs (word-level match) -> improve
+  const actionVerbs = [
+    "build", "create", "design", "analyze", "generate",
+    "develop", "write", "make", "improve", "expand", "summarize", "fix"
+  ];
+  if (words.some(word => actionVerbs.includes(word))) {
+    return "improve";
+  }
+
+  // 4. Strong constraints for Improve mode
+  if (trimmed.includes('\n') || trimmed.length > 120) {
+    return "improve";
+  }
+
+  // 5. Default fallback is chat
+  return "chat";
 };
 
 // ─────────────────────────────────────────────
