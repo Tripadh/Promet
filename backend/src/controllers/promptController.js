@@ -1,4 +1,4 @@
-import { improvePromptWithAI, improvePromptWithAIStream, normalizeMode, generateChatTitle } from "../services/aiService.js";
+import { improvePromptWithAI, improvePromptWithAIStream, normalizeMode, generateChatTitle, detectIntent, chatWithAIStream } from "../services/aiService.js";
 import { analyzePrompt as analyzeUserPrompt } from "../services/promptAnalyzer.js";
 import Prompt from "../models/Prompt.js";
 import MonthlyUsage from "../models/MonthlyUsage.js";
@@ -10,7 +10,7 @@ import { randomBytes } from "crypto";
 
 export const improvePrompt = async (req, res) => {
   try {
-    const { prompt, mode = "balanced", isRetry = false, conversationId, domain = null } = req.body;
+    const { prompt, mode = "balanced", isRetry = false, conversationId, domain = null, intentMode = "auto" } = req.body;
     const selectedMode = normalizeMode(mode);
     const MAX_PROMPTS_PER_CONVERSATION = 5;
     const conversationKey = typeof conversationId === "string" && conversationId.trim()
@@ -96,25 +96,38 @@ export const improvePrompt = async (req, res) => {
 
     // Use actual streaming from AI for fast, letter-by-letter display
     let finalImprovedPrompt = "";
+    
+    // DETECT INTENT
+    const intent = detectIntent(prompt, intentMode);
+    let streamResult;
 
-    const streamResult = await improvePromptWithAIStream(
-      prompt,
-      selectedMode,
-      isRetry,
-      (textChunk) => {
-        finalImprovedPrompt += textChunk;
-        res.write(`data: ${JSON.stringify({ text: textChunk })}\n\n`);
-      },
-      { memory: previousPromptText },
-      domain
-    );
+    if (intent === "chat") {
+      finalImprovedPrompt = await chatWithAIStream(
+        prompt,
+        (textChunk) => {
+          res.write(`data: ${JSON.stringify({ text: textChunk })}\n\n`);
+        }
+      );
+    } else {
+      streamResult = await improvePromptWithAIStream(
+        prompt,
+        selectedMode,
+        isRetry,
+        (textChunk) => {
+          finalImprovedPrompt += textChunk;
+          res.write(`data: ${JSON.stringify({ text: textChunk })}\n\n`);
+        },
+        { memory: previousPromptText },
+        domain
+      );
 
-    if (streamResult && streamResult.needsClarification) {
-      // If needs clarification, it already streamed out via the callback.
-      // We just need to end it properly with the done signal.
-      res.write(`data: ${JSON.stringify({ done: true, analysis: promptAnalysis })}\n\n`);
-      res.end();
-      return;
+      if (streamResult && streamResult.needsClarification) {
+        // If needs clarification, it already streamed out via the callback.
+        // We just need to end it properly with the done signal.
+        res.write(`data: ${JSON.stringify({ done: true, analysis: promptAnalysis })}\n\n`);
+        res.end();
+        return;
+      }
     }
 
     // Format the final improved prompt with sections if needed,

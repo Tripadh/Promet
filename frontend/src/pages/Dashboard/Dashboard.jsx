@@ -51,6 +51,22 @@ const Dashboard = () => {
   const [isMobileViewport, setIsMobileViewport] = useState(
     typeof window !== 'undefined' ? window.innerWidth <= 960 : false
   );
+  const [dailyCount, setDailyCount] = useState(0);
+
+  // Fetch usage for limit display
+  useEffect(() => {
+    let mounted = true;
+    const fetchUsage = async () => {
+      try {
+        const summary = await promptService.getMonthlyUsageSummary();
+        if (mounted) setDailyCount(summary?.dailyCount || 0);
+      } catch (err) {
+        console.error('Failed to fetch daily limit', err);
+      }
+    };
+    if (token) fetchUsage();
+    return () => { mounted = false; };
+  }, [token, messages.length, result]);
 
   // Feedback Modal State
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
@@ -640,6 +656,12 @@ const Dashboard = () => {
 
       <div className="main-content">
         <div className={`content-container${hasStartedConversation ? ' conversation-started' : ' pre-conversation'}${isDockingComposer ? ' is-docking' : ''}`}>
+          <div className="dashboard-top-header">
+            <div className="dashboard-top-header-brand">Promet</div>
+            <div className="dashboard-top-header-limits">
+              <span>{Math.max(0, 15 - dailyCount)}</span> Promets remaining
+            </div>
+          </div>
           <div className={`chat-container${hasStartedConversation ? ' chat-active' : ' chat-welcome'}`}>
             {/* Output Area */}
             {!hasStartedConversation ? (

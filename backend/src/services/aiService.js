@@ -519,6 +519,108 @@ export const clearPromptMemory = (store) => {
 };
 
 // ─────────────────────────────────────────────
+// NEW: Detect Intent (Chat vs Improve)
+// ─────────────────────────────────────────────
+export const detectIntent = (text = "", intentMode = "auto") => {
+  if (intentMode === "chat") return "chat";
+  if (intentMode === "improve") return "improve";
+
+  const trimmed = String(text || "").trim();
+  const lower = trimmed.toLowerCase();
+
+  // If input is multi-line with obvious structure or > 150 chars, it's a prompt
+  if (trimmed.includes('\n') || trimmed.length > 150) {
+    return "improve";
+  }
+
+  const words = lower.split(/\s+/).filter(Boolean);
+  
+  if (words.length <= 8) {
+    const chatGreetings = /^(hi|hello|hey|sup|yo|greetings|namaste|bhai|bro|buddy|dude|thanks|thank you|ok|okay|yes|no)$/i;
+    if (words.every(w => chatGreetings.test(w)) || /^(hello|hi|hey) (bhai|bro|buddy|dude|there|man)(!|\.)?$/.test(lower)) {
+      return "chat";
+    }
+    if (words.length <= 2 && chatGreetings.test(words[0])) {
+      return "chat";
+    }
+    if (/^(how are you|who are you|what are you|what can you do)[\?]*$/i.test(lower)) {
+      return "chat";
+    }
+  }
+
+  // Strong actionable verbs overriding to improve
+  const actionVerbs = ["build", "create", "analyze", "write", "generate", "expand", "summarize", "design", "develop", "make"];
+  if (actionVerbs.some(verb => lower.includes(verb))) {
+    return "improve";
+  }
+
+  return "improve";
+};
+
+// ─────────────────────────────────────────────
+// NEW: Chat Mode streaming function
+// ─────────────────────────────────────────────
+export const chatWithAIStream = async (prompt, onToken) => {
+  try {
+    const stream = await groq.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      temperature: 0.5,
+      max_tokens: 500,
+      messages: [
+        {
+          role: "system",
+          content: "You are a friendly assistant. Respond naturally and casually. Do not use prompt-engineering formatting templates unless the user specifically asks you to improve a prompt.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      stream: true,
+    });
+
+    let fullText = "";
+    for await (const chunk of stream) {
+      const token = chunk?.choices?.[0]?.delta?.content || "";
+      if (token) {
+        fullText += token;
+        onToken(token);
+      }
+    }
+    return fullText.trim();
+  } catch (error) {
+    console.error("Groq Chat Streaming Error:", error);
+    const fallback = "I'm having trouble responding right now. Please try again.";
+    for (const char of fallback) { onToken(char); }
+    return fallback;
+  }
+};
+
+export const chatWithAI = async (prompt) => {
+  try {
+    const response = await groq.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      temperature: 0.5,
+      max_tokens: 500,
+      messages: [
+        {
+          role: "system",
+          content: "You are a friendly assistant. Respond naturally and casually. Do not use prompt-engineering formatting templates unless the user specifically asks you to improve a prompt.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    });
+    return response.choices[0]?.message?.content?.trim() || "I'm having trouble responding right now. Please try again.";
+  } catch (error) {
+    console.error("Groq Chat Error:", error);
+    return "I'm having trouble responding right now. Please try again.";
+  }
+};
+
+// ─────────────────────────────────────────────
 // Main improve function (non-streaming)
 // Returns { needsClarification, message } if input
 // is meaningless, otherwise returns the improved prompt string.
