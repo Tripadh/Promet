@@ -18,6 +18,7 @@ const monthlyUsageSchema = new mongoose.Schema(
       balanced: { type: Number, default: 0 },
       auto: { type: Number, default: 0 },
       expert: { type: Number, default: 0 },
+      chat: { type: Number, default: 0 },
     },
     totalPrompts: {
       type: Number,

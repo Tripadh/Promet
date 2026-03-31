@@ -44,7 +44,7 @@ const promptSchema = new mongoose.Schema(
 
         mode: {
             type: String,
-            enum: ["quick", "balanced", "expert", "auto"],
+            enum: ["quick", "balanced", "expert", "auto", "chat"],
             default: "balanced",
         },
 

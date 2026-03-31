@@ -168,12 +168,13 @@ const Settings = () => {
                   </div>
                   
                   <div className="credits-premium-main">
-                    <span className="credits-remaining-num">{Math.max(0, 15 - usageSummary.dailyCount)}</span>
+                    <span className="credits-remaining-num">{Math.max(0, 25 - usageSummary.dailyCount)}</span>
+                    <span className="credits-total">/ 25</span>
                     <span className="credits-remaining-text">remaining</span>
                   </div>
                   
                   <div className="credits-premium-footer">
-                    15 daily limit
+                    25 daily limit
                   </div>
                 </div>
 

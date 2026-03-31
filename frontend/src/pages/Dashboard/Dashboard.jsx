@@ -659,7 +659,7 @@ const Dashboard = () => {
           <div className="dashboard-top-header">
             <div className="dashboard-top-header-brand">Promet</div>
             <div className="dashboard-top-header-limits">
-              <span>{Math.max(0, 15 - dailyCount)}</span> Promets remaining
+              <span>{Math.max(0, 25 - dailyCount)}</span> Promets remaining
             </div>
           </div>
           <div className={`chat-container${hasStartedConversation ? ' chat-active' : ' chat-welcome'}`}>

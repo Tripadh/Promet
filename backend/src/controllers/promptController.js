@@ -38,25 +38,6 @@ export const improvePrompt = async (req, res) => {
       }
     }
 
-    // Daily limit check: max 15 prompts per day
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date();
-    endOfDay.setHours(23, 59, 59, 999);
-
-    const dailyCount = await Prompt.countDocuments({
-      user: req.user.id,
-      createdAt: { $gte: startOfDay, $lte: endOfDay }
-    });
-
-    if (dailyCount >= 15) {
-      return res.status(429).json({
-        message: "You have reached your daily limit of 15 prompts. Please come back tomorrow!",
-        code: "DAILY_LIMIT_REACHED",
-        limit: 15,
-      });
-    }
-
     // Fetch the previous prompt if there's an ongoing conversation, to maintain memory
     let previousPromptText = null;
     if (conversationKey && !isRetry) {
@@ -99,6 +80,29 @@ export const improvePrompt = async (req, res) => {
     
     // DETECT INTENT
     const intent = detectIntent(prompt, intentMode);
+
+    // Improve Mode Quota Check
+    if (intent === "improve") {
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date();
+      endOfDay.setHours(23, 59, 59, 999);
+
+      const dailyImproveCount = await Prompt.countDocuments({
+        user: req.user.id,
+        mode: { $ne: "chat" }, // Only count actual improvements
+        createdAt: { $gte: startOfDay, $lte: endOfDay }
+      });
+
+      if (dailyImproveCount >= 25) {
+        return res.status(429).json({
+          message: "You have reached your daily limit of 25 improvements. Chat remains unlimited!",
+          code: "DAILY_LIMIT_REACHED",
+          limit: 25,
+        });
+      }
+    }
+
     let streamResult;
 
     if (intent === "chat") {
@@ -148,7 +152,7 @@ export const improvePrompt = async (req, res) => {
       user: req.user.id,
       originalPrompt: prompt,
       improvedPrompt: finalImprovedPrompt,
-      mode: selectedMode,
+      mode: intent === "chat" ? "chat" : selectedMode,
       conversationId: conversationKey,
       title: chatTitle,
       langfuseTraceId: trace.id,
@@ -162,8 +166,8 @@ export const improvePrompt = async (req, res) => {
       { user: req.user.id, monthKey },
       {
         $inc: {
-          totalPrompts: 1,
-          [`byMode.${selectedMode}`]: 1,
+          totalPrompts: 1, // Still track total interactions
+          [`byMode.${intent === "chat" ? "chat" : selectedMode}`]: 1,
         },
       },
       {
@@ -280,6 +284,7 @@ export const getMonthlyUsageSummary = async (req, res) => {
       balanced: 0,
       auto: 0,
       expert: 0,
+      chat: 0,
     };
 
     let totalPrompts = 0;
@@ -289,6 +294,7 @@ export const getMonthlyUsageSummary = async (req, res) => {
       byMode.balanced = Number(persisted.byMode?.balanced || 0);
       byMode.auto = Number(persisted.byMode?.auto || 0);
       byMode.expert = Number(persisted.byMode?.expert || 0);
+      byMode.chat = Number(persisted.byMode?.chat || 0);
       totalPrompts = Number(persisted.totalPrompts || 0);
     } else {
       // Backfill from existing prompt docs for users who used the app before this change.
@@ -333,6 +339,7 @@ export const getMonthlyUsageSummary = async (req, res) => {
 
     const dailyCount = await Prompt.countDocuments({
       user: req.user._id,
+      mode: { $ne: "chat" }, // Only count actual improvements against daily limit gauge on frontend
       createdAt: { $gte: startOfDay, $lte: endOfDay }
     });
 
