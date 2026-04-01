@@ -272,7 +272,7 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
               top: '100%', 
               right: 0, 
               marginTop: '5px',
-              z_index: 1000,
+              zIndex: 1000,
               minWidth: '140px' 
             }}>
               <button className="dropdown-item" onClick={(e) => handleTogglePin(e, item._id)}>

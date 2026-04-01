@@ -5,7 +5,6 @@ import Sidebar from '../../components/ui/Sidebar';
 import PromptInputBar from '../../components/prompt/PromptInputBar';
 import { usePrompt } from '../../hooks/usePrompt';
 import { promptService } from '../../services/promptService';
-import logo from '../../assets/logo.png';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import './Dashboard.css';
@@ -46,7 +45,7 @@ const Dashboard = () => {
   const [copiedInputKey, setCopiedInputKey] = useState(null);
   const [copiedMsgIdx, setCopiedMsgIdx] = useState(null);
   const [shareStatusKey, setShareStatusKey] = useState(null);
-  const [outputFeedback, setOutputFeedback] = useState({});
+  const [outputFeedback, setOutputFeedback] = useState(/** @type {Record<string, any>} */ ({}));
   const [chatNotice, setChatNotice] = useState(null);
   const [isMobileViewport, setIsMobileViewport] = useState(
     typeof window !== 'undefined' ? window.innerWidth <= 960 : false
@@ -1164,7 +1163,7 @@ const Dashboard = () => {
               placeholder="Share details (optional)"
               value={feedbackDetails}
               onChange={(e) => setFeedbackDetails(e.target.value)}
-            />
+            ></textarea>
 
             <div className="feedback-footer">
               <div className="feedback-disclaimer">

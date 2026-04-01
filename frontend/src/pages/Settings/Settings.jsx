@@ -134,7 +134,7 @@ const Settings = () => {
         />
       )}
 
-      <Sidebar isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen(!isSidebarOpen)} />
+      <Sidebar isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen(!isSidebarOpen)} onBeforeHistoryLoad={() => Promise.resolve(true)} />
       
       <div className="main-content padding-container settings-main-container">
         <div className="settings-page">
