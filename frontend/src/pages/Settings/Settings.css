@@ -678,15 +678,57 @@
 /* Make it responsive */
 @media (max-width: 960px) {
   .settings-page {
-    padding: 24px;
+    padding: 20px 16px 40px;
+  }
+
+  .settings-header {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+  }
+
+  .settings-header h1 {
+    font-size: 28px;
   }
 
   .settings-content {
     flex-direction: column;
+    gap: 24px;
   }
 
   .settings-sidebar {
     width: 100%;
+    flex: none;
+  }
+
+  .profile-header-group {
+    flex-direction: column;
+    text-align: center;
+    padding: 24px 16px;
+  }
+
+  .profile-info-text {
+    align-items: center;
+  }
+
+  .activity-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .settings-tabs {
+    overflow-x: auto;
+    white-space: nowrap;
+    padding: 4px;
+    gap: 6px;
+    scrollbar-width: none; /* Hide scrollbar for tab row */
+  }
+
+  .settings-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tab-btn {
+    padding: 8px 12px;
+    font-size: 14px;
     flex: none;
   }
 
@@ -704,6 +746,24 @@
   .password-header {
     flex-direction: column;
     gap: 16px;
+  }
+  
+  .card-header {
+    margin-bottom: 20px;
+  }
+
+  .credits-premium-main {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .activity-stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .settings-header h1 {
+    font-size: 24px;
   }
 }
 

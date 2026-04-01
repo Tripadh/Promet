@@ -335,6 +335,16 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
     <>
       <div className={`sidebar ${isOpen ? 'open' : 'closed'}`}>
         <div className="sidebar-topbar">
+          <button 
+            className="sidebar-mobile-close" 
+            onClick={onToggle}
+            aria-label="Close sidebar"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
           <div className="sidebar-brand" aria-label="Prompt Improver">
             <span className="sidebar-brand-mark" aria-hidden="true">
               <img src={logo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />

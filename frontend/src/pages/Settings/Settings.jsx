@@ -49,6 +49,15 @@ const Settings = () => {
   }, []);
 
   useEffect(() => {
+    if (isMobileViewport && isSidebarOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+    return () => { document.body.style.overflow = 'auto'; };
+  }, [isMobileViewport, isSidebarOpen]);
+
+  useEffect(() => {
     let mounted = true;
 
     const fetchUsageSummary = async () => {
@@ -115,18 +124,7 @@ const Settings = () => {
   };
 
   return (
-    <div className={`app-layout${isSidebarOpen ? '' : ' sidebar-collapsed'}`}>
-      {isMobileViewport && !isSidebarOpen && (
-        <button
-          type="button"
-          className="mobile-sidebar-open-btn"
-          onClick={() => setIsSidebarOpen(true)}
-          aria-label="Open sidebar"
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h18"/><path d="M3 6h18"/><path d="M3 18h18"/></svg>
-        </button>
-      )}
-
+    <>
       {isMobileViewport && isSidebarOpen && (
         <button
           type="button"
@@ -141,8 +139,24 @@ const Settings = () => {
       <div className="main-content padding-container settings-main-container">
         <div className="settings-page">
           <header className="settings-header">
-            <h1>Settings</h1>
-            <p className="settings-subtitle">Manage your account settings and preferences.</p>
+            {isMobileViewport && (
+              <button
+                type="button"
+                className="mobile-hamburger-btn"
+                onClick={() => setIsSidebarOpen(true)}
+                aria-label="Open sidebar"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="3" y1="12" x2="21" y2="12"></line>
+                  <line x1="3" y1="6" x2="21" y2="6"></line>
+                  <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+              </button>
+            )}
+            <div>
+              <h1>Settings</h1>
+              <p className="settings-subtitle">Manage your account settings and preferences.</p>
+            </div>
           </header>
 
           <div className="settings-content">
@@ -522,7 +536,7 @@ const Settings = () => {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 
