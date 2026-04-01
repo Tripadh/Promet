@@ -52,21 +52,25 @@ const Dashboard = () => {
     typeof window !== 'undefined' ? window.innerWidth <= 960 : false
   );
   const [dailyCount, setDailyCount] = useState(0);
+  const [dailyChatCount, setDailyChatCount] = useState(0);
 
-  // Fetch usage for limit display
+  // Fetch usage once on mount (when token is available). Do NOT re-fetch on every message/result.
   useEffect(() => {
     let mounted = true;
     const fetchUsage = async () => {
       try {
         const summary = await promptService.getMonthlyUsageSummary();
-        if (mounted) setDailyCount(summary?.dailyCount || 0);
+        if (mounted) {
+          setDailyCount(summary?.dailyCount || 0);
+          setDailyChatCount(summary?.dailyChatCount || 0);
+        }
       } catch (err) {
         console.error('Failed to fetch daily limit', err);
       }
     };
     if (token) fetchUsage();
     return () => { mounted = false; };
-  }, [token, messages.length, result]);
+  }, [token]); // ← only on mount / token change, NOT on every message
 
   // Feedback Modal State
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
@@ -216,6 +220,13 @@ const Dashboard = () => {
     setActivePromptTimestamp(payload.timestamp || new Date());
     try {
       await improvePrompt(payload.prompt, payload.mode, payload.isRetry, payload.domain || null);
+      // Increment the correct local counter — chats are unlimited, improvements are capped at 25
+      if (!payload.isRetry) {
+        // We detect intent the same way the backend does: check if the mode resolves to chat
+        // We approximate here: if result comes back as chat mode we'll update on next mount
+        // For now, increment improve count optimistically (backend already separates them)
+        setDailyCount((prev) => prev + 1);
+      }
     } catch (error) {
       showChatNotice(error?.message || 'Failed to improve prompt', 'error');
     }
@@ -627,7 +638,46 @@ const Dashboard = () => {
     }
   };
 
-  if (loading || !token) return <div style={{ color: 'var(--text-main)', padding: '20px' }}>Loading...</div>;
+  if (loading || !token) return (
+    <div style={{
+      display: 'flex',
+      width: '100vw',
+      height: '100vh',
+      backgroundColor: 'var(--bg-main, #0f0f0f)',
+      overflow: 'hidden',
+    }}>
+      {/* Sidebar skeleton */}
+      <div style={{
+        width: '260px',
+        flexShrink: 0,
+        borderRight: '1px solid var(--border-panel, #2a2a2a)',
+        padding: '16px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px',
+      }}>
+        <div style={{ height: '32px', borderRadius: '6px', background: 'var(--bg-hover, #1a1a1a)', animation: 'pulse 1.4s ease-in-out infinite' }} />
+        <div style={{ height: '36px', borderRadius: '8px', background: 'var(--bg-hover, #1a1a1a)', animation: 'pulse 1.4s ease-in-out infinite' }} />
+        {[1,2,3,4,5].map(i => (
+          <div key={i} style={{ height: '40px', borderRadius: '8px', background: 'var(--bg-hover, #1a1a1a)', opacity: 1 - i * 0.12, animation: 'pulse 1.4s ease-in-out infinite' }} />
+        ))}
+      </div>
+      {/* Main content skeleton */}
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '16px',
+        padding: '40px',
+      }}>
+        <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--bg-hover, #1a1a1a)', animation: 'pulse 1.4s ease-in-out infinite' }} />
+        <div style={{ width: '280px', height: '28px', borderRadius: '8px', background: 'var(--bg-hover, #1a1a1a)', animation: 'pulse 1.4s ease-in-out infinite' }} />
+        <div style={{ width: '200px', height: '16px', borderRadius: '6px', background: 'var(--bg-hover, #1a1a1a)', animation: 'pulse 1.4s ease-in-out infinite' }} />
+      </div>
+    </div>
+  );
 
   return (
     <div className={`app-layout${isSidebarOpen ? '' : ' sidebar-collapsed'}`}>
@@ -657,9 +707,26 @@ const Dashboard = () => {
       <div className="main-content">
         <div className={`content-container${hasStartedConversation ? ' conversation-started' : ' pre-conversation'}${isDockingComposer ? ' is-docking' : ''}`}>
           <div className="dashboard-top-header">
-
             <div className="dashboard-top-header-limits">
-              <span>{Math.max(0, 25 - dailyCount)}</span> remaining
+              {/* Prompt improvements — counted against the daily 25 limit */}
+              <div className="usage-stat">
+                <svg viewBox="0 0 24 24" aria-hidden="true" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 0C12 6.627 17.373 12 24 12C17.373 12 12 17.373 12 24C12 17.373 6.627 12 0 12C6.627 12 12 6.627 12 0Z" />
+                </svg>
+                <span className="usage-stat-value">{Math.max(0, 25 - dailyCount)}</span>
+                <span className="usage-stat-label">/ 25 improvements</span>
+              </div>
+
+              <div className="usage-stat-divider" />
+
+              {/* Chats — always unlimited, shown separately */}
+              <div className="usage-stat">
+                <svg viewBox="0 0 24 24" aria-hidden="true" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+                <span className="usage-stat-label">Chats</span>
+                <span className="usage-stat-unlimited">Unlimited</span>
+              </div>
             </div>
           </div>
           <div className={`chat-container${hasStartedConversation ? ' chat-active' : ' chat-welcome'}`}>

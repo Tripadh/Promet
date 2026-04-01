@@ -1,9 +1,11 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useRef } from 'react';
 import api from '../api';
 
 export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
+  // When login/register directly provides a fresh profile, we skip re-fetching /auth/me
+  const skipNextSyncRef = useRef(false);
   const [user, setUser] = useState(() => {
     const storedUser = localStorage.getItem('user');
     if (!storedUser) {
@@ -24,6 +26,13 @@ export const AuthProvider = ({ children }) => {
       if (!token) {
         setUser(null);
         localStorage.removeItem('user');
+        setLoading(false);
+        return;
+      }
+
+      // If login/register just set the token with a fresh profile, skip /auth/me
+      if (skipNextSyncRef.current) {
+        skipNextSyncRef.current = false;
         setLoading(false);
         return;
       }
@@ -49,6 +58,8 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   const persistAuth = (authToken, profile) => {
+    // Mark that the next token-change sync should be skipped — profile is already fresh
+    skipNextSyncRef.current = true;
     localStorage.setItem('token', authToken);
     if (profile) {
       localStorage.setItem('user', JSON.stringify(profile));

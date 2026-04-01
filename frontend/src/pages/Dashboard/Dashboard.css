@@ -42,7 +42,7 @@
 .dashboard-top-header {
   padding: 24px 24px 0;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   z-index: 10;
   flex-shrink: 0;
@@ -57,21 +57,62 @@
 }
 
 .dashboard-top-header-limits {
-  font-size: 13px;
-  color: var(--text-muted);
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
   background: var(--bg-panel);
   padding: 6px 14px;
   border-radius: 999px;
   border: 1px solid var(--border-panel);
 }
 
-.dashboard-top-header-limits span {
-  font-weight: 600;
-  color: var(--text-main);
+.usage-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.usage-stat svg {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.usage-stat-value {
+  font-weight: 700;
   font-size: 14px;
+  color: var(--text-main);
+}
+
+.usage-stat-label {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.usage-stat-unlimited {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(166, 227, 161, 0.12);
+  color: #a6e3a1;
+  border: 1px solid rgba(166, 227, 161, 0.2);
+}
+
+[data-theme='light'] .usage-stat-unlimited {
+  background: rgba(34, 139, 34, 0.1);
+  color: #2d7a2d;
+  border-color: rgba(34, 139, 34, 0.2);
+}
+
+.usage-stat-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border-panel);
+  flex-shrink: 0;
 }
 
 .chat-container {
@@ -99,7 +140,7 @@
   position: absolute;
   left: 50%;
   width: min(var(--chat-box-max-width, 760px), calc(100% - 48px));
-  top: 71%;
+  top: 76%;
   transform: translate(-50%, -50%);
   animation: promptDockIn 500ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
@@ -252,7 +293,7 @@
 
 .welcome-hero {
   width: min(var(--chat-box-max-width, 760px), calc(100% - 48px));
-  margin: 0 auto 64px auto;
+  margin: 0 auto 100px auto;
   text-align: left;
   color: var(--text-main);
   animation: welcomeRise 650ms cubic-bezier(0.16, 1, 0.3, 1);
@@ -461,7 +502,7 @@
 
   .pre-conversation .input-container {
     width: calc(100% - 32px);
-    top: 70%;
+    top: 75%;
   }
 
   .conversation-started .input-container {
@@ -676,5 +717,16 @@
 
   50% {
     opacity: 0;
+  }
+}
+
+/* Skeleton loading pulse for the dashboard loading screen */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.35;
   }
 }

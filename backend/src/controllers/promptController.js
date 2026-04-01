@@ -297,39 +297,47 @@ export const getMonthlyUsageSummary = async (req, res) => {
       byMode.chat = Number(persisted.byMode?.chat || 0);
       totalPrompts = Number(persisted.totalPrompts || 0);
     } else {
-      // Backfill from existing prompt docs for users who used the app before this change.
-      const usage = await Prompt.aggregate([
-        {
-          $match: {
-            user: req.user._id,
-            createdAt: { $gte: monthStart, $lte: now },
-          },
-        },
-        {
-          $group: {
-            _id: "$mode",
-            count: { $sum: 1 },
-          },
-        },
-      ]);
+      // Backfill from existing prompt docs — run in background so it doesn't block this response
+      setImmediate(async () => {
+        try {
+          const usage = await Prompt.aggregate([
+            {
+              $match: {
+                user: req.user._id,
+                createdAt: { $gte: monthStart, $lte: now },
+              },
+            },
+            {
+              $group: {
+                _id: "$mode",
+                count: { $sum: 1 },
+              },
+            },
+          ]);
 
-      for (const item of usage) {
-        const modeKey = String(item._id || "").toLowerCase();
-        const count = Number(item.count || 0);
-        totalPrompts += count;
+          const backfillByMode = { quick: 0, balanced: 0, auto: 0, expert: 0, chat: 0 };
+          let backfillTotal = 0;
 
-        if (Object.prototype.hasOwnProperty.call(byMode, modeKey)) {
-          byMode[modeKey] = count;
+          for (const item of usage) {
+            const modeKey = String(item._id || "").toLowerCase();
+            const count = Number(item.count || 0);
+            backfillTotal += count;
+            if (Object.prototype.hasOwnProperty.call(backfillByMode, modeKey)) {
+              backfillByMode[modeKey] = count;
+            }
+          }
+
+          if (backfillTotal > 0) {
+            await MonthlyUsage.findOneAndUpdate(
+              { user: req.user._id, monthKey },
+              { $set: { byMode: backfillByMode, totalPrompts: backfillTotal } },
+              { upsert: true, new: true }
+            );
+          }
+        } catch (backfillErr) {
+          console.error("MonthlyUsage backfill error:", backfillErr);
         }
-      }
-
-      if (totalPrompts > 0) {
-        await MonthlyUsage.findOneAndUpdate(
-          { user: req.user._id, monthKey },
-          { $set: { byMode, totalPrompts } },
-          { upsert: true, new: true }
-        );
-      }
+      });
     }
 
     const startOfDay = new Date();
@@ -339,7 +347,14 @@ export const getMonthlyUsageSummary = async (req, res) => {
 
     const dailyCount = await Prompt.countDocuments({
       user: req.user._id,
-      mode: { $ne: "chat" }, // Only count actual improvements against daily limit gauge on frontend
+      mode: { $ne: "chat" }, // Only improvements count against the daily limit
+      createdAt: { $gte: startOfDay, $lte: endOfDay }
+    });
+
+    // Separately count today's chats (does NOT consume from the 25-improvement quota)
+    const dailyChatCount = await Prompt.countDocuments({
+      user: req.user._id,
+      mode: "chat",
       createdAt: { $gte: startOfDay, $lte: endOfDay }
     });
 
@@ -348,6 +363,7 @@ export const getMonthlyUsageSummary = async (req, res) => {
       byMode,
       totalPrompts,
       dailyCount,
+      dailyChatCount,
     });
   } catch (error) {
     console.error("Monthly usage summary error:", error);

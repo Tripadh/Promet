@@ -63,4 +63,16 @@ const promptSchema = new mongoose.Schema(
     }
 );
 
+// Compound indexes to speed up the most common queries:
+// 1. Sidebar history — sort by user + time
+promptSchema.index({ user: 1, createdAt: -1 });
+// 2. Daily/monthly quota count — filter by user + mode + date range
+promptSchema.index({ user: 1, mode: 1, createdAt: -1 });
+// 3. Pinned sidebar section
+promptSchema.index({ user: 1, pinned: 1, createdAt: -1 });
+// 4. Favorites sidebar section
+promptSchema.index({ user: 1, favorite: 1, createdAt: -1 });
+// 5. Conversation thread lookup
+promptSchema.index({ user: 1, conversationId: 1, createdAt: 1 });
+
 export default mongoose.model("Prompt", promptSchema);
