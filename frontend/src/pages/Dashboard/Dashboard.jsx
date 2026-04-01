@@ -52,7 +52,6 @@ const Dashboard = () => {
     typeof window !== 'undefined' ? window.innerWidth <= 960 : false
   );
   const [dailyCount, setDailyCount] = useState(0);
-  const [dailyChatCount, setDailyChatCount] = useState(0);
 
   // Fetch usage once on mount (when token is available). Do NOT re-fetch on every message/result.
   useEffect(() => {
@@ -62,7 +61,6 @@ const Dashboard = () => {
         const summary = await promptService.getMonthlyUsageSummary();
         if (mounted) {
           setDailyCount(summary?.dailyCount || 0);
-          setDailyChatCount(summary?.dailyChatCount || 0);
         }
       } catch (err) {
         console.error('Failed to fetch daily limit', err);
@@ -736,17 +734,6 @@ const Dashboard = () => {
                 </svg>
                 <span className="usage-stat-value">{Math.max(0, 25 - dailyCount)}</span>
                 <span className="usage-stat-label">/ 25 improvements</span>
-              </div>
-
-              <div className="usage-stat-divider" />
-
-              {/* Chats — always unlimited, shown separately */}
-              <div className="usage-stat">
-                <svg viewBox="0 0 24 24" aria-hidden="true" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                </svg>
-                <span className="usage-stat-label">Chats</span>
-                <span className="usage-stat-unlimited">Unlimited</span>
               </div>
             </div>
           </div>

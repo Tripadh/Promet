@@ -351,19 +351,11 @@ export const getMonthlyUsageSummary = async (req, res) => {
       createdAt: { $gte: startOfDay, $lte: endOfDay }
     });
 
-    // Separately count today's chats (does NOT consume from the 25-improvement quota)
-    const dailyChatCount = await Prompt.countDocuments({
-      user: req.user._id,
-      mode: "chat",
-      createdAt: { $gte: startOfDay, $lte: endOfDay }
-    });
-
     return res.status(200).json({
       month: monthStart.toISOString(),
       byMode,
       totalPrompts,
       dailyCount,
-      dailyChatCount,
     });
   } catch (error) {
     console.error("Monthly usage summary error:", error);
