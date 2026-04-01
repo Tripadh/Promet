@@ -721,33 +721,6 @@ const Dashboard = () => {
 
   return (
     <div className={`app-layout${isSidebarOpen ? '' : ' sidebar-collapsed'}${showAnnouncement ? ' has-announcement' : ''}`}>
-      {showAnnouncement && (
-        <div className={`announcement-bar ${isAnnouncementVisible ? 'is-visible' : ''}`}>
-          <div className="announcement-bar-content">
-            <span className="announcement-text">
-              🚀 This project is open source — explore, contribute, or star on{' '}
-              <a 
-                href="https://github.com/Tripadh/Promet" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="github-link"
-              >
-                GitHub <span className="external-icon">↗</span>
-              </a>
-            </span>
-            <button 
-              className="announcement-close" 
-              onClick={handleDismissAnnouncement}
-              aria-label="Close announcement"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-          </div>
-        </div>
-      )}
       <div className="app-body">
         {isMobileViewport && !isSidebarOpen ? (
           <button
@@ -773,6 +746,33 @@ const Dashboard = () => {
         <Sidebar isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen((open) => !open)} onBeforeHistoryLoad={handleBeforeHistoryLoad} />
 
         <div className="main-content">
+          {showAnnouncement && (
+            <div className={`announcement-bar ${isAnnouncementVisible ? 'is-visible' : ''}`}>
+              <div className="announcement-bar-content">
+                <span className="announcement-text">
+                  🚀 This project is open source — explore, contribute, or star on{' '}
+                  <a 
+                    href="https://github.com/Tripadh/Promet" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="github-link"
+                  >
+                    GitHub <span className="external-icon">↗</span>
+                  </a>
+                </span>
+                <button 
+                  className="announcement-close" 
+                  onClick={handleDismissAnnouncement}
+                  aria-label="Close announcement"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          )}
           <div className={`content-container${hasStartedConversation ? ' conversation-started' : ' pre-conversation'}${isDockingComposer ? ' is-docking' : ''}`}>
             <div className="dashboard-top-header">
               <div className="dashboard-top-header-limits">

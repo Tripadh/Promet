@@ -716,8 +716,8 @@
   width: 100%;
   height: 0;
   overflow: hidden;
-  background-color: #f8fafc; /* Light Slate */
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  background-color: var(--bg-app);
+  border-bottom: 1px solid var(--border-panel);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -729,8 +729,8 @@
 }
 
 [data-theme='dark'] .announcement-bar {
-  background-color: #1e293b; /* Dark Slate */
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: var(--bg-app);
+  border-bottom: 1px solid var(--border-panel);
 }
 
 .announcement-bar.is-visible {
@@ -749,35 +749,35 @@
 .announcement-text {
   font-size: 13px;
   font-weight: 500;
-  color: #475569; /* Slate 600 */
+  color: var(--text-secondary);
 }
 
 [data-theme='dark'] .announcement-text {
-  color: #94a3b8; /* Slate 400 */
+  color: var(--text-secondary);
 }
 
 .github-link {
-  color: #2563eb; /* Blue 600 */
-  text-decoration: none;
+  color: var(--text-main);
+  text-decoration: underline;
+  text-underline-offset: 4px;
   font-weight: 600;
   margin-left: 4px;
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  transition: color 0.15s ease;
+  transition: opacity 0.15s ease;
 }
 
 .github-link:hover {
-  color: #1d4ed8;
-  text-decoration: underline;
+  opacity: 0.8;
 }
 
 [data-theme='dark'] .github-link {
-  color: #60a5fa; /* Blue 400 */
+  color: var(--text-main);
 }
 
 [data-theme='dark'] .github-link:hover {
-  color: #93c5fd;
+  opacity: 0.8;
 }
 
 .external-icon {
@@ -792,7 +792,7 @@
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: #94a3b8;
+  color: var(--text-muted);
   cursor: pointer;
   padding: 4px;
   border-radius: 6px;
@@ -803,13 +803,13 @@
 }
 
 .announcement-close:hover {
-  background-color: rgba(0, 0, 0, 0.04);
-  color: #64748b;
+  background-color: var(--bg-hover);
+  color: var(--text-main);
 }
 
 [data-theme='dark'] .announcement-close:hover {
-  background-color: rgba(255, 255, 255, 0.06);
-  color: #cbd5e1;
+  background-color: var(--bg-hover);
+  color: var(--text-main);
 }
 
 @media (max-width: 640px) {
