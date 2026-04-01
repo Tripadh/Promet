@@ -131,12 +131,23 @@ body {
 /* Layout */
 .app-layout {
   display: flex;
+  flex-direction: column;
   height: 100vh;
   height: 100dvh;
   width: 100%;
   overflow: hidden;
   --chat-box-max-width: 870px;
 }
+
+.app-body {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
 
 .mobile-sidebar-open-btn,
 .mobile-sidebar-backdrop {

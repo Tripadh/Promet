@@ -710,3 +710,122 @@
     opacity: 0.35;
   }
 }
+
+/* Announcement Bar */
+.announcement-bar {
+  width: 100%;
+  height: 0;
+  overflow: hidden;
+  background-color: #f8fafc; /* Light Slate */
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1500;
+  transition: height 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+  opacity: 0;
+  flex-shrink: 0;
+}
+
+[data-theme='dark'] .announcement-bar {
+  background-color: #1e293b; /* Dark Slate */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.announcement-bar.is-visible {
+  height: 38px;
+  opacity: 1;
+}
+
+.announcement-bar-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0 48px; /* Leave space for close button */
+}
+
+.announcement-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: #475569; /* Slate 600 */
+}
+
+[data-theme='dark'] .announcement-text {
+  color: #94a3b8; /* Slate 400 */
+}
+
+.github-link {
+  color: #2563eb; /* Blue 600 */
+  text-decoration: none;
+  font-weight: 600;
+  margin-left: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  transition: color 0.15s ease;
+}
+
+.github-link:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+[data-theme='dark'] .github-link {
+  color: #60a5fa; /* Blue 400 */
+}
+
+[data-theme='dark'] .github-link:hover {
+  color: #93c5fd;
+}
+
+.external-icon {
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.announcement-close {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.announcement-close:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+  color: #64748b;
+}
+
+[data-theme='dark'] .announcement-close:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #cbd5e1;
+}
+
+@media (max-width: 640px) {
+  .announcement-bar.is-visible {
+    height: auto;
+    min-height: 44px;
+    padding: 8px 0;
+  }
+  
+  .announcement-bar-content {
+    padding: 0 40px 0 16px;
+    justify-content: flex-start;
+  }
+  
+  .announcement-text {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+}

@@ -52,6 +52,27 @@ const Dashboard = () => {
     typeof window !== 'undefined' ? window.innerWidth <= 960 : false
   );
   const [dailyCount, setDailyCount] = useState(0);
+  const [showAnnouncement, setShowAnnouncement] = useState(() => {
+    return localStorage.getItem('announcementDismissed') !== 'true';
+  });
+  const [isAnnouncementVisible, setIsAnnouncementVisible] = useState(false);
+
+  useEffect(() => {
+    if (showAnnouncement) {
+      // Trigger slide down after a small delay for smooth entrance
+      const timer = setTimeout(() => setIsAnnouncementVisible(true), 400);
+      return () => clearTimeout(timer);
+    }
+  }, [showAnnouncement]);
+
+  const handleDismissAnnouncement = () => {
+    setIsAnnouncementVisible(false);
+    // Remove from DOM after slide-up animation completes
+    setTimeout(() => {
+      setShowAnnouncement(false);
+      localStorage.setItem('announcementDismissed', 'true');
+    }, 500);
+  };
 
   // Fetch usage once on mount (when token is available). Do NOT re-fetch on every message/result.
   useEffect(() => {
@@ -699,45 +720,73 @@ const Dashboard = () => {
   );
 
   return (
-    <div className={`app-layout${isSidebarOpen ? '' : ' sidebar-collapsed'}`}>
-      {isMobileViewport && !isSidebarOpen ? (
-        <button
-          type="button"
-          className="mobile-sidebar-open-btn"
-          onClick={() => setIsSidebarOpen(true)}
-          aria-label="Open sidebar"
-          title="Open sidebar"
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h18" /><path d="M3 6h18" /><path d="M3 18h18" /></svg>
-        </button>
-      ) : null}
+    <div className={`app-layout${isSidebarOpen ? '' : ' sidebar-collapsed'}${showAnnouncement ? ' has-announcement' : ''}`}>
+      {showAnnouncement && (
+        <div className={`announcement-bar ${isAnnouncementVisible ? 'is-visible' : ''}`}>
+          <div className="announcement-bar-content">
+            <span className="announcement-text">
+              🚀 This project is open source — explore, contribute, or star on{' '}
+              <a 
+                href="https://github.com/Tripadh/Promet" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="github-link"
+              >
+                GitHub <span className="external-icon">↗</span>
+              </a>
+            </span>
+            <button 
+              className="announcement-close" 
+              onClick={handleDismissAnnouncement}
+              aria-label="Close announcement"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+      <div className="app-body">
+        {isMobileViewport && !isSidebarOpen ? (
+          <button
+            type="button"
+            className="mobile-sidebar-open-btn"
+            onClick={() => setIsSidebarOpen(true)}
+            aria-label="Open sidebar"
+            title="Open sidebar"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h18" /><path d="M3 6h18" /><path d="M3 18h18" /></svg>
+          </button>
+        ) : null}
 
-      {isMobileViewport && isSidebarOpen ? (
-        <button
-          type="button"
-          className="mobile-sidebar-backdrop"
-          onClick={() => setIsSidebarOpen(false)}
-          aria-label="Close sidebar"
-        />
-      ) : null}
+        {isMobileViewport && isSidebarOpen ? (
+          <button
+            type="button"
+            className="mobile-sidebar-backdrop"
+            onClick={() => setIsSidebarOpen(false)}
+            aria-label="Close sidebar"
+          />
+        ) : null}
 
-      <Sidebar isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen((open) => !open)} onBeforeHistoryLoad={handleBeforeHistoryLoad} />
+        <Sidebar isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen((open) => !open)} onBeforeHistoryLoad={handleBeforeHistoryLoad} />
 
-      <div className="main-content">
-        <div className={`content-container${hasStartedConversation ? ' conversation-started' : ' pre-conversation'}${isDockingComposer ? ' is-docking' : ''}`}>
-          <div className="dashboard-top-header">
-            <div className="dashboard-top-header-limits">
-              {/* Prompt improvements — counted against the daily 25 limit */}
-              <div className="usage-stat">
-                <svg viewBox="0 0 24 24" aria-hidden="true" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 0C12 6.627 17.373 12 24 12C17.373 12 12 17.373 12 24C12 17.373 6.627 12 0 12C6.627 12 12 6.627 12 0Z" />
-                </svg>
-                <span className="usage-stat-value">{Math.max(0, 25 - dailyCount)}</span>
-                <span className="usage-stat-label">/ 25 improvements</span>
+        <div className="main-content">
+          <div className={`content-container${hasStartedConversation ? ' conversation-started' : ' pre-conversation'}${isDockingComposer ? ' is-docking' : ''}`}>
+            <div className="dashboard-top-header">
+              <div className="dashboard-top-header-limits">
+                {/* Prompt improvements — counted against the daily 25 limit */}
+                <div className="usage-stat">
+                  <svg viewBox="0 0 24 24" aria-hidden="true" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 0C12 6.627 17.373 12 24 12C17.373 12 12 17.373 12 24C12 17.373 6.627 12 0 12C6.627 12 12 6.627 12 0Z" />
+                  </svg>
+                  <span className="usage-stat-value">{Math.max(0, 25 - dailyCount)}</span>
+                  <span className="usage-stat-label">/ 25 improvements</span>
+                </div>
               </div>
             </div>
-          </div>
-          <div className={`chat-container${hasStartedConversation ? ' chat-active' : ' chat-welcome'}`}>
+            <div className={`chat-container${hasStartedConversation ? ' chat-active' : ' chat-welcome'}`}>
             {/* Output Area */}
             {!hasStartedConversation ? (
               <div className="welcome-hero">
@@ -1074,6 +1123,7 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+    </div>
 
       {/* Dislike Feedback Modal */}
       {showFeedbackModal && (
