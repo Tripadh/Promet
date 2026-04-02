@@ -266,8 +266,8 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
         }, 300)}
       >
         <span className="history-item-text">
-          {item.pinned && <span style={{ marginRight: '6px' }} title="Pinned">📌</span>}
-          {item.favorite && <span style={{ marginRight: '6px' }} title="Favorite">⭐</span>}
+          {item.pinned && <span className="history-item-marker" title="Pinned">📌</span>}
+          {item.favorite && <span className="history-item-marker" title="Favorite">⭐</span>}
           {item.title || item.originalPrompt}
         </span>
         <div style={{ position: 'relative' }}>
@@ -404,7 +404,10 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
 
             {filteredPinnedPrompts.length > 0 && (
               <>
-                <h2 style={{ fontSize: '14px', marginTop: '20px', color: '#f9e2af' }}>📌 Pinned Prompts</h2>
+                <h2 className="sidebar-section-title sidebar-section-title-pinned">
+                  <span className="sidebar-section-icon" aria-hidden="true">📌</span>
+                  <span>Pinned Prompts</span>
+                </h2>
                 <ul className="history-list" style={{ overflow: 'visible' }}>
                   {filteredPinnedPrompts.map(item => renderPromptItem(item, 'pinned'))}
                 </ul>
@@ -413,14 +416,17 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
 
             {filteredFavoritePrompts.length > 0 && (
               <>
-                <h2 style={{ fontSize: '14px', marginTop: '20px', color: '#fab387' }}>⭐ Favorite Prompts</h2>
+                <h2 className="sidebar-section-title sidebar-section-title-favorite">
+                  <span className="sidebar-section-icon" aria-hidden="true">⭐</span>
+                  <span>Favorite Prompts</span>
+                </h2>
                 <ul className="history-list" style={{ overflow: 'visible' }}>
                   {filteredFavoritePrompts.map(item => renderPromptItem(item, 'favorite'))}
                 </ul>
               </>
             )}
 
-            <h2 style={{ fontSize: '14px', marginTop: '20px' }}>Recent</h2>
+            <h2 className="sidebar-section-title sidebar-section-title-recent">Recent</h2>
             
             {error && <div style={{ color: 'red', padding: '10px' }}>{error}</div>}
             
@@ -432,10 +438,10 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
                 </li>
               )}
               {!loading && prompts.length === 0 && (
-                <li className="history-item" style={{ color: '#8E8EA0' }}>No history yet</li>
+                <li className="history-item history-empty">No history yet</li>
               )}
               {!loading && prompts.length > 0 && filteredRecentPrompts.length === 0 && (
-                <li className="history-item" style={{ color: '#8E8EA0' }}>No chats match your search</li>
+                <li className="history-item history-empty">No chats match your search</li>
               )}
               {!loading && filteredRecentPrompts.map(item => renderPromptItem(item, 'recent'))}
             </ul>
