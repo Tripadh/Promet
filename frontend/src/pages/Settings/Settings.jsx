@@ -1,18 +1,44 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef, useLayoutEffect } from 'react';
 import api from '../../api';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../context/ThemeContext';
 import { PromptContext } from '../../context/PromptContext';
 import { promptService } from '../../services/promptService';
 import Sidebar from '../../components/ui/Sidebar';
+import { useLocation } from 'react-router-dom';
 import './Settings.css';
+
+// FIX: Narrow unknown errors safely for strict TS/checkJs.
+/** @param {unknown} error */
+const getErrorMessage = (error) => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === 'string') {
+    return error;
+  }
+
+  if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string') {
+    return error.message;
+  }
+
+  return 'Something went wrong. Please try again.';
+};
 
 const Settings = () => {
   const { user, logout, token } = useAuth();
+  const location = useLocation();
   const { theme, toggleTheme } = useTheme();
-  const { deleteAllChats } = useContext(PromptContext);
+  // FIX: Guard nullable context value before destructuring to satisfy strict null checks.
+  const promptContext = useContext(PromptContext);
+  if (!promptContext) {
+    throw new Error('Settings must be used within PromptProvider');
+  }
+  const { deleteAllChats } = promptContext;
   const [activeTab, setActiveTab] = useState('profile');
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  // FIX: Keep sidebar closed by default on mobile to avoid initial body scroll lock.
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => window.innerWidth > 960);
   const [isMobileViewport, setIsMobileViewport] = useState(window.innerWidth <= 960);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [usageSummary, setUsageSummary] = useState({
@@ -30,6 +56,8 @@ const Settings = () => {
   const [deleteOtp, setDeleteOtp] = useState('');
   const [isDeletingLoading, setIsDeletingLoading] = useState(false);
   const [deleteAccountError, setDeleteAccountError] = useState('');
+  // FIX: Type ref target so scrollTo/scrollTop are available.
+  const mainContentRef = useRef(/** @type {HTMLDivElement | null} */ (null));
 
   useEffect(() => {
     const handleResize = () => {
@@ -49,12 +77,23 @@ const Settings = () => {
   }, []);
 
   useEffect(() => {
-    if (isMobileViewport && isSidebarOpen) {
+    // FIX: Lock both body and html only while mobile drawer is open, then restore exactly.
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+    const shouldLockScroll = isMobileViewport && isSidebarOpen;
+
+    if (shouldLockScroll) {
       document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
     } else {
-      document.body.style.overflow = 'auto';
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
     }
-    return () => { document.body.style.overflow = 'auto'; };
+
+    return () => {
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
+    };
   }, [isMobileViewport, isSidebarOpen]);
 
   useEffect(() => {
@@ -86,6 +125,35 @@ const Settings = () => {
       mounted = false;
     };
   }, []);
+
+  useLayoutEffect(() => {
+    const resetScrollPosition = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+
+      if (mainContentRef.current) {
+        mainContentRef.current.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        mainContentRef.current.scrollTop = 0;
+      }
+
+      // FIX: querySelector returns Element; narrow to HTMLElement for scroll APIs.
+      const settingsScroller = /** @type {HTMLElement | null} */ (document.querySelector('.settings-main-content'));
+      if (settingsScroller) {
+        settingsScroller.scrollTop = 0;
+      }
+    };
+
+    // Run immediately, then re-assert after layout settles.
+    resetScrollPosition();
+    const rafId = requestAnimationFrame(resetScrollPosition);
+    const timerId = setTimeout(resetScrollPosition, 120);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      clearTimeout(timerId);
+    };
+  }, [location.key]);
 
   const username = user?.name || user?.username || 'Tripadh';
   const email = user?.email || 'vtripadh@gmail.com';
@@ -125,8 +193,8 @@ const Settings = () => {
 
   return (
     <>
-      <div className={`app-layout${isSidebarOpen ? '' : ' sidebar-collapsed'}`}>
-      <div className="app-body">
+      <div className={`app-layout settings-layout${isSidebarOpen ? '' : ' sidebar-collapsed'}`}>
+      <div className="app-body settings-body">
         {isMobileViewport && isSidebarOpen && (
           <button
             type="button"
@@ -138,7 +206,7 @@ const Settings = () => {
 
         <Sidebar isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen(!isSidebarOpen)} onBeforeHistoryLoad={() => Promise.resolve(true)} />
 
-        <div className="settings-main-content padding-container settings-main-container">
+        <div ref={mainContentRef} className="settings-main-content padding-container settings-main-container">
         <div className="settings-page">
           <header className="settings-header">
             {isMobileViewport && (
@@ -468,7 +536,7 @@ const Settings = () => {
                         
                         setDeleteAccountStep('otp');
                       } catch (err) {
-                        setDeleteAccountError(err.message);
+                        setDeleteAccountError(getErrorMessage(err));
                       } finally {
                         setIsDeletingLoading(false);
                       }
@@ -525,7 +593,7 @@ const Settings = () => {
                         setShowAccountDeleteModal(false);
                         logout();
                       } catch (err) {
-                        setDeleteAccountError(err.message);
+                        setDeleteAccountError(getErrorMessage(err));
                       } finally {
                         setIsDeletingLoading(false);
                       }

@@ -1,6 +1,8 @@
 import React, { createContext, useState } from 'react';
 import { promptService } from '../services/promptService';
 
+// FIX: Explicitly type the context value for strict compatibility in useContext consumers.
+/** @type {import('react').Context<import('../types/appTypes').PromptContextValue | null>} */
 export const PromptContext = createContext(null);
 
 export const PromptProvider = ({ children }) => {

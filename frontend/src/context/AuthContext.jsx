@@ -1,6 +1,8 @@
 import React, { createContext, useState, useEffect, useRef } from 'react';
 import api from '../api';
 
+// FIX: Provide explicit context value type so consumers (useAuth) do not infer null/never under strict checking.
+/** @type {import('react').Context<import('../types/appTypes').AuthContextValue | null>} */
 export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
