@@ -8,6 +8,15 @@ import { useTransitionLoader } from '../../context/TransitionContext';
 import './SidebarAccountMenu.css';
 import { useNavigate } from 'react-router-dom';
 
+/** @typedef {import('../../types/appTypes').PromptHistoryItem} PromptHistoryItem */
+
+/**
+ * @typedef SidebarProps
+ * @property {boolean} isOpen
+ * @property {() => void} [onToggle]
+ * @property {(item: PromptHistoryItem) => Promise<boolean> | boolean} [onBeforeHistoryLoad]
+ */
+
 const SIDEBAR_ACCOUNT_MENU_ITEMS = [
   { 
     id: 'settings', 
@@ -52,28 +61,30 @@ const HELP_LINKS = [
   },
 ];
 
+/** @param {SidebarProps} props */
 const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
   const { token, user, logout } = useAuth();
   const { loadHistoryItem, clearPrompt, historyRefreshTrigger } = usePrompt();
   const { withTransition, showFor } = useTransitionLoader();
   const navigate = useNavigate();
   
-  const [prompts, setPrompts] = useState([]);
-  const [pinnedPrompts, setPinnedPrompts] = useState([]);
-  const [favoritePrompts, setFavoritePrompts] = useState([]);
+  const [prompts, setPrompts] = useState(/** @type {PromptHistoryItem[]} */ ([]));
+  const [pinnedPrompts, setPinnedPrompts] = useState(/** @type {PromptHistoryItem[]} */ ([]));
+  const [favoritePrompts, setFavoritePrompts] = useState(/** @type {PromptHistoryItem[]} */ ([]));
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(/** @type {string | null} */ (null));
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  const [activeMenuId, setActiveMenuId] = useState(null);
-  const [promptToDelete, setPromptToDelete] = useState(null);
+  const [activeMenuId, setActiveMenuId] = useState(/** @type {string | null} */ (null));
+  const [promptToDelete, setPromptToDelete] = useState(/** @type {PromptHistoryItem | null} */ (null));
   const [searchQuery, setSearchQuery] = useState('');
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [isHelpMenuOpen, setIsHelpMenuOpen] = useState(false);
   const [shouldFocusSearch, setShouldFocusSearch] = useState(false);
-  const searchInputRef = useRef(null);
+  const searchInputRef = useRef(/** @type {HTMLInputElement | null} */ (null));
 
+  /** @param {number} [page=1] */
   const fetchHistory = async (page = 1) => {
     if (!token) return;
     try {
@@ -124,6 +135,7 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
   useEffect(() => {
     if (!promptToDelete) return;
 
+    /** @param {KeyboardEvent} event */
     const handleEscape = (event) => {
       if (event.key === 'Escape') {
         setPromptToDelete(null);
@@ -178,6 +190,7 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
     searchInputRef.current?.select();
   };
 
+  /** @param {string} id */
   const handleAccountMenuAction = (id) => {
     if (id === 'help') {
       setIsHelpMenuOpen((open) => !open);
@@ -209,6 +222,7 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
     }
   };
 
+  /** @param {React.MouseEvent<HTMLButtonElement>} e @param {string} id */
   const handleToggleFavorite = async (e, id) => {
     e.stopPropagation();
     try {
@@ -219,6 +233,7 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
     }
   };
 
+  /** @param {React.MouseEvent<HTMLButtonElement>} e @param {string} id */
   const handleTogglePin = async (e, id) => {
     e.stopPropagation();
     try {
@@ -229,6 +244,7 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
     }
   };
 
+  /** @param {PromptHistoryItem} item @param {string} type */
   const renderPromptItem = (item, type) => {
     const menuKey = `${type}-${item._id}`;
     const isActive = activeMenuId === menuKey;
@@ -308,8 +324,10 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
     );
   };
 
+  /** @param {unknown} value */
   const normalize = (value) => String(value || '').toLowerCase();
   const searchText = normalize(searchQuery).trim();
+  /** @param {PromptHistoryItem[]} items */
   const filterBySearch = (items) => {
     if (!searchText) return items;
 
@@ -562,7 +580,7 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
               className="sidebar-rail-footer" 
               title={displayName}
               onClick={() => {
-                onToggle();
+                onToggle?.();
                 setIsAccountMenuOpen(true);
               }}
               aria-label="Account menu"
@@ -574,18 +592,18 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
       </div>
 
       {promptToDelete && (
-        <div className="confirm-modal-overlay" onClick={() => setPromptToDelete(null)}>
-          <div className="confirm-modal-card" onClick={(event) => event.stopPropagation()}>
+        <div className="sidebar-confirm-modal-overlay" onClick={() => setPromptToDelete(null)}>
+          <div className="sidebar-confirm-modal-card" onClick={(event) => event.stopPropagation()}>
             <h3>Delete chat?</h3>
             <p>
               This will delete <strong>{promptToDelete.title || promptToDelete.originalPrompt?.slice(0, 45) || 'this prompt'}</strong>.
             </p>
             <span>This action cannot be undone.</span>
-            <div className="confirm-modal-actions">
-              <button type="button" className="confirm-modal-cancel" onClick={() => setPromptToDelete(null)}>
+            <div className="sidebar-confirm-modal-actions">
+              <button type="button" className="sidebar-confirm-modal-cancel" onClick={() => setPromptToDelete(null)}>
                 Cancel
               </button>
-              <button type="button" className="confirm-modal-delete" onClick={handleDelete}>
+              <button type="button" className="sidebar-confirm-modal-delete" onClick={handleDelete}>
                 Delete
               </button>
             </div>

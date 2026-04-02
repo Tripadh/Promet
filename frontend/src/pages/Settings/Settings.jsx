@@ -480,17 +480,17 @@ const Settings = () => {
       </div>
 
       {showDeleteConfirm && (
-        <div className="confirm-modal-overlay" onClick={() => setShowDeleteConfirm(false)}>
-          <div className="confirm-modal-card" onClick={e => e.stopPropagation()}>
+        <div className="settings-confirm-modal-overlay" onClick={() => setShowDeleteConfirm(false)}>
+          <div className="settings-confirm-modal-card" onClick={e => e.stopPropagation()}>
             <h3>Delete all chats?</h3>
             <p>
               Are you sure you want to delete <strong>all your chats</strong>? This action cannot be undone.
             </p>
-            <div className="confirm-modal-actions">
-              <button type="button" className="confirm-modal-cancel" onClick={() => setShowDeleteConfirm(false)}>
+            <div className="settings-confirm-modal-actions">
+              <button type="button" className="settings-confirm-modal-cancel" onClick={() => setShowDeleteConfirm(false)}>
                 Cancel
               </button>
-              <button type="button" className="confirm-modal-delete" onClick={confirmDeleteAllChats}>
+              <button type="button" className="settings-confirm-modal-delete" onClick={confirmDeleteAllChats}>
                 Delete All
               </button>
             </div>
@@ -499,8 +499,8 @@ const Settings = () => {
       )}
 
       {showAccountDeleteModal && (
-        <div className="confirm-modal-overlay" onClick={() => !isDeletingLoading && setShowAccountDeleteModal(false)}>
-          <div className="confirm-modal-card" onClick={e => e.stopPropagation()}>
+        <div className="settings-confirm-modal-overlay" onClick={() => !isDeletingLoading && setShowAccountDeleteModal(false)}>
+          <div className="settings-confirm-modal-card" onClick={e => e.stopPropagation()}>
             <h3>Delete Account</h3>
             
             {deleteAccountError && (
@@ -515,10 +515,10 @@ const Settings = () => {
                 <p style={{ marginTop: '10px', fontSize: '14px', color: '#a1a1aa' }}>
                   We will send a 6-digit verification code to <strong>{email}</strong> to confirm your identity.
                 </p>
-                <div className="confirm-modal-actions">
+                <div className="settings-confirm-modal-actions">
                   <button 
                     type="button" 
-                    className="confirm-modal-cancel" 
+                    className="settings-confirm-modal-cancel" 
                     onClick={() => setShowAccountDeleteModal(false)}
                     disabled={isDeletingLoading}
                   >
@@ -526,7 +526,7 @@ const Settings = () => {
                   </button>
                   <button 
                     type="button" 
-                    className="confirm-modal-delete" 
+                    className="settings-confirm-modal-delete" 
                     onClick={async () => {
                       try {
                         setIsDeletingLoading(true);
@@ -562,10 +562,10 @@ const Settings = () => {
                   />
                 </div>
 
-                <div className="confirm-modal-actions">
+                <div className="settings-confirm-modal-actions">
                   <button 
                     type="button" 
-                    className="confirm-modal-cancel" 
+                    className="settings-confirm-modal-cancel" 
                     onClick={() => setShowAccountDeleteModal(false)}
                     disabled={isDeletingLoading}
                   >
@@ -573,7 +573,7 @@ const Settings = () => {
                   </button>
                   <button 
                     type="button" 
-                    className="confirm-modal-delete" 
+                    className="settings-confirm-modal-delete" 
                     onClick={async () => {
                       if (deleteOtp.length !== 6) {
                         setDeleteAccountError('Please enter a valid 6-digit OTP');

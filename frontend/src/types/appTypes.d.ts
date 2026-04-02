@@ -16,9 +16,29 @@ export interface AuthContextValue {
   logout: () => void;
 }
 
+export interface PromptHistoryItem {
+  _id: string;
+  title?: string;
+  originalPrompt?: string;
+  improvedPrompt?: string;
+  mode?: string;
+  pinned?: boolean;
+  favorite?: boolean;
+  conversationId?: string;
+}
+
 export interface PromptContextValue {
   deleteAllChats: () => Promise<boolean>;
-  [key: string]: unknown;
+  loadHistoryItem: (item: PromptHistoryItem) => void;
+  clearPrompt: () => void;
+  historyRefreshTrigger: number;
+}
+
+export interface TransitionContextValue {
+  isTransitioning: boolean;
+  setIsTransitioning: (value: boolean) => void;
+  showFor: (duration?: number) => Promise<void>;
+  withTransition: <T>(action: () => Promise<T> | T, minDuration?: number) => Promise<T>;
 }
 
 export interface ApiLikeError {

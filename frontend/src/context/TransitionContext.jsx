@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 
+/** @type {import('react').Context<import('../types/appTypes').TransitionContextValue | null>} */
 const TransitionContext = createContext(null);
 
 export const TransitionProvider = ({ children }) => {
@@ -41,6 +42,7 @@ export const TransitionProvider = ({ children }) => {
 };
 
 export const useTransitionLoader = () => {
+  /** @type {import('../types/appTypes').TransitionContextValue | null} */
   const context = useContext(TransitionContext);
   if (!context) {
     throw new Error('useTransitionLoader must be used inside TransitionProvider');
