@@ -4,6 +4,8 @@
   background: var(--bg-sidebar);
   backdrop-filter: blur(22px);
   -webkit-backdrop-filter: blur(22px);
+  position: relative;
+  z-index: 1200;
   padding: 10px;
   display: flex;
   flex-direction: column;

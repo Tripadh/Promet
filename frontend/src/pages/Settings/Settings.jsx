@@ -125,18 +125,20 @@ const Settings = () => {
 
   return (
     <>
-      {isMobileViewport && isSidebarOpen && (
-        <button
-          type="button"
-          className="mobile-sidebar-backdrop"
-          onClick={() => setIsSidebarOpen(false)}
-          aria-label="Close sidebar"
-        />
-      )}
+      <div className={`app-layout${isSidebarOpen ? '' : ' sidebar-collapsed'}`}>
+      <div className="app-body">
+        {isMobileViewport && isSidebarOpen && (
+          <button
+            type="button"
+            className="mobile-sidebar-backdrop"
+            onClick={() => setIsSidebarOpen(false)}
+            aria-label="Close sidebar"
+          />
+        )}
 
-      <Sidebar isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen(!isSidebarOpen)} onBeforeHistoryLoad={() => Promise.resolve(true)} />
-      
-      <div className="main-content padding-container settings-main-container">
+        <Sidebar isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen(!isSidebarOpen)} onBeforeHistoryLoad={() => Promise.resolve(true)} />
+
+        <div className="settings-main-content padding-container settings-main-container">
         <div className="settings-page">
           <header className="settings-header">
             {isMobileViewport && (
@@ -405,6 +407,8 @@ const Settings = () => {
             </main>
           </div>
         </div>
+      </div>
+      </div>
       </div>
 
       {showDeleteConfirm && (
