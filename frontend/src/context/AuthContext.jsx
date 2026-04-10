@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
     }
   });
   const [token, setToken] = useState(localStorage.getItem('token'));
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => Boolean(localStorage.getItem('token')));
 
   useEffect(() => {
     const syncUser = async () => {
@@ -40,7 +40,9 @@ export const AuthProvider = ({ children }) => {
       }
 
       try {
-        const res = await api.get('/auth/me');
+        const res = await api.get('/auth/me', {
+          timeout: Number(import.meta.env.VITE_AUTH_ME_TIMEOUT_MS || 10000),
+        });
         const profile = res.data?.user || null;
         setUser(profile);
         if (profile) {

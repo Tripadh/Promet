@@ -17,7 +17,7 @@ const Register = () => {
     }
   }, [token, loading, navigate]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading && token) return <div>Loading...</div>;
 
   return (
     <div className="auth-container">
