@@ -5,11 +5,25 @@ import "../Terms/Terms.css";
 const Privacy = () => {
   const navigate = useNavigate();
 
+  const handleBackToApp = () => {
+    const hasSameOriginReferrer =
+      typeof document !== "undefined" &&
+      document.referrer &&
+      document.referrer.startsWith(window.location.origin);
+
+    if (hasSameOriginReferrer) {
+      navigate(-1);
+      return;
+    }
+
+    navigate("/dashboard");
+  };
+
   return (
     <div className="terms-page">
       <div className="terms-header-wrapper">
         <header className="terms-header">
-          <button className="back-button" onClick={() => navigate(-1)}>
+          <button className="back-button" onClick={handleBackToApp}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="15 18 9 12 15 6"></polyline>
             </svg>
