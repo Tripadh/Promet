@@ -146,12 +146,12 @@ const Home = () => {
             <div className="nav-inner">
               <a href="#" className="brand">
                 <span className="brand-icon" aria-hidden="true">
-                  <img src={logo} alt="Promet Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                  <img src={logo} alt="Promet Logo" fetchPriority="high" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                 </span>
                 <span className="brand-name">Promet</span>
               </a>
 
-              <nav className="nav-links">
+              <nav className="nav-links" aria-label="Promet navigation">
                 <a href="#how" className="focus-ring">How it works</a>
                 <a href="#modes" className="focus-ring">Modes</a>
                 <a href="#about" className="focus-ring">About</a>
@@ -192,7 +192,7 @@ const Home = () => {
                 <span className="pill-dot" />
                 <span>From vague idea to precise prompt</span>
               </div>
-              <h1>Turn Simple Ideas into Powerful AI Prompts</h1>
+              <h1>Promet turns simple ideas into powerful AI prompts</h1>
               <p>
                 Promet transforms unclear or incomplete thoughts into optimized prompts for better AI results.
                 Less guessing. More signal. Consistently sharper outputs.
@@ -367,7 +367,7 @@ const Home = () => {
             <div className="footer-brand-block">
               <div className="footer-brand">
                 <span className="brand-icon" aria-hidden="true">
-                  <img src={logo} alt="Promet Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                  <img src={logo} alt="Promet Logo" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                 </span>
                 <span className="brand-name">Promet</span>
               </div>
@@ -391,7 +391,7 @@ const Home = () => {
           </div>
 
           <div className="footer-bottom">
-            <p className="copyright">© {currentYear} Promet.Open Source</p>
+            <p className="copyright">© {currentYear} Promet. Open Source.</p>
             <div className="footer-meta">
               <span>MIT License</span>
               <span className="meta-dot" aria-hidden="true" />
