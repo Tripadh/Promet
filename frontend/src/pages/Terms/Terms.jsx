@@ -39,7 +39,7 @@ const Terms = () => {
           <section className="terms-section">
             <h2>1. Agreement to Terms</h2>
             <p>
-              Welcome to AI Prompt Improver ("we," "our," or "us"). By accessing or using our application, website, and associated services 
+              Welcome to Promet ("we," "our," or "us"). By accessing or using our application, website, and associated services 
               (collectively the "Service"), you agree to be bound by these Terms and Policies. If you disagree with any part of the terms, 
               you may not access or use the Service.
             </p>
@@ -48,7 +48,7 @@ const Terms = () => {
           <section className="terms-section">
             <h2>2. Description of Service</h2>
             <p>
-              AI Prompt Improver provides AI-powered natural language processing tools to rewrite, optimize, and elevate user-provided 
+              Promet provides AI-powered natural language processing tools to rewrite, optimize, and elevate user-provided 
               prompts. The service relies on third-party large language models (LLMs) to generate recommendations. Because AI outputs are 
               probabilistic, we cannot guarantee the accuracy, reliability, or objective "correctness" of the improved prompts.
             </p>
@@ -89,7 +89,7 @@ const Terms = () => {
           <section className="terms-section">
             <h2>6. Limitations of Liability</h2>
             <p>
-              In no event shall AI Prompt Improver, its developers, or its affiliates be liable for any indirect, incidental, special, consequential, 
+              In no event shall Promet, its developers, or its affiliates be liable for any indirect, incidental, special, consequential, 
               or punitive damages arising out of your reliance on the AI-generated prompts, loss of data, or inability to use the Service, even if we 
               have been advised of the possibility of such damages.
             </p>

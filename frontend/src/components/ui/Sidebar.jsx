@@ -363,9 +363,9 @@ const Sidebar = ({ isOpen, onToggle, onBeforeHistoryLoad }) => {
               <line x1="6" y1="6" x2="18" y2="18"></line>
             </svg>
           </button>
-          <div className="sidebar-brand" aria-label="Prompt Improver">
+          <div className="sidebar-brand" aria-label="Promet">
             <span className="sidebar-brand-mark" aria-hidden="true">
-              <img src={logo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              <img src={logo} alt="Promet Logo" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </span>
           </div>
           <button

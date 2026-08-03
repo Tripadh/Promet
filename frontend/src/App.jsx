@@ -19,6 +19,7 @@ import Privacy from "./pages/Privacy/Privacy";
 import AcceptableUse from "./pages/AcceptableUse/AcceptableUse";
 
 import PrivateRoute from "./utils/PrivateRoute";
+import SeoManager from "./components/seo/SeoManager";
 
 import { AuthProvider } from "./context/AuthContext";
 import { PromptProvider } from "./context/PromptContext";
@@ -41,6 +42,7 @@ function AppRoutes() {
 
   return (
     <>
+      <SeoManager />
       <TransitionOverlay />
       <Routes>
         <Route path="/" element={<Home />} />
