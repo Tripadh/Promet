@@ -125,6 +125,11 @@ export const improvePrompt = async (req, res) => {
       return;
     }
 
+    if (typeof streamResult === 'string' && streamResult.length > 0 && finalImprovedPrompt === "") {
+      finalImprovedPrompt = streamResult;
+      res.write(`data: ${JSON.stringify({ text: finalImprovedPrompt })}\n\n`);
+    }
+
     // Format the final improved prompt with sections if needed,
     // though streaming means we can't easily prepend headers AFTER it's streamed.
 
