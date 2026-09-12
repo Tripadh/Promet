@@ -6,10 +6,7 @@
   flex-direction: column;
   align-items: center;
   height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
-  scrollbar-width: thin;
-  scrollbar-color: var(--text-muted) var(--bg-app);
+  overflow: hidden;
   position: relative;
 }
 
@@ -39,6 +36,7 @@
   display: flex;
   flex-direction: column;
   position: relative;
+  height: 100%;
 }
 
 .dashboard-top-header {
@@ -99,13 +97,15 @@
 
 .chat-container {
   flex-grow: 1;
-  overflow: visible;
+  overflow-y: auto;
   padding: 40px 24px 32px;
   display: flex;
   flex-direction: column;
   gap: 20px;
   width: 100%;
   transition: padding 0.46s cubic-bezier(0.2, 0.8, 0.2, 1);
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-muted) var(--bg-app);
 }
 
 .input-container {
@@ -128,14 +128,14 @@
 }
 
 .conversation-started .input-container {
-  position: sticky;
+  position: relative;
   left: 0;
   width: 100%;
   top: auto;
   bottom: 0;
   transform: none;
   padding: 20px 24px 28px;
-  background: linear-gradient(180deg, transparent 0%, var(--bg-app) 28%, var(--bg-app) 100%);
+  background: var(--bg-app);
 }
 
 .conversation-started.is-docking .input-container {
@@ -169,7 +169,7 @@
 }
 
 .conversation-started .chat-container {
-  padding: 40px 24px 170px;
+  padding: 40px 24px 20px;
 }
 
 .chat-notice {

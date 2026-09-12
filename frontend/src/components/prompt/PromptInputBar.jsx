@@ -224,7 +224,8 @@ const PromptInputBar = ({
       timestamp: new Date(),
     };
 
-    setPromptText('');
+    // Preserve the original prompt in the editor as requested by user
+    // setPromptText('');
     setSelectedDomain(null);
     setIsDropdownOpen(false);
     setIsModeSelectorOpen(false);
