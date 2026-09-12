@@ -1,13 +1,21 @@
 import rateLimit from 'express-rate-limit';
 
 /**
- * Limit overall prompt requests to 10 per minute per IP.
+ * Limit overall prompt requests to protect against volumetric attacks.
+ * Uses a Redis-ready abstraction (express-rate-limit).
  */
 export const promptRateLimiter = rateLimit({
   windowMs: 1 * 60 * 1000,
-  max: 10,
+  max: (req, res) => {
+    // Stricter limits for expensive modes
+    const mode = req.body?.mode;
+    if (mode === "expert") return 5;
+    if (mode === "balanced") return 15;
+    return 30; // quick/chat/auto
+  },
   message: {
-    message: "Too many prompt requests. Please try again later."
+    message: "Rate limit exceeded. Please wait a moment before trying again.",
+    code: "RATE_LIMIT_EXCEEDED"
   },
   standardHeaders: true,
   legacyHeaders: false,

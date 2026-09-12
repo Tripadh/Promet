@@ -46,14 +46,14 @@
 
 **Promet** is an open-source, full-stack AI Prompt Improver that helps users write better, clearer, and more effective prompts for large language models. Whether you're a developer, writer, marketer, or student — Promet takes your rough idea and transforms it into a production-quality prompt, instantly.
 
-The engine is powered by **Nvidia's ultra-fast NIM API** running **Llama 3.1 70B Instruct**, with four distinct improvement modes tailored to different use cases. Every interaction is streamed in real time to the browser for a snappy, ChatGPT-like experience.
+The engine is powered by **Nvidia's ultra-fast NIM API** running a dynamic mixture of models including **DeepSeek v3** and **Llama 3.1 405B**, mapped specifically across four distinct improvement modes tailored to different use cases. Every interaction is streamed in real time to the browser for a snappy, ChatGPT-like experience.
 
 ---
 
 ## ✨ Key Features
 
 ### 🤖 AI-Powered Prompt Engineering
-- **4 improvement modes** — Quick, Balanced, Auto, Expert (see [Improvement Modes](#-improvement-modes))
+- **4 improvement modes** — Quick (Llama 8B), Balanced (Nemotron 70B), Auto (DeepSeek v3), Expert (Llama 405B) (see [Improvement Modes](#-improvement-modes))
 - **6 domain contexts** — Tech, Social Media, Marketing, Creative Writing, Email, Education
 - **Real-time token streaming** — responses stream character-by-character to the UI
 - **Smart gibberish detection** — automatically rejects meaningless input and asks for clarification
@@ -99,7 +99,7 @@ The engine is powered by **Nvidia's ultra-fast NIM API** running **Llama 3.1 70B
 | **Frontend** | React 18, Vite 5, React Router v7, Vanilla CSS |
 | **Backend** | Node.js 18+, Express 5, ES Modules |
 | **Database** | MongoDB (Mongoose 9) |
-| **AI Engine** | OpenAI SDK (Nvidia NIM API) — meta/llama-3.1-70b-instruct |
+| **AI Engine** | OpenAI SDK (Nvidia NIM API) — Dynamic Model Routing (Llama 405B, DeepSeek v3, Nemotron 70B) |
 | **Auth** | JWT, bcryptjs, Passport.js, passport-github2 |
 | **Email** | Nodemailer |
 | **CAPTCHA** | Google reCAPTCHA v2 |
@@ -127,7 +127,7 @@ The engine is powered by **Nvidia's ultra-fast NIM API** running **Llama 3.1 70B
        │              │              │
        ▼              ▼              ▼
   MongoDB         Nvidia API      Langfuse
-  (Mongoose)    (Llama 3.1 70B) (Observability)
+  (Mongoose)   (Dynamic Routing) (Observability)
 ```
 
 The frontend is a **single-page application** (Vite build) that communicates with the Express REST API. AI results are delivered via **server-sent streaming**, so the user sees tokens as they are generated — zero page reloads.

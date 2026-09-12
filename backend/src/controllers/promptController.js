@@ -1,5 +1,6 @@
 import { improvePromptWithAI, improvePromptWithAIStream, normalizeMode, generateChatTitle, detectIntent, chatWithAIStream } from "../services/aiService.js";
 import { analyzePrompt as analyzeUserPrompt } from "../services/promptAnalyzer.js";
+import { validatePromptRequest } from "../utils/validators.js";
 import Prompt from "../models/Prompt.js";
 import MonthlyUsage from "../models/MonthlyUsage.js";
 import ConversationShare from "../models/ConversationShare.js";
@@ -10,18 +11,20 @@ import { randomBytes } from "crypto";
 
 export const improvePrompt = async (req, res) => {
   try {
+    const validation = validatePromptRequest(req);
+    if (!validation.isValid) {
+      return res.status(400).json({
+        message: "Invalid request parameters",
+        errors: validation.errors
+      });
+    }
+
     const { prompt, mode = "balanced", isRetry = false, conversationId, domain = null, intentMode = "auto" } = req.body;
     const selectedMode = normalizeMode(mode);
     const MAX_PROMPTS_PER_CONVERSATION = 5;
     const conversationKey = typeof conversationId === "string" && conversationId.trim()
       ? conversationId.trim()
       : undefined;
-
-    if (!prompt) {
-      return res.status(400).json({
-        message: "Prompt is required",
-      });
-    }
 
     if (conversationKey) {
       const existingCount = await Prompt.countDocuments({
@@ -103,6 +106,13 @@ export const improvePrompt = async (req, res) => {
       }
     }
 
+    /* ================= ABORT CONTROLLER ================= */
+    const abortController = new AbortController();
+    req.on("close", () => {
+      console.log("[Controller] Client disconnected mid-stream. Aborting NVIDIA request.");
+      abortController.abort();
+    });
+
     let streamResult;
 
     if (intent === "chat") {
@@ -110,7 +120,8 @@ export const improvePrompt = async (req, res) => {
         prompt,
         (textChunk) => {
           res.write(`data: ${JSON.stringify({ text: textChunk })}\n\n`);
-        }
+        },
+        abortController.signal
       );
     } else {
       streamResult = await improvePromptWithAIStream(
@@ -122,12 +133,11 @@ export const improvePrompt = async (req, res) => {
           res.write(`data: ${JSON.stringify({ text: textChunk })}\n\n`);
         },
         { memory: previousPromptText },
-        domain
+        domain,
+        abortController.signal
       );
 
       if (streamResult && streamResult.needsClarification) {
-        // If needs clarification, it already streamed out via the callback.
-        // We just need to end it properly with the done signal.
         res.write(`data: ${JSON.stringify({ done: true, analysis: promptAnalysis })}\n\n`);
         res.end();
         return;
@@ -184,15 +194,26 @@ export const improvePrompt = async (req, res) => {
     res.end();
 
   } catch (error) {
-    console.error("Prompt Error:", error);
-
-    if (!res.headersSent) {
-      return res.status(500).json({
-        message: "AI prompt improvement failed",
-      });
+    if (error.name === "AbortError") {
+      console.log("Stream aborted by user disconnect.");
+      return res.end();
     }
 
-    res.end();
+    console.error("Prompt Error:", error);
+
+    const errorMessage = error.name === "ProviderError" ? error.message : "AI prompt improvement failed due to an internal error.";
+    const statusCode = error.status || 500;
+
+    if (!res.headersSent) {
+      return res.status(statusCode).json({
+        message: errorMessage,
+        code: error.code || "INTERNAL_ERROR"
+      });
+    } else {
+      // If headers already sent, we must send an SSE error event and end
+      res.write(`data: ${JSON.stringify({ error: true, message: errorMessage })}\n\n`);
+      res.end();
+    }
   }
 };
 

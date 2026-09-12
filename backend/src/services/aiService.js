@@ -1,19 +1,7 @@
-import OpenAI from "openai";
-
-const openai = new OpenAI({
-  apiKey: process.env.NVIDIA_API_KEY,
-  baseURL: "https://integrate.api.nvidia.com/v1"
-});
+import { nvidiaProvider } from "./providers/NvidiaProvider.js";
+import { AI_CONFIG } from "../config/aiConfig.js";
 
 const SUPPORTED_MODES = ["quick", "auto", "balanced", "expert"];
-
-// Per-mode model
-const MODE_MODELS = {
-  quick:    "meta/llama-3.1-70b-instruct",
-  auto:     "meta/llama-3.1-70b-instruct",
-  balanced: "meta/llama-3.1-70b-instruct",
-  expert:   "meta/llama-3.1-70b-instruct",
-};
 
 // ─────────────────────────────────────────────
 // Domain-specific instruction injections
@@ -63,17 +51,13 @@ The user wants a prompt for educational or learning content. Tailor the improved
 - Maintain an encouraging, patient, and approachable tone`,
 };
 
-const COMMON_PROMPT_RULES = `You are an intelligent AI assistant designed to improve user prompts with precision and restraint.
-
-Core rules:
-1. ALWAYS PRESERVE THE USER'S ORIGINAL INTENT. Do not introduce unrelated ideas.
-2. CRITICAL: DETECT AND RESPECT ALL NEGATIVE CONSTRAINTS. If the user says "do not include X", you MUST NOT include it.
-3. Fix grammar and spelling mistakes.
-4. Improve clarity, structure, and effectiveness while keeping the exact same meaning.
-5. Return ONLY the improved prompt. Do NOT include explanations, meta commentary, or analysis.
-6. Keep output structured, clear, and ready to use.
-7. Do NOT add prompt-engineering sections like "Task", "Constraints", or markdown-style headings unless the mode allows it (e.g., Expert mode).
-8. Behave like a selective, high-quality system. If the prompt is already excellent, make only minimal refinements.`;
+const COMMON_PROMPT_RULES = `<rules>
+1. FIERCE PRESERVATION: You must absolutely preserve the user's original core intent. Do not hallucinate entirely different goals.
+2. NEGATIVE CONSTRAINTS: If the user says "do not include X" or "no Y", you MUST mathematically ensure X or Y is excluded.
+3. ZERO FLUFF: NEVER start your response with "Here is your improved prompt:" or "Certainly!". NEVER include conversational filler. You are an API; output ONLY the exact, raw, ready-to-use prompt text.
+4. CLARITY: Fix all grammar, spelling, and syntactic ambiguity.
+5. NO META-COMMENTARY: Do NOT include explanations of what you changed or why you changed it.
+</rules>`;
 
 const MODE_TEMPLATES = {
   quick: {
@@ -81,14 +65,14 @@ const MODE_TEMPLATES = {
 
 ${COMMON_PROMPT_RULES}
 
-Action: Fix grammar and slightly improve clarity.
-Make the prompt concise and practical. Keep the output as brief as possible while remaining effective.
-DO NOT introduce new context or invent details.`,
-    buildUserPrompt: (userPrompt) => `Rewrite this prompt to be short, clear, and immediately actionable:
-
-${userPrompt}`,
-    temperature: 0.2,
-    maxTokens: 200,
+<task>
+Fix grammar, punctuation, and slightly improve the clarity of the user's prompt. 
+Make the prompt concise and highly practical.
+Keep the output as brief as possible while remaining effective. DO NOT over-engineer it.
+</task>`,
+    buildUserPrompt: (userPrompt) => `Rewrite this prompt to be short, grammatically perfect, and immediately actionable:\n\n${userPrompt}`,
+    temperature: 0.1,
+    maxTokens: 250,
   },
 
   auto: {
@@ -96,21 +80,24 @@ ${userPrompt}`,
 
 ${COMMON_PROMPT_RULES}
 
-Rules for AUTO mode:
-- Act as a senior product thinker that thinks outside the box.
-- FIERCELY preserve the user's original core intent.
-- Suggest 2-3 innovative, unconventional ideas or features that align with the user's goal but elevate the concept.
-- Suggest alternative approaches or better technologies that solve the root problem more elegantly.
-- Use imperative language ("Build", "Design", "Create") and absolutely NEVER use first-person language ("I will create").
-- Produce a powerful prompt that transforms a basic idea into an outstanding product vision while remaining disciplined.`,
-    buildUserPrompt: (userPrompt, context) => `Analyze this prompt. As a senior product thinker, elevate the prompt's ambition. Inject innovative ideas, challenge weak assumptions, and suggest better approaches while keeping the core intent intact.
+<persona>
+You are an Elite Principal Product Manager and Creative Visionary. You don't just follow instructions; you elevate them to industry-leading standards.
+</persona>
 
-Complexity: ${context.complexity.level}
+<task>
+- Elevate the prompt's ambition and scope while fiercely preserving the core intent.
+- Inject 2-3 highly innovative, unconventional ideas that the user didn't think of.
+- Suggest alternative approaches or superior technologies if applicable.
+- Use powerful imperative language ("Build", "Design", "Architect") and NEVER use first-person language ("I will").
+- Transform a basic idea into an outstanding, professional product vision.
+</task>`,
+    buildUserPrompt: (userPrompt, context) => `As an Elite Product Visionary, analyze and elevate this prompt. Inject innovative ideas, challenge weak assumptions, and suggest vastly superior approaches while keeping the core intent intact.
 
-User prompt:
+[COMPLEXITY LEVEL: ${context.complexity.level}]
 
+User Prompt:
 ${userPrompt}`,
-    temperature: 0.65,
+    temperature: 0.7,
     maxTokens: 1000,
   },
 
@@ -119,14 +106,19 @@ ${userPrompt}`,
 
 ${COMMON_PROMPT_RULES}
 
-Expand the prompt intelligently. Focus on fixing grammar, clarifying requirements, improving wording, and adding MINIMAL useful context.
-Do not overcomplicate or bloat the prompt. Structure your output with clear numbered requirements or bullet points where it helps readability.
-Produce a reasonably detailed prompt, typically around 8–12 lines for moderate inputs. Do not restrict length to a specific number of sentences, and avoid unnecessary repetition or filler.`,
-    buildUserPrompt: (userPrompt) => `Rewrite this prompt to be balanced, clear, and highly effective. Add useful context and structure requirements clearly:
+<persona>
+You are a Pragmatic Technical Lead and Expert Prompt Engineer. You strike the ideal balance between clarity, structure, and brevity.
+</persona>
 
-${userPrompt}`,
-    temperature: 0.4,
-    maxTokens: 450,
+<task>
+- Expand the prompt intelligently while strictly preserving core intent.
+- Fix all grammatical ambiguities and structure requirements using clean bullet points.
+- Add minimal, highly relevant context to guide the target LLM effectively.
+- Keep the output concise, practical, and well-organized (8–15 lines).
+</task>`,
+    buildUserPrompt: (userPrompt) => `Elevate this prompt to be well-structured, clear, and balanced. Add precise requirements and useful context without bloat:\n\n${userPrompt}`,
+    temperature: 0.3,
+    maxTokens: 500,
   },
 
   expert: {
@@ -134,29 +126,19 @@ ${userPrompt}`,
 
 ${COMMON_PROMPT_RULES}
 
-**EXPERT OVERRIDES TO COMMON RULES:**
-- IGNORING RULE 7 & 10: You MUST use clean Markdown formatting, structured sections (e.g., "🎯 Project Overview", "⚡ Technical Constraints", "📋 Output Format"), and bullet points to break down complex prompts expertly. 
-- Do NOT just create a giant wall of text. Use headings to make the prompt readable and professional.
+<persona>
+You are an Elite Staff-Level Prompt Engineer and Systems Architect. You produce flawless, highly structured, edge-case-resistant engineering prompts.
+</persona>
 
-Your job is to transform the user's prompt into a perfect 10/10, architecturally rich, and technically detailed prompt suitable for expert-level AI responses.
-
-Guidelines:
-1. **PURE EXECUTION:** Do not just "describe" constraints—execute them within the final improved prompt. If the user asks for a JSON format, provide a structured JSON schema or example in the prompt. If they ask for creative rules (e.g., poetry constraints), explicitly state them as hard LLM rules.
-2. **DEEP CONTEXT:** Expand the request significantly with deeper engineering context, architecture considerations, scalability concerns, integration points, and operational aspects when relevant.
-3. **EDGE CASES & ERROR HANDLING:** Automatically inject instructions for the target LLM to handle errors, edge cases, and fallback scenarios.
-4. **EXPERT PERSONA:** Write the prompt so the target AI acts as a "Senior Staff Developer" or domain expert.
-5. **NO FLUFF:** No conversational padding ("Here is your prompt"). Just return the ultimate, perfect prompt itself.`,
-    buildUserPrompt: (userPrompt) => `Improve the following prompt into a perfect 10/10 expert-level engineering request.
-
-Ensure the final prompt has:
-- Beautiful Markdown structuring (Clear headings, bullet points, code blocks for schemas/examples if relevant).
-- Explicit, structured constraints that the target AI cannot misinterpret.
-- Architectural depth, edge case handling, and best-practice engineering guidelines.
-- Absolute adherence to the user's original negative constraints (if any).
-
-Prompt:
-${userPrompt}`,
-    temperature: 0.3,
+<task>
+Transform the user's prompt into a perfect 10/10, architecturally rich, and technically exhaustive request.
+1. STRUCTURE: You MUST use clean Markdown formatting with standard prompt-engineering sections (e.g., "🎯 Objective", "⚡ Constraints", "📋 Output Format", "🛡️ Edge Cases").
+2. EXECUTION: Do not just "describe" constraints—execute them within the final improved prompt as hard LLM rules.
+3. CONTEXT: Expand the request significantly with deeper engineering context, scalability concerns, integration points, and operational aspects when relevant.
+4. ERROR HANDLING: Automatically inject explicit instructions for the target LLM to handle errors, edge cases, and fallback scenarios.
+</task>`,
+    buildUserPrompt: (userPrompt) => `Re-engineer the following prompt into a perfect 10/10 expert-level request using professional Markdown structure:\n\n${userPrompt}`,
+    temperature: 0.4,
     maxTokens: 1500,
   },
 };
@@ -375,30 +357,7 @@ export const detectComplexity = (userPrompt = "") => {
   };
 };
 
-export const removeDuplicateLines = (input = "") => {
-  const lines = String(input || "").split(/\r?\n/);
-  const seen = new Set();
-  const output = [];
 
-  for (const line of lines) {
-    const normalized = line.trim().toLowerCase();
-
-    if (!normalized) {
-      output.push(line);
-      continue;
-    }
-
-    if (seen.has(normalized)) continue;
-
-    seen.add(normalized);
-    output.push(line);
-  }
-
-  return output
-    .join("\n")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-};
 
 export const validatePromptOutput = (output, mode = "balanced") => {
   const cleaned = String(output || "").trim();
@@ -483,14 +442,14 @@ export const buildPrompt = (mode, userPrompt, isRetry = false, previousPrompt = 
   const temperature = isRetry ? Math.min(template.temperature + 0.4, 1.0) : template.temperature;
 
   const userContent = previousPrompt
-    ? `Previous Prompt:\n${previousPrompt}\n\nUpdate Instruction:\n${userPrompt}`
-    : template.buildUserPrompt(userPrompt, { complexity });
+    ? `Previous Prompt:\n${previousPrompt}\n\nUpdate Instruction:\n<user_content>\n${userPrompt}\n</user_content>`
+    : template.buildUserPrompt(`<user_content>\n${userPrompt}\n</user_content>`, { complexity });
 
   return {
     selectedMode,
     temperature,
     maxTokens: template.maxTokens,
-    model: MODE_MODELS[selectedMode],
+    model: AI_CONFIG.MODELS[selectedMode],
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user", content: userContent },
@@ -498,14 +457,7 @@ export const buildPrompt = (mode, userPrompt, isRetry = false, previousPrompt = 
   };
 };
 
-const assembleStreamOutput = async (stream) => {
-  let fullText = "";
-  for await (const chunk of stream) {
-    const token = chunk?.choices?.[0]?.delta?.content || "";
-    if (token) fullText += token;
-  }
-  return fullText.trim();
-};
+
 
 const buildDeterministicFallbackPrompt = (userPrompt = "", candidatePrompt = "") => {
   const original = String(userPrompt || "").trim();
@@ -575,12 +527,12 @@ export const detectIntent = (text = "", intentMode = "auto") => {
 // ─────────────────────────────────────────────
 // NEW: Chat Mode streaming function
 // ─────────────────────────────────────────────
-export const chatWithAIStream = async (prompt, onToken) => {
+export const chatWithAIStream = async (prompt, onToken, signal) => {
   try {
-    const stream = await openai.chat.completions.create({
-      model: "meta/llama-3.1-70b-instruct",
+    const stream = await nvidiaProvider.streamCompletion({
+      model: AI_CONFIG.MODELS.chat,
       temperature: 0.5,
-      max_tokens: 500,
+      maxTokens: AI_CONFIG.LIMITS.MAX_OUTPUT_TOKENS.chat,
       messages: [
         {
           role: "system",
@@ -591,7 +543,7 @@ export const chatWithAIStream = async (prompt, onToken) => {
           content: prompt,
         },
       ],
-      stream: true,
+      signal,
     });
 
     let fullText = "";
@@ -611,12 +563,12 @@ export const chatWithAIStream = async (prompt, onToken) => {
   }
 };
 
-export const chatWithAI = async (prompt) => {
+export const chatWithAI = async (prompt, signal) => {
   try {
-    const response = await openai.chat.completions.create({
-      model: "meta/llama-3.1-70b-instruct",
+    const responseText = await nvidiaProvider.generateCompletion({
+      model: AI_CONFIG.MODELS.chat,
       temperature: 0.5,
-      max_tokens: 500,
+      maxTokens: AI_CONFIG.LIMITS.MAX_OUTPUT_TOKENS.chat,
       messages: [
         {
           role: "system",
@@ -627,8 +579,9 @@ export const chatWithAI = async (prompt) => {
           content: prompt,
         },
       ],
+      signal,
     });
-    return response.choices[0]?.message?.content?.trim() || "I'm having trouble responding right now. Please try again.";
+    return responseText || "I'm having trouble responding right now. Please try again.";
   } catch (error) {
     console.error("Nvidia Chat Error:", error);
     return "I'm having trouble responding right now. Please try again.";
@@ -640,11 +593,10 @@ export const chatWithAI = async (prompt) => {
 // Returns { needsClarification, message } if input
 // is meaningless, otherwise returns the improved prompt string.
 // ─────────────────────────────────────────────
-export const improvePromptWithAI = async (prompt, mode = "balanced", isRetry = false, store = null, domain = null) => {
+export const improvePromptWithAI = async (prompt, mode = "balanced", isRetry = false, store = null, domain = null, signal = null) => {
   const memStore = store || createMemoryStore();
   const isUpdate = Boolean(memStore.memory) && !isRetry;
 
-  // NEW: check for meaningless input before hitting the LLM
   if (isMeaninglessInput(prompt, isUpdate)) {
     return buildClarificationResponse(prompt);
   }
@@ -654,23 +606,20 @@ export const improvePromptWithAI = async (prompt, mode = "balanced", isRetry = f
       mode, prompt, isRetry, memStore.memory, domain
     );
 
-    const stream = await openai.chat.completions.create({
+    const assembled = await nvidiaProvider.generateCompletion({
       model,
       temperature,
-      max_tokens: maxTokens,
+      maxTokens,
       messages,
-      stream: true,
+      signal,
     });
 
-    const assembled = await assembleStreamOutput(stream);
-    const deduped = removeDuplicateLines(assembled);
-    const validated = validatePromptOutput(deduped, selectedMode);
+    const validated = validatePromptOutput(assembled, selectedMode);
 
     if (!validated.isValid) {
       console.warn(`Generated prompt failed validation: ${validated.errors.join(" ")}`);
-      const fallback = buildDeterministicFallbackPrompt(prompt, deduped);
-      if (!isRetry) memStore.memory = fallback;
-      return fallback;
+      // We bubble up errors now, instead of deterministic fallback, so the controller knows.
+      throw new Error(`Validation failed: ${validated.errors.join(" ")}`);
     }
 
     memStore.memory = validated.cleanedPrompt;
@@ -689,17 +638,14 @@ export const improvePromptWithAI = async (prompt, mode = "balanced", isRetry = f
 // If input is meaningless, calls onToken with the
 // clarification message and returns early — no LLM call.
 // ─────────────────────────────────────────────
-export const improvePromptWithAIStream = async (prompt, mode = "balanced", isRetry = false, onToken, store = null, domain = null) => {
+export const improvePromptWithAIStream = async (prompt, mode = "balanced", isRetry = false, onToken, store = null, domain = null, signal = null) => {
   const memStore = store || createMemoryStore();
   const isUpdate = Boolean(memStore.memory) && !isRetry;
 
-  // NEW: check for meaningless input before hitting the LLM
   if (isMeaninglessInput(prompt, isUpdate)) {
     const clarification = buildClarificationResponse(prompt);
-    // Stream the clarification message token by token so UI stays consistent
     for (const char of clarification.message) {
       onToken(char);
-      // small yield to keep streaming feel
       await new Promise(r => setTimeout(r, 0));
     }
     return clarification;
@@ -710,12 +656,12 @@ export const improvePromptWithAIStream = async (prompt, mode = "balanced", isRet
       mode, prompt, isRetry, memStore.memory, domain
     );
 
-    const stream = await openai.chat.completions.create({
+    const stream = await nvidiaProvider.streamCompletion({
       model,
       temperature,
-      max_tokens: maxTokens,
+      maxTokens,
       messages,
-      stream: true,
+      signal,
     });
 
     let fullText = "";
@@ -728,14 +674,11 @@ export const improvePromptWithAIStream = async (prompt, mode = "balanced", isRet
       }
     }
 
-    const deduped = removeDuplicateLines(fullText);
-    const validated = validatePromptOutput(deduped, selectedMode);
+    const validated = validatePromptOutput(fullText, selectedMode);
 
     if (!validated.isValid) {
       console.warn(`Generated prompt failed validation: ${validated.errors.join(" ")}`);
-      const fallback = buildDeterministicFallbackPrompt(prompt, deduped);
-      if (!isRetry) memStore.memory = fallback;
-      return fallback;
+      throw new Error(`Validation failed: ${validated.errors.join(" ")}`);
     }
 
     memStore.memory = validated.cleanedPrompt;
@@ -753,12 +696,12 @@ export const improvePromptWithAIStream = async (prompt, mode = "balanced", isRet
 // Generate Chat Title
 // Returns a short 2-4 word summary for a new chat
 // ─────────────────────────────────────────────
-export const generateChatTitle = async (prompt) => {
+export const generateChatTitle = async (prompt, signal = null) => {
   try {
-    const response = await openai.chat.completions.create({
-      model: "meta/llama-3.1-70b-instruct",
+    const titleText = await nvidiaProvider.generateCompletion({
+      model: AI_CONFIG.MODELS.chat,
       temperature: 0.3,
-      max_tokens: 15,
+      maxTokens: 15,
       messages: [
         {
           role: "system",
@@ -769,11 +712,11 @@ export const generateChatTitle = async (prompt) => {
           content: String(prompt).trim(),
         },
       ],
+      signal,
     });
 
-    const title = response?.choices?.[0]?.message?.content?.trim() || "";
     // Clean up any stray quotes the model might have added
-    return title.replace(/^["']|["']$/g, "").substring(0, 60);
+    return (titleText || "").replace(/^["']|["']$/g, "").substring(0, 60);
   } catch (error) {
     console.error("Generate chat title error:", error);
     return null;
