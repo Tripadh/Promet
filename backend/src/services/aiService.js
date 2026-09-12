@@ -449,7 +449,7 @@ export const buildPrompt = (mode, userPrompt, isRetry = false, previousPrompt = 
     selectedMode,
     temperature,
     maxTokens: template.maxTokens,
-    model: AI_CONFIG.MODELS[selectedMode],
+    models: AI_CONFIG.MODELS[selectedMode],
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user", content: userContent },
@@ -530,7 +530,7 @@ export const detectIntent = (text = "", intentMode = "auto") => {
 export const chatWithAIStream = async (prompt, onToken, signal) => {
   try {
     const stream = await nvidiaProvider.streamCompletion({
-      model: AI_CONFIG.MODELS.chat,
+      models: AI_CONFIG.MODELS.chat,
       temperature: 0.5,
       maxTokens: AI_CONFIG.LIMITS.MAX_OUTPUT_TOKENS.chat,
       messages: [
@@ -566,7 +566,7 @@ export const chatWithAIStream = async (prompt, onToken, signal) => {
 export const chatWithAI = async (prompt, signal) => {
   try {
     const responseText = await nvidiaProvider.generateCompletion({
-      model: AI_CONFIG.MODELS.chat,
+      models: AI_CONFIG.MODELS.chat,
       temperature: 0.5,
       maxTokens: AI_CONFIG.LIMITS.MAX_OUTPUT_TOKENS.chat,
       messages: [
@@ -602,12 +602,12 @@ export const improvePromptWithAI = async (prompt, mode = "balanced", isRetry = f
   }
 
   try {
-    const { selectedMode, temperature, maxTokens, model, messages } = buildPrompt(
+    const { selectedMode, temperature, maxTokens, models, messages } = buildPrompt(
       mode, prompt, isRetry, memStore.memory, domain
     );
 
     const assembled = await nvidiaProvider.generateCompletion({
-      model,
+      models,
       temperature,
       maxTokens,
       messages,
@@ -652,12 +652,12 @@ export const improvePromptWithAIStream = async (prompt, mode = "balanced", isRet
   }
 
   try {
-    const { selectedMode, temperature, maxTokens, model, messages } = buildPrompt(
+    const { selectedMode, temperature, maxTokens, models, messages } = buildPrompt(
       mode, prompt, isRetry, memStore.memory, domain
     );
 
     const stream = await nvidiaProvider.streamCompletion({
-      model,
+      models,
       temperature,
       maxTokens,
       messages,
@@ -699,7 +699,7 @@ export const improvePromptWithAIStream = async (prompt, mode = "balanced", isRet
 export const generateChatTitle = async (prompt, signal = null) => {
   try {
     const titleText = await nvidiaProvider.generateCompletion({
-      model: AI_CONFIG.MODELS.chat,
+      models: AI_CONFIG.MODELS.chat,
       temperature: 0.3,
       maxTokens: 15,
       messages: [

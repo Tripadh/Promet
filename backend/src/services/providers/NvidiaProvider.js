@@ -101,44 +101,71 @@ class NvidiaProvider {
   }
 
   /**
-   * Generates a single string response.
+   * Generates a single string response with fallback support.
    */
-  async generateCompletion({ model, messages, temperature, maxTokens, signal }) {
+  async generateCompletion({ models, messages, temperature, maxTokens, signal }) {
     const client = this.getClient();
+    let lastError = null;
+    
+    // Ensure models is an array
+    const modelChain = Array.isArray(models) ? models : [models];
 
-    return this._executeWithRetry(async () => {
-      const response = await client.chat.completions.create(
-        {
-          model,
-          messages,
-          temperature,
-          max_tokens: maxTokens,
-        },
-        { signal }
-      );
-      return response.choices[0]?.message?.content?.trim() || "";
-    }, signal);
+    for (const currentModel of modelChain) {
+      try {
+        return await this._executeWithRetry(async () => {
+          const response = await client.chat.completions.create(
+            {
+              model: currentModel,
+              messages,
+              temperature,
+              max_tokens: maxTokens,
+            },
+            { signal }
+          );
+          return response.choices[0]?.message?.content?.trim() || "";
+        }, signal);
+      } catch (error) {
+        if (signal?.aborted || error.name === "AbortError") throw error;
+        console.warn(`[NvidiaProvider] Model ${currentModel} failed. Falling back to next... Error: ${error.message}`);
+        lastError = error;
+      }
+    }
+    
+    // If we exhaust all models
+    throw lastError || new Error("All fallback models failed.");
   }
 
   /**
-   * Streams a response.
-   * Returns an async generator.
+   * Streams a response with fallback support.
    */
-  async streamCompletion({ model, messages, temperature, maxTokens, signal }) {
+  async streamCompletion({ models, messages, temperature, maxTokens, signal }) {
     const client = this.getClient();
+    let lastError = null;
 
-    return this._executeWithRetry(async () => {
-      return await client.chat.completions.create(
-        {
-          model,
-          messages,
-          temperature,
-          max_tokens: maxTokens,
-          stream: true,
-        },
-        { signal }
-      );
-    }, signal);
+    const modelChain = Array.isArray(models) ? models : [models];
+
+    for (const currentModel of modelChain) {
+      try {
+        return await this._executeWithRetry(async () => {
+          return await client.chat.completions.create(
+            {
+              model: currentModel,
+              messages,
+              temperature,
+              max_tokens: maxTokens,
+              stream: true,
+            },
+            { signal }
+          );
+        }, signal);
+      } catch (error) {
+        if (signal?.aborted || error.name === "AbortError") throw error;
+        console.warn(`[NvidiaProvider] Model ${currentModel} failed. Falling back to next... Error: ${error.message}`);
+        lastError = error;
+      }
+    }
+
+    throw lastError || new Error("All fallback models failed.");
   }
 }
 

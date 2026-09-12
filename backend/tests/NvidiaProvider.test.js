@@ -41,7 +41,7 @@ describe("NvidiaProvider Retry and Error Handling Tests", () => {
     nvidiaProvider._sleep = vi.fn().mockResolvedValue();
 
     const result = await nvidiaProvider.generateCompletion({
-      model: "test-model",
+      models: ["test-model"],
       messages: [{ role: "user", content: "test" }],
       temperature: 0.5,
       maxTokens: 100,
@@ -57,7 +57,7 @@ describe("NvidiaProvider Retry and Error Handling Tests", () => {
     mockCreate.mockRejectedValueOnce(new OpenAIModule.default.APIError(401, "Unauthorized"));
 
     await expect(nvidiaProvider.generateCompletion({
-      model: "test-model",
+      models: ["test-model"],
       messages: [],
     })).rejects.toThrow(/authentication failed/);
 
@@ -69,7 +69,7 @@ describe("NvidiaProvider Retry and Error Handling Tests", () => {
     controller.abort();
 
     await expect(nvidiaProvider.generateCompletion({
-      model: "test-model",
+      models: ["test-model"],
       messages: [],
       signal: controller.signal,
     })).rejects.toThrow(/Aborted/);
