@@ -896,9 +896,6 @@ const Dashboard = () => {
               );
             })}
 
-            <div style={{background: 'red', color: 'white', padding: '20px', zIndex: 9999}}>
-              DEBUG: hasStartedConversation={String(hasStartedConversation)}, result={JSON.stringify(result)}, promptLoading={String(promptLoading)}, currentPrompt={currentPrompt}
-            </div>
             {(result || promptLoading) ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ alignSelf: 'flex-end', backgroundColor: 'var(--bg-panel)', color: 'var(--text-main)', border: '1px solid var(--border-panel)', padding: '15px 20px', borderRadius: '18px 18px 0 18px', maxWidth: '80%' }}>
