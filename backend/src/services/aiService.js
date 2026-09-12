@@ -1,18 +1,18 @@
 import OpenAI from "openai";
 
 const openai = new OpenAI({
-  apiKey: process.env.CEREBRAS_API_KEY,
-  baseURL: "https://api.cerebras.ai/v1"
+  apiKey: process.env.NVIDIA_API_KEY,
+  baseURL: "https://integrate.api.nvidia.com/v1"
 });
 
 const SUPPORTED_MODES = ["quick", "auto", "balanced", "expert"];
 
 // Per-mode model
 const MODE_MODELS = {
-  quick:    "gpt-oss-120b",
-  auto:     "gpt-oss-120b",
-  balanced: "gpt-oss-120b",
-  expert:   "gpt-oss-120b",
+  quick:    "meta/llama-3.1-70b-instruct",
+  auto:     "meta/llama-3.1-70b-instruct",
+  balanced: "meta/llama-3.1-70b-instruct",
+  expert:   "meta/llama-3.1-70b-instruct",
 };
 
 // ─────────────────────────────────────────────
@@ -578,7 +578,7 @@ export const detectIntent = (text = "", intentMode = "auto") => {
 export const chatWithAIStream = async (prompt, onToken) => {
   try {
     const stream = await openai.chat.completions.create({
-      model: "gpt-oss-120b",
+      model: "meta/llama-3.1-70b-instruct",
       temperature: 0.5,
       max_tokens: 500,
       messages: [
@@ -604,7 +604,7 @@ export const chatWithAIStream = async (prompt, onToken) => {
     }
     return fullText.trim();
   } catch (error) {
-    console.error("Cerebras Chat Streaming Error:", error);
+    console.error("Nvidia Chat Streaming Error:", error);
     const fallback = "I'm having trouble responding right now. Please try again.";
     for (const char of fallback) { onToken(char); }
     return fallback;
@@ -614,7 +614,7 @@ export const chatWithAIStream = async (prompt, onToken) => {
 export const chatWithAI = async (prompt) => {
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-oss-120b",
+      model: "meta/llama-3.1-70b-instruct",
       temperature: 0.5,
       max_tokens: 500,
       messages: [
@@ -630,7 +630,7 @@ export const chatWithAI = async (prompt) => {
     });
     return response.choices[0]?.message?.content?.trim() || "I'm having trouble responding right now. Please try again.";
   } catch (error) {
-    console.error("Cerebras Chat Error:", error);
+    console.error("Nvidia Chat Error:", error);
     return "I'm having trouble responding right now. Please try again.";
   }
 };
@@ -677,7 +677,7 @@ export const improvePromptWithAI = async (prompt, mode = "balanced", isRetry = f
     return validated.cleanedPrompt;
 
   } catch (error) {
-    console.error("Cerebras Error:", error);
+    console.error("Nvidia Error:", error);
     const fallback = buildDeterministicFallbackPrompt(prompt);
     if (!isRetry) memStore.memory = fallback;
     return fallback;
@@ -742,7 +742,7 @@ export const improvePromptWithAIStream = async (prompt, mode = "balanced", isRet
     return validated.cleanedPrompt;
 
   } catch (error) {
-    console.error("Cerebras Streaming Error:", error);
+    console.error("Nvidia Streaming Error:", error);
     const fallback = buildDeterministicFallbackPrompt(prompt);
     if (!isRetry) memStore.memory = fallback;
     return fallback;
@@ -756,7 +756,7 @@ export const improvePromptWithAIStream = async (prompt, mode = "balanced", isRet
 export const generateChatTitle = async (prompt) => {
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-oss-120b",
+      model: "meta/llama-3.1-70b-instruct",
       temperature: 0.3,
       max_tokens: 15,
       messages: [

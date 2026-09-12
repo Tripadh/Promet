@@ -10,7 +10,7 @@
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-green?logo=node.js)](https://nodejs.org)
 [![React](https://img.shields.io/badge/React-18-blue?logo=react)](https://reactjs.org)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-brightgreen?logo=mongodb)](https://mongodb.com)
-[![Cerebras](https://img.shields.io/badge/Cerebras-Cerebras_Cloud-orange)](https://cerebras.ai)
+[![Nvidia](https://img.shields.io/badge/Nvidia-NIM%20API-76B900)](https://build.nvidia.com)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
 
 [Live Demo](#) · [Report Bug](https://github.com/Tripadh/Promet/issues) · [Request Feature](https://github.com/Tripadh/Promet/issues)
@@ -46,7 +46,7 @@
 
 **Promet** is an open-source, full-stack AI Prompt Improver that helps users write better, clearer, and more effective prompts for large language models. Whether you're a developer, writer, marketer, or student — Promet takes your rough idea and transforms it into a production-quality prompt, instantly.
 
-The engine is powered by **Cerebras Cloud's ultra-fast inference API** running **gpt-oss-120b**, with four distinct improvement modes tailored to different use cases. Every interaction is streamed in real time to the browser for a snappy, ChatGPT-like experience.
+The engine is powered by **Nvidia's ultra-fast NIM API** running **Llama 3.1 70B Instruct**, with four distinct improvement modes tailored to different use cases. Every interaction is streamed in real time to the browser for a snappy, ChatGPT-like experience.
 
 ---
 
@@ -99,7 +99,7 @@ The engine is powered by **Cerebras Cloud's ultra-fast inference API** running *
 | **Frontend** | React 18, Vite 5, React Router v7, Vanilla CSS |
 | **Backend** | Node.js 18+, Express 5, ES Modules |
 | **Database** | MongoDB (Mongoose 9) |
-| **AI Engine** | OpenAI SDK (Cerebras Compatible) — gpt-oss-120b |
+| **AI Engine** | OpenAI SDK (Nvidia NIM API) — meta/llama-3.1-70b-instruct |
 | **Auth** | JWT, bcryptjs, Passport.js, passport-github2 |
 | **Email** | Nodemailer |
 | **CAPTCHA** | Google reCAPTCHA v2 |
@@ -126,8 +126,8 @@ The engine is powered by **Cerebras Cloud's ultra-fast inference API** running *
 └──────┬──────────────┬──────────────┬────────────────────┘
        │              │              │
        ▼              ▼              ▼
-  MongoDB       Cerebras API      Langfuse
-  (Mongoose)   (gpt-oss-120b)   (Observability)
+  MongoDB         Nvidia API      Langfuse
+  (Mongoose)    (Llama 3.1 70B) (Observability)
 ```
 
 The frontend is a **single-page application** (Vite build) that communicates with the Express REST API. AI results are delivered via **server-sent streaming**, so the user sees tokens as they are generated — zero page reloads.
@@ -141,7 +141,7 @@ The frontend is a **single-page application** (Vite build) that communicates wit
 - [Node.js](https://nodejs.org) v18 or later
 - [npm](https://www.npmjs.com) v9 or later
 - A running [MongoDB](https://mongodb.com) instance (local or [MongoDB Atlas](https://www.mongodb.com/cloud/atlas))
-- A [Cerebras API Key](https://cloud.cerebras.ai)
+- An [Nvidia API Key](https://build.nvidia.com)
 
 ### Installation
 
@@ -183,8 +183,8 @@ MONGODB_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/promet
 # ─── JWT ──────────────────────────────────────────────
 JWT_SECRET=your_super_secret_jwt_key_here
 
-# ─── Cerebras AI ────────────────────────────────────────
-CEREBRAS_API_KEY=your_cerebras_api_key_here
+# ─── Nvidia AI ────────────────────────────────────────
+NVIDIA_API_KEY=your_nvidia_api_key_here
 
 # ─── Email (Nodemailer) ───────────────────────────────
 EMAIL_USER=your_email@gmail.com
@@ -422,7 +422,7 @@ This project is licensed under the **MIT License** — see the [LICENSE](./LICEN
 
 <div align="center">
 
-Made with ❤️ and powered by [Cerebras Cloud](https://cerebras.ai) · [MongoDB](https://mongodb.com)
+Made with ❤️ and powered by [Nvidia NIM](https://build.nvidia.com) · [MongoDB](https://mongodb.com)
 
 ⭐ **Star this repo if you found it useful!** ⭐
 
