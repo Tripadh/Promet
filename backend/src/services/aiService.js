@@ -493,7 +493,7 @@ export const improvePromptWithAI = async (prompt, mode = "balanced", isRetry = f
   const memStore = store || createMemoryStore();
   const isUpdate = Boolean(memStore.memory) && !isRetry;
 
-  if (isMeaninglessInput(prompt, isUpdate)) {
+  if (isTooShortInput(prompt) || isMeaninglessInput(prompt, isUpdate)) {
     return buildClarificationResponse(prompt);
   }
 
@@ -538,7 +538,7 @@ export const improvePromptWithAIStream = async (prompt, mode = "balanced", isRet
   const memStore = store || createMemoryStore();
   const isUpdate = Boolean(memStore.memory) && !isRetry;
 
-  if (isMeaninglessInput(prompt, isUpdate)) {
+  if (isTooShortInput(prompt) || isMeaninglessInput(prompt, isUpdate)) {
     const clarification = buildClarificationResponse(prompt);
     for (const char of clarification.message) {
       onToken(char);
