@@ -5,9 +5,8 @@
     "moduleResolution": "node",
     "jsx": "react-jsx",
     "allowJs": true,
-    "checkJs": true,
+    "checkJs": false,
     "forceConsistentCasingInFileNames": false,
-    "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]

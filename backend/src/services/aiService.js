@@ -485,33 +485,6 @@ export const isTooShortInput = (text = "") => {
 };
 
 // ─────────────────────────────────────────────
-
-
-// ─────────────────────────────────────────────
-    const responseText = await nvidiaProvider.generateCompletion({
-      models: AI_CONFIG.MODELS.chat,
-      temperature: 0.5,
-      maxTokens: AI_CONFIG.LIMITS.MAX_OUTPUT_TOKENS.chat,
-      messages: [
-        {
-          role: "system",
-          content: "You are a friendly assistant. Respond naturally and casually. Do not use prompt-engineering formatting templates unless the user specifically asks you to improve a prompt.",
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-      signal,
-    });
-    return responseText || "I'm having trouble responding right now. Please try again.";
-  } catch (error) {
-    console.error("Nvidia Chat Error:", error);
-    return "I'm having trouble responding right now. Please try again.";
-  }
-};
-
-// ─────────────────────────────────────────────
 // Main improve function (non-streaming)
 // Returns { needsClarification, message } if input
 // is meaningless, otherwise returns the improved prompt string.
