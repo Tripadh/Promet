@@ -21,7 +21,7 @@ export const validatePromptRequest = (req) => {
     errors.push(`Prompt exceeds maximum length of ${AI_CONFIG.LIMITS.MAX_PROMPT_LENGTH} characters.`);
   }
 
-  if (mode && !Object.keys(AI_CONFIG.MODELS).includes(mode) && mode !== "chat") {
+  if (mode && !Object.keys(AI_CONFIG.MODELS).includes(mode)) {
     errors.push(`Invalid mode: ${mode}`);
   }
 

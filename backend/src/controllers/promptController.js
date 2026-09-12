@@ -1,4 +1,4 @@
-import { improvePromptWithAI, improvePromptWithAIStream, normalizeMode, generateChatTitle, detectIntent, chatWithAIStream } from "../services/aiService.js";
+import { improvePromptWithAI, improvePromptWithAIStream, normalizeMode, generateChatTitle } from "../services/aiService.js";
 import { analyzePrompt as analyzeUserPrompt } from "../services/promptAnalyzer.js";
 import { validatePromptRequest } from "../utils/validators.js";
 import Prompt from "../models/Prompt.js";
@@ -81,31 +81,24 @@ export const improvePrompt = async (req, res) => {
     // Use actual streaming from AI for fast, letter-by-letter display
     let finalImprovedPrompt = "";
     
-    // DETECT INTENT
-    const intent = detectIntent(prompt, intentMode);
+    // Daily Limit Check
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
 
-    // Improve Mode Quota Check
-    if (intent === "improve") {
-      const startOfDay = new Date();
-      startOfDay.setHours(0, 0, 0, 0);
-      const endOfDay = new Date();
-      endOfDay.setHours(23, 59, 59, 999);
+    const dailyImproveCount = await Prompt.countDocuments({
+      user: req.user.id,
+      createdAt: { $gte: startOfDay, $lte: endOfDay }
+    });
 
-      const dailyImproveCount = await Prompt.countDocuments({
-        user: req.user.id,
-        mode: { $ne: "chat" }, // Only count actual improvements
-        createdAt: { $gte: startOfDay, $lte: endOfDay }
+    if (dailyImproveCount >= 25) {
+      return res.status(429).json({
+        message: "You have reached your daily limit of 25 improvements.",
+        code: "DAILY_LIMIT_REACHED",
+        limit: 25,
       });
-
-      if (dailyImproveCount >= 25) {
-        return res.status(429).json({
-          message: "You have reached your daily limit of 25 improvements. Chat remains unlimited!",
-          code: "DAILY_LIMIT_REACHED",
-          limit: 25,
-        });
-      }
     }
-
     /* ================= ABORT CONTROLLER ================= */
     const abortController = new AbortController();
     req.on("close", () => {
@@ -113,35 +106,23 @@ export const improvePrompt = async (req, res) => {
       abortController.abort();
     });
 
-    let streamResult;
+    let streamResult = await improvePromptWithAIStream(
+      prompt,
+      selectedMode,
+      isRetry,
+      (textChunk) => {
+        finalImprovedPrompt += textChunk;
+        res.write(`data: ${JSON.stringify({ text: textChunk })}\n\n`);
+      },
+      { memory: previousPromptText },
+      domain,
+      abortController.signal
+    );
 
-    if (intent === "chat") {
-      finalImprovedPrompt = await chatWithAIStream(
-        prompt,
-        (textChunk) => {
-          res.write(`data: ${JSON.stringify({ text: textChunk })}\n\n`);
-        },
-        abortController.signal
-      );
-    } else {
-      streamResult = await improvePromptWithAIStream(
-        prompt,
-        selectedMode,
-        isRetry,
-        (textChunk) => {
-          finalImprovedPrompt += textChunk;
-          res.write(`data: ${JSON.stringify({ text: textChunk })}\n\n`);
-        },
-        { memory: previousPromptText },
-        domain,
-        abortController.signal
-      );
-
-      if (streamResult && streamResult.needsClarification) {
-        res.write(`data: ${JSON.stringify({ done: true, analysis: promptAnalysis })}\n\n`);
-        res.end();
-        return;
-      }
+    if (streamResult && streamResult.needsClarification) {
+      res.write(`data: ${JSON.stringify({ done: true, analysis: promptAnalysis })}\n\n`);
+      res.end();
+      return;
     }
 
     // Format the final improved prompt with sections if needed,
@@ -162,7 +143,7 @@ export const improvePrompt = async (req, res) => {
       user: req.user.id,
       originalPrompt: prompt,
       improvedPrompt: finalImprovedPrompt,
-      mode: intent === "chat" ? "chat" : selectedMode,
+      mode: selectedMode,
       conversationId: conversationKey,
       title: chatTitle,
       langfuseTraceId: trace.id,
@@ -177,7 +158,7 @@ export const improvePrompt = async (req, res) => {
       {
         $inc: {
           totalPrompts: 1, // Still track total interactions
-          [`byMode.${intent === "chat" ? "chat" : selectedMode}`]: 1,
+          [`byMode.${selectedMode}`]: 1,
         },
       },
       {

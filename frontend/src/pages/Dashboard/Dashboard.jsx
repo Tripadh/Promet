@@ -117,28 +117,6 @@ const Dashboard = () => {
   const displayName = user?.name || 'there';
 
   // Mirrors the backend detectIntent logic — keeps the counter accurate without an extra API call
-  const detectIntentFrontend = (text = '') => {
-    const trimmed = String(text || '').trim();
-    const lower = trimmed.toLowerCase();
-    const words = lower.split(/\s+/).filter(Boolean);
-
-    // 1 word or fewer → always chat
-    if (words.length <= 1) return 'chat';
-
-    // 2-word command like "build app" → improve
-    const commandWords = ['build', 'create', 'make', 'fix', 'write', 'design'];
-    if (words.length === 2 && commandWords.includes(words[0])) return 'improve';
-
-    // Contains action verbs → improve
-    const actionVerbs = ['build', 'create', 'design', 'analyze', 'generate', 'develop', 'write', 'make', 'improve', 'expand', 'summarize', 'fix'];
-    if (words.some(w => actionVerbs.includes(w))) return 'improve';
-
-    // Multi-line or long input → improve
-    if (trimmed.includes('\n') || trimmed.length > 120) return 'improve';
-
-    // Default → chat
-    return 'chat';
-  };
 
   useEffect(() => {
     const hasContent = Boolean(result || currentPrompt);
@@ -271,8 +249,8 @@ const Dashboard = () => {
     setActivePromptTimestamp(payload.timestamp || new Date());
     try {
       await improvePrompt(payload.prompt, payload.mode, payload.isRetry, payload.domain || null);
-      // Only increment the improvement counter if the backend treats this as an improvement, not a chat
-      if (!payload.isRetry && detectIntentFrontend(payload.prompt) === 'improve') {
+      // Increment the improvement counter for every new prompt
+      if (!payload.isRetry) {
         setDailyCount((prev) => prev + 1);
       }
     } catch (error) {

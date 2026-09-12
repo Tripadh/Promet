@@ -485,86 +485,9 @@ export const isTooShortInput = (text = "") => {
 };
 
 // ─────────────────────────────────────────────
-// NEW: Detect Intent (Chat vs Improve)
-// ─────────────────────────────────────────────
-export const detectIntent = (text = "", intentMode = "auto") => {
-  if (intentMode === "chat") return "chat";
-  if (intentMode === "improve") return "improve";
 
-  const trimmed = String(text || "").trim();
-  const lower = trimmed.toLowerCase();
-  const words = lower.split(/\s+/).filter(Boolean);
-
-  // 1. Run short input guard (1 word goes to chat)
-  if (words.length <= 1) {
-    return "chat";
-  }
-
-  // 2. If input is a 2-word command -> improve
-  const commandWords = ["build", "create", "make", "fix", "write", "design"];
-  if (words.length === 2 && commandWords.includes(words[0])) {
-    return "improve";
-  }
-
-  // 3. If contains action verbs (word-level match) -> improve
-  const actionVerbs = [
-    "build", "create", "design", "analyze", "generate",
-    "develop", "write", "make", "improve", "expand", "summarize", "fix"
-  ];
-  if (words.some(word => actionVerbs.includes(word))) {
-    return "improve";
-  }
-
-  // 4. Strong constraints for Improve mode
-  if (trimmed.includes('\n') || trimmed.length > 120) {
-    return "improve";
-  }
-
-  // 5. Default fallback is chat
-  return "chat";
-};
 
 // ─────────────────────────────────────────────
-// NEW: Chat Mode streaming function
-// ─────────────────────────────────────────────
-export const chatWithAIStream = async (prompt, onToken, signal) => {
-  try {
-    const stream = await nvidiaProvider.streamCompletion({
-      models: AI_CONFIG.MODELS.chat,
-      temperature: 0.5,
-      maxTokens: AI_CONFIG.LIMITS.MAX_OUTPUT_TOKENS.chat,
-      messages: [
-        {
-          role: "system",
-          content: "You are a friendly assistant. Respond naturally and casually. Do not use prompt-engineering formatting templates unless the user specifically asks you to improve a prompt.",
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-      signal,
-    });
-
-    let fullText = "";
-    for await (const chunk of stream) {
-      const token = chunk?.choices?.[0]?.delta?.content || "";
-      if (token) {
-        fullText += token;
-        onToken(token);
-      }
-    }
-    return fullText.trim();
-  } catch (error) {
-    console.error("Nvidia Chat Streaming Error:", error);
-    const fallback = "I'm having trouble responding right now. Please try again.";
-    for (const char of fallback) { onToken(char); }
-    return fallback;
-  }
-};
-
-export const chatWithAI = async (prompt, signal) => {
-  try {
     const responseText = await nvidiaProvider.generateCompletion({
       models: AI_CONFIG.MODELS.chat,
       temperature: 0.5,
@@ -699,7 +622,7 @@ export const improvePromptWithAIStream = async (prompt, mode = "balanced", isRet
 export const generateChatTitle = async (prompt, signal = null) => {
   try {
     const titleText = await nvidiaProvider.generateCompletion({
-      models: AI_CONFIG.MODELS.chat,
+      models: AI_CONFIG.MODELS.quick,
       temperature: 0.3,
       maxTokens: 15,
       messages: [
