@@ -10,7 +10,7 @@
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-green?logo=node.js)](https://nodejs.org)
 [![React](https://img.shields.io/badge/React-18-blue?logo=react)](https://reactjs.org)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-brightgreen?logo=mongodb)](https://mongodb.com)
-[![Groq](https://img.shields.io/badge/Groq-Llama%203-orange)](https://groq.com)
+[![Cerebras](https://img.shields.io/badge/Cerebras-Cerebras_Cloud-orange)](https://cerebras.ai)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
 
 [Live Demo](#) · [Report Bug](https://github.com/Tripadh/Promet/issues) · [Request Feature](https://github.com/Tripadh/Promet/issues)
@@ -46,7 +46,7 @@
 
 **Promet** is an open-source, full-stack AI Prompt Improver that helps users write better, clearer, and more effective prompts for large language models. Whether you're a developer, writer, marketer, or student — Promet takes your rough idea and transforms it into a production-quality prompt, instantly.
 
-The engine is powered by **Groq's ultra-fast inference API** running **Meta's Llama 3 models**, with four distinct improvement modes tailored to different use cases. Every interaction is streamed in real time to the browser for a snappy, ChatGPT-like experience.
+The engine is powered by **Cerebras Cloud's ultra-fast inference API** running **gpt-oss-120b**, with four distinct improvement modes tailored to different use cases. Every interaction is streamed in real time to the browser for a snappy, ChatGPT-like experience.
 
 ---
 
@@ -99,7 +99,7 @@ The engine is powered by **Groq's ultra-fast inference API** running **Meta's Ll
 | **Frontend** | React 18, Vite 5, React Router v7, Vanilla CSS |
 | **Backend** | Node.js 18+, Express 5, ES Modules |
 | **Database** | MongoDB (Mongoose 9) |
-| **AI Engine** | Groq SDK — Llama 3.1 8B Instant, Llama 3.3 70B Versatile |
+| **AI Engine** | OpenAI SDK (Cerebras Compatible) — gpt-oss-120b |
 | **Auth** | JWT, bcryptjs, Passport.js, passport-github2 |
 | **Email** | Nodemailer |
 | **CAPTCHA** | Google reCAPTCHA v2 |
@@ -126,8 +126,8 @@ The engine is powered by **Groq's ultra-fast inference API** running **Meta's Ll
 └──────┬──────────────┬──────────────┬────────────────────┘
        │              │              │
        ▼              ▼              ▼
-  MongoDB         Groq API        Langfuse
-  (Mongoose)    (Llama 3 LLMs)  (Observability)
+  MongoDB       Cerebras API      Langfuse
+  (Mongoose)   (gpt-oss-120b)   (Observability)
 ```
 
 The frontend is a **single-page application** (Vite build) that communicates with the Express REST API. AI results are delivered via **server-sent streaming**, so the user sees tokens as they are generated — zero page reloads.
@@ -141,7 +141,7 @@ The frontend is a **single-page application** (Vite build) that communicates wit
 - [Node.js](https://nodejs.org) v18 or later
 - [npm](https://www.npmjs.com) v9 or later
 - A running [MongoDB](https://mongodb.com) instance (local or [MongoDB Atlas](https://www.mongodb.com/cloud/atlas))
-- A [Groq API Key](https://console.groq.com)
+- A [Cerebras API Key](https://cloud.cerebras.ai)
 
 ### Installation
 
@@ -183,8 +183,8 @@ MONGODB_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/promet
 # ─── JWT ──────────────────────────────────────────────
 JWT_SECRET=your_super_secret_jwt_key_here
 
-# ─── Groq AI ──────────────────────────────────────────
-GROQ_API_KEY=gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+# ─── Cerebras AI ────────────────────────────────────────
+CEREBRAS_API_KEY=your_cerebras_api_key_here
 
 # ─── Email (Nodemailer) ───────────────────────────────
 EMAIL_USER=your_email@gmail.com
@@ -352,10 +352,10 @@ Promet offers four modes to match your use case:
 
 | Mode | Model | Best For | Output Length |
 |------|-------|----------|---------------|
-| **⚡ Quick** | Llama 3.1 8B Instant | Fast, concise fixes | ~50 words |
-| **⚖️ Balanced** | Llama 3.1 8B Instant | Clear, structured improvements | ~8–12 lines |
-| **🤖 Auto** | Llama 3.3 70B Versatile | Creative expansion, fresh ideas | ~200+ words |
-| **🎯 Expert** | Llama 3.3 70B Versatile | Architect-level, Markdown formatted | ~400+ words |
+| **⚡ Quick** | gpt-oss-120b | Fast, concise fixes | ~50 words |
+| **⚖️ Balanced** | gpt-oss-120b | Clear, structured improvements | ~8–12 lines |
+| **🤖 Auto** | gpt-oss-120b | Creative expansion, fresh ideas | ~200+ words |
+| **🎯 Expert** | gpt-oss-120b | Architect-level, Markdown formatted | ~400+ words |
 
 ### Temperature by Mode
 - **Quick** → `0.2` (deterministic, safe)
@@ -422,7 +422,7 @@ This project is licensed under the **MIT License** — see the [LICENSE](./LICEN
 
 <div align="center">
 
-Made with ❤️ and powered by [Groq](https://groq.com) · [Llama 3](https://llama.meta.com) · [MongoDB](https://mongodb.com)
+Made with ❤️ and powered by [Cerebras Cloud](https://cerebras.ai) · [MongoDB](https://mongodb.com)
 
 ⭐ **Star this repo if you found it useful!** ⭐
 
